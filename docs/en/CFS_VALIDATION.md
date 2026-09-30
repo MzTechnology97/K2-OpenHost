@@ -52,7 +52,7 @@ Observed protocol state:
 
 ```text
 READ_MATERIAL:
-A:none;B:<40-byte RFID record>;C:unknown;D:unknown;
+A:none;B:<40-character RFID record>;C:unknown;D:unknown;
 
 READ_REMAIN:
 A=0, B=13, C=100, D=100
@@ -89,6 +89,8 @@ K2-OpenHost will not reimplement the CFS protocol. The target integration is the
 - `box_change.py`
 - `box_protocol.py`
 
+These modules are not necessarily tracked in Jacob's Kalico repository: the custom firmware distributes them as separate extras and they may appear as untracked files. The temporary Kalico clone used by OpenHost did not yet contain them at the tested commit/runtime state.
+
 The important OpenHost-specific work is the transport substitution:
 
 ```text
@@ -101,8 +103,20 @@ Jacob serial_485 / box stack
 
 `serial_485.py` already accepts a configurable serial device and defaults to 230400 8N1, so the expected CM5 configuration is simply `serial: /dev/ttyUSB2`.
 
+## First transport-only attempt
+
+Initial bootstrap of the temporary Kalico instance:
+
+- observed Kalico commit: `aa6bf7d`;
+- PySerial `3.4` available;
+- Jacob K2/CFS extras were not present in the clone;
+- Klippy started but did not open `/dev/ttyUSB2`;
+- the log reported a `ModuleNotFoundError` for a missing K2 extra and an incomplete MCU configuration.
+
+This is not classified as a bridge or `serial_485` failure: Jacob's transport module was not yet present in the runtime tree, so the native path was never exercised.
+
 ## Next validation step
 
-Before enabling the full `[box]` integration, validate Jacob's native `serial_485.py` in a separate temporary Kalico instance using `/dev/ttyUSB2`.
+Fetch the K2/CFS extras from Jacobean's content-addressed firmware store, verify their SHA-256 digests against the manifest, and copy them only into the volatile `/dev/shm/k2-openhost-kalico` clone.
 
-This first test intentionally loads only the transport module. The full `box.py` startup performs CFS initialization, including an RFID policy command, so it will be enabled only after the transport-only test succeeds.
+Then repeat the native `serial_485.py` test against `/dev/ttyUSB2`. The full `[box]` module will only be enabled after transport succeeds, because `box.py` startup performs CFS initialization and RFID policy writes in addition to state reads.
