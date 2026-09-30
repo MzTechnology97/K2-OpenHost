@@ -89,6 +89,8 @@ K2-OpenHost non reimplementerà il protocollo CFS. L'integrazione target è lo s
 - `box_change.py`
 - `box_protocol.py`
 
+Questi moduli non sono necessariamente tracciati nel repository Kalico di Jacob: il firmware custom li distribuisce come extras separati e possono apparire come file untracked. Il clone Kalico temporaneo usato da OpenHost al commit testato non li conteneva ancora.
+
 Il lavoro specifico OpenHost consiste soprattutto nella sostituzione del trasporto:
 
 ```text
@@ -101,8 +103,20 @@ Stack Jacob serial_485 / box
 
 `serial_485.py` accetta già un device seriale configurabile e usa di default 230400 8N1, quindi sul CM5 la configurazione prevista è semplicemente `serial: /dev/ttyUSB2`.
 
+## Primo tentativo transport-only
+
+Primo bootstrap dell'istanza Kalico temporanea:
+
+- commit Kalico osservato: `aa6bf7d`;
+- PySerial `3.4` disponibile;
+- gli extras K2/CFS Jacob non erano presenti nel clone;
+- il processo Klippy è partito ma non ha aperto `/dev/ttyUSB2`;
+- il log ha segnalato `ModuleNotFoundError` per un extra K2 mancante e una configurazione MCU incompleta.
+
+Il test non viene classificato come errore del bridge o di `serial_485`: il modulo di trasporto Jacob non era ancora disponibile nell'albero runtime, quindi il percorso nativo non è stato realmente esercitato.
+
 ## Prossimo step di validazione
 
-Prima di abilitare l'integrazione completa `[box]`, validare il `serial_485.py` nativo di Jacob in un'istanza Kalico temporanea separata usando `/dev/ttyUSB2`.
+Recuperare gli extras K2/CFS dal content-addressed firmware store di Jacobean, verificandone gli SHA-256 dal manifest, e copiarli esclusivamente nel clone volatile `/dev/shm/k2-openhost-kalico`.
 
-Il primo test caricherà intenzionalmente solo il modulo di trasporto. L'avvio completo di `box.py` esegue inizializzazione CFS, inclusa una policy RFID, quindi verrà abilitato solo dopo il successo del test transport-only.
+Poi ripetere il test con `serial_485.py` puntato a `/dev/ttyUSB2`. Solo dopo il successo del transport nativo verrà abilitato `[box]`, perché l'avvio completo di `box.py` esegue inizializzazione CFS e policy RFID oltre alle letture di stato.
