@@ -138,30 +138,41 @@ Y RX: f7 82 04 00 0e 82 09
 |---|---:|---|
 | Identificazione UART host CFS/RS-485 | ✅ | `/dev/ttyS5` |
 | Esposizione UART CFS/RS-485 all'host esterno | ✅ | Terza seriale gadget verificata |
-| Collegamento CFS a OpenHost già attivo | ✅ | Il CFS collegato a caldo ha risposto senza riavviare la stampante |
-| Discovery CFS `A1` dall'host esterno | ✅ | Tre richieste broadcast consecutive hanno restituito frame validi e identici |
-| Tipo dispositivo CFS | ✅ | `0x01` = Material Box |
-| Modalità application/loader CFS | ✅ | `0x00` = application mode |
-| CRC risposta CFS | ✅ | CRC del frame discovery acquisito verificato |
-| Unique ID CFS | ✅ | Ricevuto UniID a 12 byte; identificatore esatto intenzionalmente non pubblicato |
-| Assegnazione indirizzo CFS (`A0`) | ⏳ | Non ancora eseguita |
-| Online-check CFS dopo assegnazione (`A2`) | ⏳ | Da verificare dopo assegnazione controllata |
-| Stato/operazioni filamento CFS | ⏳ | Da eseguire; nessun comando di movimento filamento inviato |
+| CFS collegato a caldo con OpenHost già attivo | ✅ | Discovery valida senza reboot stampante |
+| Discovery CFS `A1` | ✅ | Risposta Material Box valida in application mode |
+| Assegnazione indirizzo `A0` | ✅ | `0x01` accettato; persistenza power-cycle non ancora dichiarata |
+| Online check `A2` | ✅ | Risposta valida da `0x01` |
+| Address table `A3` | ✅ | Risposta valida da `0x01` |
+| UniID CFS | ✅ | Ricevuto e intenzionalmente non pubblicato |
+| Box state `0x0A` raw | ✅ | Formato steady a 4 byte e `STATUS=0x30` slot-event verificati |
+| Version/SN `0x14` | ✅ | Risposta ASCII valida; identificativo redatto |
+| Slot mask `0x08` channel 0 | ✅ | `0x0F` con A-D presenti, `0x0E` con A vuoto |
+| Hub mask `0x08` channel 1 | ✅ | `0x00` nello stato attuale; semantica sotto carico da correlare |
+| Buffer `0x05` | ✅ | `0x02` con buffer vuoto |
+| RFID/material `0x02` | ✅ | `none`, `unknown` e record RFID a 40 caratteri correlati all'hardware |
+| Remaining `0x03` | ✅ | `[0,13,100,100]` coerente con A vuoto, B RFID, C/D non-RFID |
+| Transport nativo Jacob `Serial_485_Wrapper` | ✅ | `/dev/ttyUSB2` a 230400 senza patch |
+| Jacob `AutoAddressManager` | ✅ | `online=[1]`, `known=[1]`, zero errori |
+| Jacob `BoxDriver` read-only | ✅ | slot/hub/buffer/RFID/remaining verificati; zero transport error |
+| Decoder Jacobean 6.18 `BOX_STATE` steady | ❌ | Attende 6 byte; il CFS K2 Pro restituisce il formato wire-correct a 4 byte |
+| Shim runtime K2-Pro per `BOX_STATE` | ✅ | 4-byte steady decodificato senza inventare campi; eventi `0x30` preservati |
+| Loaded-path affidabile per load/unload automatico | ⏳ | Da correlare; `downstream_mask` non esiste nel formato 4-byte |
+| Load/unload automatico via Jacob `box.py` | ⏳ | Non ancora abilitato |
 
-Percorso discovery verificato:
+Percorso verificato:
 
 ```text
-Host esterno /dev/ttyUSB2
-        -> T113 gser.usb2 / ttyGS2
-        -> bridge byte-transparent
-        -> /dev/ttyS5 @ 230400
+CM5 /dev/ttyUSB2
+        -> K2 gser.usb2 / ttyGS2
+        -> bridge userspace byte-transparent
+        -> T113 /dev/ttyS5 @ 230400
+        -> bus RS-485
         -> CFS
-        -> risposta discovery A1 valida
 ```
 
-Il box collegato ha risposto come Material Box non ancora indirizzato in application mode. La risposta contiene un UniID hardware valido a 12 byte e CRC valido. L'UniID viene deliberatamente omesso dalla documentazione pubblica.
+Il transport nativo Jacob ha completato i test read-only senza errori CRC, timeout, frame unmatched/stale o errori reader/send. Il primo delta reale non è il transport ma il modello `BOX_STATE`: Jacobean 6.18 usa uno steady payload a 6 byte, mentre il CFS della K2 Pro usa il formato wire-correct a 4 byte `[fw_hi][fw_lo][substatus][load_flag]`. Una shim runtime ha verificato `load_flag=0x00` come feed/change lasciando volutamente `temp_c`, `humidity_pct`, `box_state` e `downstream_mask` a `None`; il decoder eventi slot `STATUS=0x30` continua a funzionare.
 
-Un precedente probe `A2` aveva prodotto quattro byte zero invece di un frame protocollo valido con header `F7`; non viene quindi classificato come risposta CFS. Subito dopo, tre discovery `A1` consecutive hanno prodotto frame puliti, identici e validi.
+Per i dettagli e i risultati sanitizzati vedere `docs/it/CFS_VALIDATION.md`.
 
 ## Display / UI
 
@@ -208,8 +219,8 @@ Tutti gli esperimenti attuali sullo slot stock funzionante sono esclusivamente r
 
 ## Milestone attuale
 
-Il milestone di trasporto attuale è verificato su hardware:
+Il milestone CFS/transport attuale è verificato su hardware:
 
-> **Un singolo collegamento Micro-USB espone tre interfacce Generic Serial indipendenti dal T113 della K2 Pro verso un host Linux esterno. Main MCU, Nozzle MCU e RS-485 sono raggiungibili contemporaneamente; le query closed-loop X/Y funzionano end-to-end e un CFS fisicamente collegato restituisce ora frame discovery validi dall'host esterno attraverso lo stesso bridge RS-485. Non è stato necessario riflashare alcun MCU.**
+> **Un singolo collegamento Micro-USB espone tre interfacce Generic Serial indipendenti dal T113 della K2 Pro verso il CM5. Main MCU, Nozzle MCU e RS-485 sono raggiungibili contemporaneamente. Sul terzo canale il transport nativo Jacob, AutoAddressManager e BoxDriver leggono correttamente il CFS; slot mask, buffer, RFID e remaining coincidono con lo stato fisico, con zero errori di transport. Il solo delta noto è il decoder steady `BOX_STATE` Jacobean 6.18, già superato in RAM con una shim conservativa per il formato K2-Pro a 4 byte. Nessun MCU è stato riflashato.**
 
-Le prossime priorità sono assegnazione controllata indirizzo/online-check CFS, mappatura topologia USB, test reconnect/endurance, automazione boot, validazione forwarding Cartographer e successiva integrazione HelixScreen/Moonraker.
+Prossime priorità: portare la shim `BOX_STATE` nella sola copia volatile di `box_protocol.py`, validarla senza monkey-patch, correlare il loaded-path, poi valutare il polling `box.py`; restano inoltre mappatura topologia USB, endurance/reconnect, automazione boot, forwarding Cartographer e integrazione HelixScreen/Moonraker.
