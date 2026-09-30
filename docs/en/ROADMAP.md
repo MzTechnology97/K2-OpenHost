@@ -14,92 +14,85 @@ Status: **in progress / partially satisfied**.
 
 Goal: prove that the service/recovery Micro-USB connector can carry a normal Linux USB gadget at runtime.
 
-Tasks:
+Completed:
 
-1. Switch USB0 from host to device mode.
-2. Run `/bin/setusbconfig gser`.
-3. Connect Micro-USB to an external Linux host.
-4. Verify `0525:a4a6 Gadget Serial` enumeration.
-5. Bind the generic usbserial driver if required.
-6. Verify `/dev/ttyUSB0` on the external host.
-7. Perform bidirectional byte-transfer tests.
-8. Test disconnect/reconnect behavior.
+- USB0 host -> device switch;
+- `0525:a4a6 Gadget Serial` enumeration;
+- Linux `usbserial_generic` binding;
+- bidirectional byte transfer;
+- USB 2.0 High-Speed 480M link.
 
-Status: **next test**.
+Status: **completed for basic transport**.
 
-## Phase 2 — Map the K2 Pro MCU links
+Remaining reliability work moved to Phase 12.
 
-Goal: identify exactly how stock Klipper reaches the printer MCU(s).
+## Phase 2 — Map the K2 Pro hardware links
 
-Tasks:
+Completed mapping:
 
-- identify the main MCU UART;
-- identify the nozzle/toolhead MCU UART;
-- confirm baud rates and flow-control settings;
-- identify processes currently holding those ports;
-- document reset lines and restart behavior;
-- determine whether any other critical MCU/bus needs host-side access.
+```text
+/dev/ttyS2 -> Main MCU @ 230400
+/dev/ttyS3 -> Nozzle MCU @ 230400
+/dev/ttyS5 -> RS-485 / closed-loop / CFS path @ 230400
+```
 
-Status: **pending**.
+Status: **completed for required UART identification**.
 
 ## Phase 3 — Build a transparent serial bridge
 
-Goal: forward Klipper protocol bytes without interpreting them.
-
-First prototype:
+Runtime Python prototype verified for:
 
 ```text
-/dev/ttyGS0 <-> bridge process <-> /dev/ttySx
+/dev/ttyGS0 <-> /dev/ttyS2
+/dev/ttyGS1 <-> /dev/ttyS3
+/dev/ttyGS2 <-> /dev/ttyS5
 ```
 
-Requirements:
+Status: **prototype completed**.
 
-- raw mode;
-- no line discipline transformations;
-- minimal buffering;
-- robust reconnect handling;
-- statistics and debug logging that can be disabled for production;
-- deterministic startup/shutdown behavior.
+Remaining:
 
-Candidate implementations may include a small native daemon or a carefully configured serial-forwarding utility. Timing and buffering must be measured before selecting the final implementation.
-
-Status: **pending**.
+- replace prototype with production service/daemon;
+- deterministic reconnect handling;
+- health checks/statistics;
+- clean startup/shutdown behavior.
 
 ## Phase 4 — External Kalico MCU handshake
 
-Goal: run host-side Kalico on Raspberry Pi / external Linux while using the original K2 MCU firmware.
+Completed:
 
-Tasks:
+- external Kalico connects to original Main MCU;
+- original Main MCU dictionary and live telemetry decoded;
+- external Kalico connects to original Nozzle MCU;
+- original Nozzle MCU dictionary and live telemetry decoded;
+- no MCU reflashing required.
 
-- install `Jacob10383/kalico` on the external host;
-- create a minimal K2 configuration;
-- connect only the main MCU initially;
-- verify MCU identify/configure sequence;
-- test non-motion commands first;
-- validate heaters/fans/sensors only after pin/config review;
-- add nozzle MCU after the main link is stable.
+Status: **completed for protocol connectivity**.
 
-Status: **pending**.
+## Phase 5 — Multi-MCU / multi-bus transport
 
-## Phase 5 — Multi-MCU transport
-
-Goal: expose all required MCU links simultaneously.
-
-Possible target:
+Verified mapping:
 
 ```text
-/dev/ttyUSB0 -> main MCU
-/dev/ttyUSB1 -> nozzle MCU
+/dev/ttyUSB0 -> gser.usb0 -> ttyGS0 -> ttyS2 -> Main MCU
+/dev/ttyUSB1 -> gser.usb1 -> ttyGS1 -> ttyS3 -> Nozzle MCU
+/dev/ttyUSB2 -> gser.usb2 -> ttyGS2 -> ttyS5 -> RS-485
 ```
 
-Tasks:
+Completed:
 
-- test multiple `gser` functions;
-- verify stable enumeration names;
-- create udev rules on the external host;
-- test concurrent traffic and reconnects.
+- three simultaneous ConfigFS `gser` functions;
+- three host-side `usbserial_generic` interfaces;
+- Main + Nozzle simultaneous protocol sessions;
+- third RS-485 channel active at the same time.
 
-Status: **pending**.
+Status: **completed for functional validation**.
+
+Remaining:
+
+- stable host naming / udev rules;
+- reconnect automation;
+- sustained concurrent traffic.
 
 ## Phase 6 — HelixScreen on original display
 
@@ -117,54 +110,67 @@ Status: **pending**.
 
 ## Phase 7 — Cartographer external-host integration
 
-Goal: connect Cartographer directly to the Raspberry Pi or other external host.
+Goal: connect Cartographer directly to the external host.
 
 Tasks:
 
 - move USB connection if needed;
 - validate MCU enumeration;
-- validate probe/homing/mesh workflows under Jacob10383 Kalico;
+- validate probe/homing/mesh workflows under Kalico;
 - remove redundant T113-side dependencies.
 
 Status: **pending**.
 
 ## Phase 8 — Closed-loop motors and K2-specific extras
 
-Goal: preserve the K2 closed-loop functionality and other proprietary hardware features.
+Completed:
 
-Tasks:
+- stock Main and Nozzle MCU dictionaries confirmed to expose `config_transparent` / `transparent_send`;
+- stock logs confirmed to contain real `transparent_response` traffic;
+- `/dev/ttyS5` opened directly at 230400 8N1;
+- no Linux `TIOCSRS485` mode required for tested traffic;
+- X controller (`0x81`) read-only address query verified directly on T113;
+- X controller query verified end-to-end from external host;
+- Y controller (`0x82`) query verified end-to-end from external host.
 
-- map the actual command path used by K2 motor-control extras;
-- decide whether the existing MCU transparent forwarding can be reused;
-- validate X/Y controller communication;
+Status: **transport and read-only X/Y access verified**.
+
+Remaining:
+
+- map/write only the minimum required motor-control operations;
 - validate tuning/status telemetry;
-- test fault behavior;
-- document parameters and dependencies.
-
-Status: **pending**.
+- validate fault handling;
+- avoid persistent parameter writes until protocol behavior is fully understood.
 
 ## Phase 9 — CFS
 
-Goal: restore/retain CFS support without the Creality host stack where possible.
+Goal: retain CFS support without depending on the complete Creality host stack.
 
-Tasks:
+Current state:
 
-- identify which bus and userspace components are required;
-- reuse existing public reverse-engineering work where appropriate;
-- validate state reporting and filament operations;
-- integrate with Moonraker/HelixScreen.
+- physical host UART identified as `/dev/ttyS5`;
+- external-host transport to that UART is already verified;
+- initial A1/A2 probes were performed while the CFS unit was physically disconnected and are therefore inconclusive.
 
-Status: **pending**.
+Next tasks:
+
+- connect CFS hardware;
+- repeat online-check/discovery;
+- capture and document replies;
+- validate state reporting before any address-changing or filament-motion command;
+- later integrate with Moonraker/HelixScreen.
+
+Status: **next hardware validation**.
 
 ## Phase 10 — Camera strategy
 
 Because USB0 is used by the internal camera in stock host mode, OpenHost needs a final camera solution.
 
-Options to evaluate:
+Options:
 
 - connect the original camera directly to the external host;
 - reroute through another USB host path;
-- replace only the camera connection while retaining the camera module;
+- replace only the camera connection;
 - leave the camera disabled.
 
 Status: **open design decision**.
@@ -174,12 +180,11 @@ Status: **open design decision**.
 Only after the runtime architecture is proven:
 
 - automate USB role switching;
-- start gadget functions automatically;
-- start bridge daemon(s);
-- start HelixScreen;
-- implement health checks;
-- define recovery behavior if the Raspberry Pi is absent;
-- preserve a simple path back to stock operation.
+- create all three gadget functions automatically;
+- start/restart bridge services;
+- detect external-host presence;
+- add health checks;
+- preserve simple stock recovery.
 
 Status: **future**.
 
@@ -188,14 +193,14 @@ Status: **future**.
 Required before calling the project usable:
 
 - idle link endurance;
+- sustained traffic on all three channels;
 - repeated USB reconnects;
-- repeated printer reboots;
-- cold boots;
+- repeated gadget unbind/rebind cycles;
+- repeated printer reboots and cold boots;
 - multi-hour prints;
-- high-segment-count G-code;
-- high acceleration / command-rate workloads;
-- thermal safety tests;
+- high command-rate workloads;
 - MCU restart handling;
-- external-host crash/reboot handling.
+- external-host crash/reboot handling;
+- thermal and fail-safe validation.
 
 Status: **future**.
