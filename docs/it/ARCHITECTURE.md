@@ -1,12 +1,12 @@
 # Architettura K2-OpenHost
 
-> Stato: progettazione in corso. Alcuni livelli sono già verificati su hardware reale, altri sono ancora pianificati.
+> Stato: progettazione in corso. Il trasporto principale verso host esterno è ora verificato su hardware; UI, automazione boot, CFS e validazione di lunga durata restano in corso.
 
 ## 1. Obiettivo del progetto
 
-K2-OpenHost vuole mantenere l'elettronica originale della Creality K2 spostando però il carico principale lato host Klipper/Kalico su un sistema Linux esterno.
+K2-OpenHost vuole mantenere l'elettronica originale della Creality K2 spostando il carico principale lato host Klipper/Kalico su un sistema Linux esterno.
 
-La suddivisione attualmente preferita è:
+La suddivisione preferita è:
 
 ```text
 LCD + touch originali K2
@@ -15,25 +15,26 @@ LCD + touch originali K2
 Mainboard Allwinner T113
 - Tina Linux
 - driver framebuffer/touch
-- HelixScreen
+- futuro HelixScreen
 - trasporto USB gadget
-- servizi bridge MCU/UART
+- servizi bridge UART byte-transparent
         |
-        | USB 2.0
+        | USB 2.0 High-Speed
         v
 Host Linux esterno
-- Raspberry Pi / CM / altro SBC
-- Jacob10383 Kalico
+- Kalico / Klippy
 - Moonraker
 - Mainsail / Fluidd
-- Cartographer
 - extras specifici K2
         |
-        v
-MCU originali K2
+        +-------------------+-------------------+
+        |                   |                   |
+        v                   v                   v
+     Main MCU           Nozzle MCU          bus RS-485
+                                            X/Y + CFS
 ```
 
-Il T113 rimane quindi parte integrante del sistema, ma passa dal ruolo di host principale a quello di companion leggero rivolto all'hardware.
+Il T113 rimane parte integrante del sistema, ma passa dal ruolo di host principale a companion leggero rivolto all'hardware.
 
 ## 2. Perché mantenere la scheda T113
 
@@ -41,21 +42,17 @@ La mainboard originale fornisce già accesso diretto ad hardware che altrimenti 
 
 - display LCD originale;
 - touchscreen originale;
-- MCU principale di motion control;
-- MCU nozzle/toolhead;
-- camera e topologia USB interna;
-- infrastruttura motori closed-loop;
+- Main MCU;
+- Nozzle MCU;
+- topologia USB interna;
+- percorso RS-485 usato dall'infrastruttura closed-loop/CFS;
 - I/O e percorsi di alimentazione specifici della stampante.
 
-Mantenendo il T113, K2-OpenHost evita di sostituire sia la mainboard sia il display.
+Mantenendo il T113, K2-OpenHost può preservare display e mainboard originali spostando altrove il carico host-side.
 
 ## 3. Strategia display
 
-Il progetto prevede attualmente di usare **HelixScreen** sul display originale K2 invece di mantenere l'intero stack UI proprietario Creality.
-
-Il display resta fisicamente collegato al T113. Il Raspberry Pi non deve pilotare direttamente l'LCD.
-
-Percorso UI previsto:
+La strategia UI preferita resta:
 
 ```text
 LCD/touch originali
@@ -71,105 +68,100 @@ Moonraker sull'host esterno
 Kalico
 ```
 
-In questo modo non è necessario emulare le interfacce di `display-server`, `app-server` e `master-server` Creality.
+Il display resta fisicamente collegato al T113. L'host Linux esterno non deve pilotare direttamente il pannello.
 
 ## 4. Strategia motion-control
 
-L'host esterno dovrà eseguire il vero stack host-side:
+L'host esterno dovrà eseguire:
 
 - Kalico / Klippy;
 - Moonraker;
 - extras K2;
-- integrazione Cartographer;
-- motion planning e componenti Python di livello superiore.
+- motion planning e componenti Python di livello superiore;
+- successivamente il supporto host-side Cartographer.
 
-Gli MCU originali continueranno invece a occuparsi del lavoro real-time, come nella normale architettura Klipper.
+Gli MCU originali K2 continueranno a svolgere il lavoro real-time.
 
-Il trasporto obiettivo è concettualmente:
+## 5. Trasporto USB a tre canali verificato
 
-```text
-Kalico su Raspberry Pi
-        |
-        | trasporto seriale USB gadget
-        v
-T113 /dev/ttyGSx
-        |
-        | bridge byte-transparent
-        v
-UART T113 /dev/ttySx
-        |
-        v
-MCU originale K2
-```
-
-## 5. Trasporto USB
-
-La K2 Pro utilizzata per i test espone un USB Device Controller Allwinner come:
+Il T113 della K2 Pro può esporre tre funzioni ConfigFS Generic Serial simultanee attraverso la porta Micro-USB service/recovery:
 
 ```text
-/sys/class/udc/4100000.udc-controller
+gser.usb0 -> /dev/ttyGS0
+gser.usb1 -> /dev/ttyGS1
+gser.usb2 -> /dev/ttyGS2
 ```
 
-L'immagine Tina stock include il supporto generic serial gadget e `/bin/setusbconfig gser` crea correttamente:
+L'host Linux esterno enumera tre interfacce seriali indipendenti a USB 2.0 High-Speed (480M):
 
 ```text
-/dev/ttyGS0
+/dev/ttyUSB0
+/dev/ttyUSB1
+/dev/ttyUSB2
 ```
 
-L'obiettivo è esporre uno o più canali seriali logici dal T113 verso l'host esterno.
-
-Possibile mappatura finale:
+Mappatura verificata:
 
 ```text
-Host esterno
-/dev/ttyUSB0  <---->  /dev/ttyGS0  <---->  UART MCU principale
-/dev/ttyUSB1  <---->  /dev/ttyGS1  <---->  UART MCU nozzle
+Host esterno                T113                       Hardware
+
+/dev/ttyUSB0 <--------> /dev/ttyGS0 <--------> /dev/ttyS2 <--> Main MCU
+/dev/ttyUSB1 <--------> /dev/ttyGS1 <--------> /dev/ttyS3 <--> Nozzle MCU
+/dev/ttyUSB2 <--------> /dev/ttyGS2 <--------> /dev/ttyS5 <--> RS-485
 ```
 
-Il trasporto multi-canale non è ancora stato verificato.
+Il bridge è attualmente un prototipo Python runtime byte-transparent. Per il deployment finale servirà un daemon/service dedicato.
 
-## 6. Conflitto USB0 con la camera interna
+## 6. Validazione Main e Nozzle MCU
 
-I test hardware hanno confermato che USB0 viene normalmente utilizzata in host mode per la `CREALITY CAM` interna.
+Kalico sull'host esterno ha stabilito sessioni protocollo reali con entrambi gli MCU originali K2 Pro attraverso il bridge T113:
 
-Modalità normale:
+- Main MCU: `gd32f303xe` via `/dev/ttyS2`, 230400 baud;
+- Nozzle MCU: `gd32f303xb` via `/dev/ttyS3`, 230400 baud.
+
+Entrambi i canali sono stati usati contemporaneamente senza riflashare gli MCU.
+
+## 7. Percorso RS-485 e closed-loop
+
+Il terzo canale bridge espone `/dev/ttyS5` direttamente all'host esterno.
+
+Sono state verificate end-to-end query read-only verso entrambi i controller closed-loop:
 
 ```text
-T113 USB0
-  |
-  +-- EHCI0 / OHCI0
-          |
-          +-- CREALITY CAM
+X (0x81): risposta verificata
+Y (0x82): risposta verificata
 ```
 
-Modalità device:
+Per il traffico testato, `/dev/ttyS5` funziona come normale seriale 230400 8N1 senza configurazione Linux `TIOCSRS485` né toggle RTS esplicito in userspace.
 
-```text
-T113 USB0
-  |
-  +-- UDC 4100000.udc-controller
-          |
-          +-- connettore Micro-USB service/recovery (percorso fisico atteso)
-```
+Questo dimostra che l'host esterno può raggiungere direttamente il bus controller X/Y attraverso il T113 senza necessità di un proxy RS-485 aggiuntivo.
 
-Quando USB0 passa in device mode, la camera interna viene disconnessa. L'architettura finale dovrà quindi adottare una delle seguenti soluzioni:
+I dictionary MCU originali espongono anche i comandi transparent serial di Creality. I log stock storici ne confermano l'uso, ma il bridge diretto del terzo canale verso `/dev/ttyS5` è il percorso esterno attualmente verificato per la comunicazione read-only X/Y.
+
+## 8. Percorso CFS
+
+La configurazione stock associa anche il CFS alla stessa UART RS-485 `/dev/ttyS5`.
+
+L'host esterno dispone quindi già di un percorso di trasporto verificato verso il bus corretto. La validazione protocollo con CFS collegato resta da eseguire. I primi probe senza risposta sono stati effettuati mentre il CFS era fisicamente scollegato e non vengono considerati fallimenti.
+
+## 9. Conflitto USB0 con la camera interna
+
+USB0 viene normalmente usata come host per la camera interna. La commutazione in device mode disconnette la camera.
+
+L'architettura finale deve ancora scegliere tra:
 
 1. spostare la camera sull'host esterno;
-2. usare un altro percorso USB per la camera;
+2. usare un altro percorso USB host;
 3. accettare la perdita della camera stock;
-4. verificare l'eventuale presenza di switching o routing hardware alternativo.
+4. verificare eventuale routing hardware alternativo.
 
-La decisione finale non è ancora stata presa.
+## 10. Cartographer
 
-## 7. Cartographer
+Cartographer si trova su un percorso USB interno differente e non viene disconnesso dal role switch di USB0.
 
-Sulla K2 Pro testata, Cartographer compare su USB1 tramite l'hub interno, non su USB0.
+La soluzione finale preferita resta il collegamento diretto di Cartographer all'host esterno, se praticabile.
 
-Questo è utile perché la commutazione host/device di USB0 non coinvolge il bus su cui si trova Cartographer.
-
-La soluzione finale preferita resta comunque il collegamento diretto di Cartographer all'host esterno, se praticabile.
-
-## 8. Servizi previsti sul T113
+## 11. Servizi previsti sul T113
 
 Set minimo previsto:
 
@@ -178,10 +170,10 @@ Set minimo previsto:
 - driver touchscreen;
 - HelixScreen;
 - configurazione USB gadget;
-- daemon bridge UART/MCU;
-- solo gli helper di alimentazione/reset realmente necessari.
+- daemon bridge UART byte-transparent;
+- solo gli helper hardware di alimentazione/reset/controllo realmente necessari.
 
-## 9. Servizi previsti sull'host esterno
+## 12. Servizi previsti sull'host esterno
 
 - Kalico / Klippy;
 - Moonraker;
@@ -190,18 +182,32 @@ Set minimo previsto:
 - extras K2 e diagnostica;
 - logging e strumenti di sviluppo.
 
-## 10. Questioni ancora aperte
+## 13. Comportamento reconnect
 
-Restano da risolvere:
+Un unbind/rebind del gadget ConfigFS ricrea gli endpoint `/dev/ttyGS*`. I processi bridge con file descriptor già aperti terminano quindi e devono essere riavviati dopo il rebind.
 
-- device UART esatto dell'MCU principale K2 Pro;
-- device UART esatto dell'MCU nozzle;
-- possibilità di esporre più canali seriali contemporaneamente tramite ConfigFS `gser`;
-- comportamento di buffering e latenza con traffico Klipper reale;
-- percorso richiesto per i motori closed-loop;
-- requisiti di trasporto CFS;
-- affidabilità di lungo periodo della modalità USB gadget;
-- strategia definitiva per la camera;
-- sequenza di boot e recovery automatica.
+Il service manager OpenHost finale dovrà gestire:
+
+- creazione gadget;
+- enumerazione host;
+- avvio bridge;
+- restart bridge dopo reconnect USB;
+- naming deterministico;
+- fallback sicuro quando l'host esterno non è disponibile.
+
+## 14. Questioni ancora aperte
+
+Identificazione UART e trasporto multi-canale non sono più questioni aperte. Restano:
+
+- validazione CFS con hardware collegato;
+- traffico multi-canale sostenuto e durante stampa;
+- reconnect/re-enumeration robusti;
+- implementazione production del bridge;
+- sequenza di boot e recovery automatica;
+- integrazione HelixScreen;
+- integrazione Cartographer sull'host esterno;
+- strategia camera;
+- validazione operazioni di tuning/scrittura motori;
+- test di sicurezza e affidabilità di lunga durata.
 
 Vedi [TEST_STATUS.md](TEST_STATUS.md) e [ROADMAP.md](ROADMAP.md) per lo stato attuale.
