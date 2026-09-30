@@ -49,12 +49,13 @@ Legenda:
 
 | Test | Stato | Risultato |
 |---|---:|---|
-| Confermare Micro-USB come connettore runtime USB0 device | ⏳ | In attesa del test con host esterno |
-| Enumerazione `0525:a4a6` su host Linux | ⏳ | Da eseguire |
-| Creazione `/dev/ttyUSB0` lato host | ⏳ | Da eseguire |
-| Trasferimento host -> K2 | ⏳ | Da eseguire |
-| Trasferimento K2 -> host | ⏳ | Da eseguire |
-| Negoziazione high-speed | ⏳ | Da eseguire |
+| Conferma Micro-USB come connettore runtime USB0 device | ✅ | Il CM5 ha enumerato il gadget K2 attraverso il connettore Micro-USB service/recovery |
+| Enumerazione `0525:a4a6` su host Linux | ✅ | Rilevato come `Netchip Technology, Inc. Linux-USB Serial Gadget` |
+| Creazione `/dev/ttyUSB0` lato host | ✅ | Binding eseguito con `usbserial_generic` tramite `new_id` |
+| Trasferimento host -> K2 | ✅ | `K2_OPENHOST_CM5_TO_K2_001` ricevuto su `/dev/ttyGS0` |
+| Trasferimento K2 -> host | ✅ | `K2_OPENHOST_K2_TO_CM5_001` ricevuto su `/dev/ttyUSB0` |
+| Negoziazione high-speed | ✅ | Albero USB a 480M; UDC K2 con `current_speed: high-speed` |
+| UDC K2 in stato configured | ✅ | `state: configured`, `function: g1` |
 | Recovery dopo disconnessione/riconnessione | ⏳ | Da eseguire |
 | Stabilità con role switch ripetuti | ⏳ | Da eseguire |
 
@@ -110,7 +111,7 @@ Legenda:
 
 | Test | Stato | Risultato |
 |---|---:|---|
-| Test breve serial gadget | ⏳ | In attesa collegamento fisico host |
+| Test breve serial gadget | ✅ | Traffico bidirezionale CM5 <-> K2 verificato |
 | Test idle 1 ora | ⏳ | Da eseguire |
 | Stampa lunga | ⏳ | Da eseguire |
 | Recovery dopo reboot | 🟡 | Il comportamento stock USB host ritorna dopo reboot; automazione OpenHost non implementata |
@@ -118,8 +119,8 @@ Legenda:
 
 ## Milestone attuale
 
-È stato completato il primo importante milestone di piattaforma:
+È stato completato il secondo importante milestone di piattaforma:
 
-> **USB0 può essere commutata dal ruolo stock di host per la camera interna alla modalità USB device Allwinner, e l'userspace Tina stock può creare un Generic Serial USB gadget bindato (`/dev/ttyGS0`).**
+> **Il connettore Micro-USB service/recovery della K2 Pro è stato verificato come percorso USB device funzionante a runtime. Un Raspberry Pi CM5 enumera correttamente il Generic Serial gadget ConfigFS del T113 stock come `0525:a4a6`, lo associa a `/dev/ttyUSB0`, negozia USB 2.0 High-Speed (480M) e scambia dati bidirezionalmente con `/dev/ttyGS0` lato K2.**
 
-Il milestone successivo è l'enumerazione fisica attraverso il connettore Micro-USB service/recovery.
+Il prossimo milestone è identificare le UART degli MCU Main e Nozzle della K2 Pro e validare un bridge byte-transparent `ttyGSx <-> ttySx` senza modificare il firmware originale degli MCU.
