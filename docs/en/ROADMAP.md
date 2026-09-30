@@ -108,18 +108,24 @@ Tasks:
 
 Status: **pending**.
 
-## Phase 7 — Cartographer external-host integration
+## Phase 7 — Cartographer integration
 
-Goal: connect Cartographer directly to the external host.
+Current test-unit wiring is already established:
 
-Tasks:
+```text
+Nozzle MCU/toolhead internal nozzle-camera USB connector -> Cartographer
+```
 
-- move USB connection if needed;
-- validate MCU enumeration;
+The stock nozzle camera is intentionally not used on this machine because its automatic flow/pressure-related calibration workflow is not required for the current setup. Reusing that internal USB path avoids an additional external USB cable and keeps the printer's single exposed USB port available.
+
+Remaining tasks:
+
+- validate Cartographer enumeration and stability with the complete OpenHost runtime stack;
 - validate probe/homing/mesh workflows under Kalico;
-- remove redundant T113-side dependencies.
+- map the upstream USB topology of this path relative to the external USB-A port, chamber camera and service/recovery Micro-USB;
+- document alternative wiring for users who want to retain the stock nozzle camera.
 
-Status: **pending**.
+Status: **wiring implemented; full OpenHost validation pending**.
 
 ## Phase 8 — Closed-loop motors and K2-specific extras
 
@@ -162,18 +168,20 @@ Next tasks:
 
 Status: **next hardware validation**.
 
-## Phase 10 — Camera strategy
+## Phase 10 — USB and camera topology
 
-Because USB0 is used by the internal camera in stock host mode, OpenHost needs a final camera solution.
+The chamber-camera/USB strategy cannot be finalized until the physical USB topology is mapped.
 
-Options:
+Required checks:
 
-- connect the original camera directly to the external host;
-- reroute through another USB host path;
-- replace only the camera connection;
-- leave the camera disabled.
+- determine whether the externally exposed USB-A port shares the same hub/controller path as the internal `CREALITY CAM`;
+- determine its relationship to the service/recovery Micro-USB used by OpenHost;
+- determine how the Nozzle MCU/toolhead camera USB path now used by Cartographer connects upstream;
+- observe USB trees before/after controlled device connect/disconnect and USB0 role switching.
 
-Status: **open design decision**.
+The current test unit intentionally sacrifices the stock nozzle camera in favor of Cartographer on that internal connector. The chamber camera remains a separate design question because USB0 device mode currently disconnects it.
+
+Status: **hardware topology mapping pending**.
 
 ## Phase 11 — Boot automation and fail-safe recovery
 
