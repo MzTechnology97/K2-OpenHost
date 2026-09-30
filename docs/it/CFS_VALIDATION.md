@@ -196,7 +196,7 @@ Il frame della K2 Pro è completo e CRC-valid: non è un errore di transport ma 
 
 ## Strategia di compatibilità
 
-La prima patch OpenHost sarà intenzionalmente conservativa:
+La prima patch OpenHost è intenzionalmente conservativa:
 
 1. accettare anche il formato steady `0x0A` a 4 byte;
 2. mantenere `b0/b1` opachi;
@@ -206,3 +206,32 @@ La prima patch OpenHost sarà intenzionalmente conservativa:
 6. testare la patch in `/dev/shm` prima di abilitarla nel `box.py` completo.
 
 Per il monitoraggio questa compatibilità è sufficiente. Prima di abilitare load/unload automatici dovrà essere verificato come ricavare in modo affidabile lo slot/percorso caricato, probabilmente correlando il load flag con le query separate del bus invece di sintetizzare il modello a 6 byte.
+
+## Shim BOX_STATE K2-Pro verificata in RAM
+
+La compatibility shim è stata provata esclusivamente a runtime, senza modificare il file vendor e senza stato persistente. `BoxDriver.query_box_state()` ha accettato il frame reale K2-Pro e ha restituito:
+
+```text
+reply_type: K2BoxStateReply
+status: 0x00
+payload: 1f 23 00 00
+firmware_base: 0x1F23
+substatus: 0x00
+load_flag: 0x00
+loaded: False
+feed_change: True
+temp_c: None
+humidity_pct: None
+box_state: None
+downstream_mask: None
+```
+
+La stessa shim ha lasciato invariato il decoder eventi Jacob: il frame reale precedentemente acquisito con `STATUS=0x30` è stato nuovamente decodificato come `slot_events=[2, 3, 0, 0]`.
+
+Durante lo stesso test le query separate hanno continuato a restituire `slot_mask=0x0E`, `hub_mask=0x00` e `buffer=2`. Il transport ha prodotto 4 TX e 4 RX con zero CRC error, timeout, unmatched frame, stale frame o reader/send error.
+
+Il codice Jacob usa `reply.downstream_mask or 0` quando riconcilia il percorso caricato, quindi `downstream_mask=None` è sicuro per il polling/monitoraggio ma non identifica alcun loaded path. Questo comportamento è desiderato finché la semantica del percorso caricato non viene correlata su hardware.
+
+## Prossimo step
+
+Portare la stessa compatibilità nella sola copia volatile `/dev/shm/k2-openhost-kalico/klippy/extras/box_protocol.py`, conservando un backup `.orig`, e rieseguire le query native senza monkey-patch. Solo dopo quella verifica verrà valutato il primo avvio di `box.py` in modalità osservazione, evitando qualsiasi sequenza automatica di load/unload finché il loaded-path non è affidabile.
