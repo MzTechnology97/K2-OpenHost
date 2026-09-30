@@ -179,7 +179,28 @@ Initial `A2` online-check and `A1` discovery probes received no reply, but the C
 
 Connected-CFS validation remains pending.
 
-## 10. Gadget rebind behavior
+## 10. Current Cartographer USB wiring
+
+On the current K2 Pro test unit, Cartographer is connected through the internal USB connector on the Nozzle MCU/toolhead that was originally intended for the nozzle camera.
+
+The stock nozzle camera is intentionally not used on this unit. It is associated with Creality's automatic flow/pressure-related calibration workflow, which is not required for this test setup.
+
+This wiring avoids running an additional external USB cable to Cartographer and leaves the printer's single exposed external USB port available for other uses.
+
+This is specific to the current test unit and is not a mandatory K2-OpenHost wiring scheme.
+
+## 11. External USB port topology still to map
+
+The physical USB relationship between the following nodes has not yet been fully verified:
+
+- externally exposed USB-A port;
+- internal `CREALITY CAM`;
+- Nozzle MCU/toolhead nozzle-camera connector now used by Cartographer;
+- service/recovery Micro-USB connector currently used for the OpenHost link.
+
+In particular, it remains to be determined whether the exposed USB-A port shares the same hub/controller branch as the chamber camera and/or the Micro-USB OTG path. This should be checked with runtime USB-tree observations and controlled connect/disconnect tests before finalizing camera and USB routing decisions.
+
+## 12. Gadget rebind behavior
 
 Unbinding the ConfigFS gadget removes the host interfaces and invalidates currently open `/dev/ttyGS*` file descriptors. As a result, active byte-bridge processes exit when the gadget is unbound.
 
@@ -187,7 +208,7 @@ After rebinding, `/dev/ttyGS0`, `/dev/ttyGS1`, and `/dev/ttyGS2` are recreated a
 
 This behavior is expected and must be handled by the future OpenHost service manager.
 
-## 11. Current verified transport
+## 13. Current verified transport
 
 ```text
 External Linux host
@@ -217,10 +238,11 @@ T113 gser.usb2 / ttyGS2
 /dev/ttyS5 -> RS-485 -> X/Y verified, CFS pending
 ```
 
-## 12. Remaining USB-layer work
+## 14. Remaining USB-layer work
 
 The core transport is now verified. Remaining work includes:
 
+- map the external USB-A / chamber-camera / nozzle-camera-Cartographer / Micro-USB topology;
 - sustained multi-channel traffic;
 - long idle operation;
 - repeated disconnect/reconnect cycles;
@@ -230,7 +252,7 @@ The core transport is now verified. Remaining work includes:
 - boot-time gadget and bridge automation;
 - failure recovery when the external host is absent or rebooting.
 
-## 13. Returning to stock USB host mode
+## 15. Returning to stock USB host mode
 
 The current test procedure remains runtime-only. To unbind the gadget and return USB0 to host mode:
 
