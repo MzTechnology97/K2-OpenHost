@@ -32,19 +32,13 @@ The Allwinner OTG manager exposes:
 /sys/devices/platform/soc@3000000/soc@3000000:usbc0@0/otg_role
 ```
 
-Before testing, it reported:
-
-```text
-usb_host
-```
-
-`lsusb` showed:
+In stock operation, USB0 is used in host mode for the internal chamber camera. The camera was observed as:
 
 ```text
 Bus 003 Device 002: ID 1d6c:0103 Creality 3D Technology CREALITY CAM
 ```
 
-The camera was physically attached through:
+through:
 
 ```text
 4101000.ehci0-controller
@@ -55,8 +49,6 @@ with the corresponding OHCI controller at:
 ```text
 4101400.ohci0-controller
 ```
-
-This verifies that USB0 is normally used as a host bus for the internal chamber camera.
 
 ## 3. Switching USB0 to device mode
 
@@ -69,7 +61,7 @@ usb_null
 otg_role
 ```
 
-On the test unit, executing:
+On the test unit:
 
 ```sh
 ROLE=/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0
@@ -82,7 +74,7 @@ returned:
 device_chose finished!
 ```
 
-The kernel then logged the expected transition:
+The kernel logged:
 
 ```text
 rmmod_host_driver
@@ -94,167 +86,181 @@ sunxi_usb_disable_ohci
 insmod_device_driver
 ```
 
-The internal `CREALITY CAM` disconnected as part of the switch.
-
-This is a direct hardware verification that USB0 can be dynamically moved from host mode to device mode under the running Tina Linux system.
+This directly verifies that USB0 can be dynamically switched from host mode to device mode while Tina Linux is running.
 
 ## 4. Vendor USB gadget tooling
 
-The stock filesystem includes:
+The stock filesystem contains:
 
 ```text
 /bin/setusbconfig
 ```
 
-Inspection of the script/binary strings shows built-in support for multiple USB gadget functions, including:
-
-- ADB;
-- MTP;
-- mass storage;
-- RNDIS;
-- NCM;
-- HID;
-- loopback;
-- printer gadget;
-- generic serial (`gser`).
-
-For generic serial, the vendor implementation creates:
-
-```text
-/sys/kernel/config/usb_gadget/g1/functions/gser.usb0
-```
-
-and uses:
-
-```text
-VID: 0x0525
-PID: 0xa4a6
-Product: Gadget Serial
-```
-
-The utility automatically binds the gadget to the available UDC.
-
-## 5. Verified generic serial gadget creation
-
-After switching USB0 to device mode, the command:
+The vendor tool exposes a Generic Serial (`gser`) configuration. Running:
 
 ```sh
 /bin/setusbconfig gser
 ```
 
-completed successfully with exit status `0`.
-
-The following were then verified:
-
-```text
-/dev/ttyGS0
-```
-
-exists as a character device.
-
-ConfigFS contains:
+creates:
 
 ```text
 /sys/kernel/config/usb_gadget/g1/functions/gser.usb0
+/dev/ttyGS0
 ```
 
-The active configuration links that function:
+with:
+
+```text
+VID:     0x0525
+PID:     0xa4a6
+Product: Gadget Serial
+UDC:     4100000.udc-controller
+```
+
+The active configuration links:
 
 ```text
 configs/c.1/gser.usb0 -> .../functions/gser.usb0
 ```
 
-The gadget IDs are:
+## 5. Verified gadget state with external host attached
+
+With a Raspberry Pi CM5 physically connected to the K2 Pro Micro-USB service/recovery connector, the K2 UDC reported:
 
 ```text
-idVendor  = 0x0525
-idProduct = 0xa4a6
-product   = Gadget Serial
-```
-
-The UDC binding is:
-
-```text
-4100000.udc-controller
-```
-
-and the UDC `function` field reports:
-
-```text
-g1
-```
-
-## 6. Current endpoint state
-
-Before connecting an external USB host, the UDC correctly reports:
-
-```text
-state:         not attached
-current_speed: UNKNOWN
+state:         configured
+current_speed: high-speed
 maximum_speed: high-speed
 function:      g1
 ```
 
-This is expected: the gadget is configured and bound, but there is no external host connected yet.
-
-## 7. Physical Micro-USB connector
-
-The K2 mainboard contains a Micro-USB service/recovery connector known to be used for full-memory recovery/flashing workflows.
-
-The working hypothesis is that this connector is physically connected to the same USB0 device path used by the Allwinner UDC.
-
-### Important status
-
-This physical runtime data path is **not yet confirmed**.
-
-The next test is to connect the Micro-USB port to a Linux host after enabling `gser` and verify enumeration as:
+and the kernel logged:
 
 ```text
-0525:a4a6 Gadget Serial
+android_work: sent uevent USB_STATE=CONNECTED
+configfs-gadget gadget: high-speed config #1: c
+android_work: sent uevent USB_STATE=CONFIGURED
 ```
 
-Expected host-side setup if the generic usbserial driver does not bind automatically:
+This confirms successful runtime enumeration of the gadget through the physical Micro-USB connector.
+
+## 6. Raspberry Pi CM5 host-side enumeration
+
+The external host used for the test was a Raspberry Pi CM5 running Debian Bookworm with Linux 6.12.
+
+`lsusb` reported:
+
+```text
+0525:a4a6 Netchip Technology, Inc. Linux-USB Serial Gadget
+```
+
+The USB topology reported the link at:
+
+```text
+480M
+```
+
+The interface did not bind automatically to a serial driver, so the Linux generic usbserial driver was attached manually:
 
 ```sh
 sudo modprobe usbserial
 echo 0525 a4a6 | sudo tee /sys/bus/usb-serial/drivers/generic/new_id
 ```
 
-A device such as `/dev/ttyUSB0` should then appear.
+The kernel then reported:
 
-## 8. Planned bidirectional test
+```text
+usbserial_generic ... generic converter detected
+usb ... generic converter now attached to ttyUSB0
+```
 
-K2 side:
+and the host exposed:
+
+```text
+/dev/ttyUSB0
+```
+
+The `usbserial_generic` warning that the driver is intended for testing and one-off prototypes is expected for this development-stage setup.
+
+## 7. Verified bidirectional serial transfer
+
+### CM5 -> K2
+
+K2:
 
 ```sh
 cat /dev/ttyGS0
 ```
 
-External Linux host:
+CM5:
 
 ```sh
-echo "TEST_HOST_TO_K2" > /dev/ttyUSB0
+printf 'K2_OPENHOST_CM5_TO_K2_001\n' | sudo tee /dev/ttyUSB0
 ```
 
-Reverse direction:
+The K2 successfully received:
 
-External host:
+```text
+K2_OPENHOST_CM5_TO_K2_001
+```
+
+### K2 -> CM5
+
+CM5:
 
 ```sh
-cat /dev/ttyUSB0
+sudo cat /dev/ttyUSB0
 ```
 
 K2:
 
 ```sh
-echo "TEST_K2_TO_HOST" > /dev/ttyGS0
+printf 'K2_OPENHOST_K2_TO_CM5_001\n' > /dev/ttyGS0
 ```
 
-This test is still pending.
+The CM5 successfully received:
+
+```text
+K2_OPENHOST_K2_TO_CM5_001
+```
+
+Therefore the following path is now directly verified:
+
+```text
+Raspberry Pi CM5 /dev/ttyUSB0
+        ^
+        | bidirectional serial
+        v
+USB 2.0 High-Speed (480M)
+        ^
+        |
+        v
+K2 Pro Micro-USB service/recovery connector
+        ^
+        |
+        v
+Allwinner T113 UDC / gser.usb0
+        ^
+        |
+        v
+K2 Pro /dev/ttyGS0
+```
+
+## 8. What remains unverified on the USB layer
+
+The basic data transport is verified. Remaining USB-specific reliability tests include:
+
+- disconnect/reconnect recovery;
+- repeated host/device role switching;
+- long idle operation;
+- sustained serial traffic;
+- boot-time automation;
+- multi-function or multi-channel gadget configuration.
 
 ## 9. Returning to normal USB host mode
 
-The runtime experiment does not currently require persistent configuration changes.
+The runtime experiment does not require persistent configuration changes.
 
 To unbind the gadget and return USB0 to host mode:
 
@@ -265,34 +271,34 @@ echo "" > /sys/kernel/config/usb_gadget/g1/UDC 2>/dev/null
 cat $ROLE/usb_host
 ```
 
-The vendor camera helper may also be used if needed:
+If needed, the vendor camera helper can be called:
 
 ```sh
 /usr/bin/chamber_cam_power.sh restart
 ```
 
-A reboot of the tested machine restores the normal stock USB host behavior as well.
+A reboot also restores the normal stock USB host behavior on the tested unit.
 
 ## 10. Why this matters for K2-OpenHost
 
-If the physical Micro-USB enumeration test succeeds, the original T113 board can expose virtual serial links to an external Linux host without additional Arduino/RP2040 bridge hardware.
+The physical Micro-USB test is successful. The original T113 board can expose a virtual serial link to an external Linux host without an additional Arduino, RP2040, USB-UART bridge, or replacement mainboard.
 
-The next target becomes:
+The next target is therefore:
 
 ```text
-External host /dev/ttyUSBx
+External Kalico host /dev/ttyUSBx
         |
         v
 Micro-USB -> T113 UDC -> /dev/ttyGSx
         |
         v
-userspace byte-transparent bridge
+byte-transparent userspace bridge
         |
         v
 T113 /dev/ttySx
         |
         v
-Original K2 MCU
+Original K2 Main / Nozzle MCU
 ```
 
-That would allow the external Kalico host to communicate with the original MCU architecture while preserving the K2 mainboard.
+The next hardware investigation is to identify the exact K2 Pro Main MCU and Nozzle MCU UART devices and baud rates, then validate the bridge without altering the original MCU firmware.
