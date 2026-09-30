@@ -1,6 +1,6 @@
 # Indagine USB Gadget e Micro-USB
 
-> Ambito: unità di test Creality K2 Pro. Questo documento separa le osservazioni verificate direttamente dalle ipotesi che richiedono ancora test.
+> Ambito: unità di test Creality K2 Pro. Questo documento separa le osservazioni verificate direttamente dalle ipotesi ancora da validare.
 
 ## 1. Scoperta iniziale
 
@@ -22,90 +22,53 @@ CONFIG_USB_CONFIGFS_SERIAL=y
 CONFIG_USB_CONFIGFS_F_FS=y
 ```
 
-CDC ACM non risulta abilitato nel kernel attuale, ma è disponibile il generic serial gadget.
+CDC ACM non risulta abilitato nel kernel testato, ma Generic Serial è integrato e utilizzabile.
 
 ## 2. Ruolo normale di USB0
 
-L'OTG manager Allwinner espone:
-
-```text
-/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0/otg_role
-```
-
-Nel funzionamento stock, USB0 viene utilizzata in host mode per la camera interna. La camera è stata osservata come:
-
-```text
-Bus 003 Device 002: ID 1d6c:0103 Creality 3D Technology CREALITY CAM
-```
-
-attraverso:
+In modalità stock USB0 opera come host per la camera interna. I controller host sono:
 
 ```text
 4101000.ehci0-controller
-```
-
-con controller OHCI corrispondente:
-
-```text
 4101400.ohci0-controller
 ```
 
+Il passaggio di USB0 in device mode disconnette correttamente la camera e rimuove i controller host.
+
 ## 3. Commutazione USB0 in device mode
 
-Il driver OTG vendor espone nodi sysfs tra cui:
+Il driver OTG vendor espone i controlli runtime sotto:
 
 ```text
-usb_host
-usb_device
-usb_null
-otg_role
+/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0
 ```
 
-Sull'unità testata:
-
-```sh
-ROLE=/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0
-cat $ROLE/usb_device
-```
-
-ha restituito:
+La lettura di `usb_device` commuta USB0 in device mode. Sull'unità testata ha restituito:
 
 ```text
 device_chose finished!
 ```
 
-Il kernel ha registrato:
+L'operazione è runtime-only; un reboot ripristina il normale comportamento USB host stock.
 
-```text
-rmmod_host_driver
-sunxi_usb_disable_ehci
-4101000.ehci0-controller remove
-usb 3-1: USB disconnect
-sunxi_usb_disable_ohci
-4101400.ohci0-controller remove
-insmod_device_driver
-```
+## 4. Generic Serial gadget vendor
 
-Questo verifica direttamente che USB0 può passare dinamicamente da host mode a device mode con Tina Linux già avviato.
-
-## 4. Tool USB gadget vendor
-
-Nel filesystem stock è presente:
+Il tool stock:
 
 ```text
 /bin/setusbconfig
 ```
 
-Il tool vendor espone una configurazione Generic Serial (`gser`). Eseguendo:
+supporta `gser`. Eseguendo:
 
 ```sh
 /bin/setusbconfig gser
 ```
 
-vengono creati:
+viene creata la prima funzione:
 
 ```text
-/sys/kernel/config/usb_gadget/g1/functions/gser.usb0
+functions/gser.usb0
 /dev/ttyGS0
 ```
 
@@ -118,151 +81,158 @@ Product: Gadget Serial
 UDC:     4100000.udc-controller
 ```
 
-La configurazione attiva collega:
+## 5. Collegamento fisico Micro-USB
 
-```text
-configs/c.1/gser.usb0 -> .../functions/gser.usb0
-```
-
-## 5. Stato gadget verificato con host esterno collegato
-
-Con un Raspberry Pi CM5 fisicamente collegato alla porta Micro-USB service/recovery della K2 Pro, l'UDC della K2 ha riportato:
-
-```text
-state:         configured
-current_speed: high-speed
-maximum_speed: high-speed
-function:      g1
-```
-
-Il kernel ha inoltre registrato:
-
-```text
-android_work: sent uevent USB_STATE=CONNECTED
-configfs-gadget gadget: high-speed config #1: c
-android_work: sent uevent USB_STATE=CONFIGURED
-```
-
-Questo conferma l'enumerazione runtime corretta del gadget attraverso il connettore Micro-USB fisico.
-
-## 6. Enumerazione lato Raspberry Pi CM5
-
-L'host esterno utilizzato per il test è un Raspberry Pi CM5 con Debian Bookworm e kernel Linux 6.12.
-
-`lsusb` ha rilevato:
-
-```text
-0525:a4a6 Netchip Technology, Inc. Linux-USB Serial Gadget
-```
-
-La topologia USB ha riportato il link a:
+Con un host Linux esterno collegato alla porta Micro-USB service/recovery della K2 Pro, il gadget viene enumerato correttamente a USB 2.0 High-Speed:
 
 ```text
 480M
 ```
 
-L'interfaccia non si è associata automaticamente a un driver seriale, quindi è stato collegato manualmente il driver Linux generico `usbserial`:
+Lato host viene usato il driver Linux `usbserial_generic`. Dopo il binding di VID:PID `0525:a4a6` vengono esposti i device `/dev/ttyUSB*`.
 
-```sh
-sudo modprobe usbserial
-echo 0525 a4a6 | sudo tee /sys/bus/usb-serial/drivers/generic/new_id
-```
+Il trasferimento bidirezionale tra `/dev/ttyUSB0` e `/dev/ttyGS0` è stato verificato.
 
-Il kernel ha quindi riportato:
+## 6. Tre funzioni Generic Serial simultanee
 
-```text
-usbserial_generic ... generic converter detected
-usb ... generic converter now attached to ttyUSB0
-```
-
-ed è comparso:
+ConfigFS è stato esteso a runtime con altre due funzioni seriali:
 
 ```text
+gser.usb0  port_num=0  -> /dev/ttyGS0
+gser.usb1  port_num=1  -> /dev/ttyGS1
+gser.usb2  port_num=2  -> /dev/ttyGS2
+```
+
+Le tre funzioni sono state collegate alla stessa configurazione e ribindate allo stesso UDC.
+
+L'host Linux esterno ha quindi enumerato un singolo device USB con tre interfacce vendor-specific:
+
+```text
+If 0 -> usbserial_generic -> /dev/ttyUSB0
+If 1 -> usbserial_generic -> /dev/ttyUSB1
+If 2 -> usbserial_generic -> /dev/ttyUSB2
+```
+
+Il collegamento è rimasto negoziato a 480M.
+
+Questo verifica direttamente che kernel e ConfigFS stock della K2 Pro possono esporre almeno tre canali Generic Serial simultanei attraverso la singola Micro-USB fisica.
+
+## 7. Mappatura UART verificata attraverso il gadget
+
+Sul T113 sono stati usati bridge runtime byte-transparent:
+
+```text
+/dev/ttyGS0 <-> /dev/ttyS2   Main MCU
+/dev/ttyGS1 <-> /dev/ttyS3   Nozzle MCU
+/dev/ttyGS2 <-> /dev/ttyS5   bus RS-485
+```
+
+Tutte e tre le UART sono usate a 230400 baud nella configurazione stock testata.
+
+Le sessioni protocollo Main e Nozzle sono state verificate simultaneamente da Kalico esterno, senza riflashare gli MCU originali.
+
+## 8. RS-485 sul terzo canale USB
+
+`/dev/ttyS5` è stata testata prima localmente sul T113 e poi attraverso il percorso completo dall'host esterno.
+
+Lo stato ioctl RS-485 Linux risulta disabilitato:
+
+```text
+SER_RS485_ENABLED = false
+```
+
+Nonostante ciò, la normale I/O seriale userspace 230400 8N1 funziona correttamente per il traffico testato. Non è stato necessario configurare `TIOCSRS485` né gestire RTS esplicitamente.
+
+Una query read-only verso il controller closed-loop X inviata direttamente su `/dev/ttyS5` ha restituito:
+
+```text
+TX: f7 81 04 00 0e 02 80
+RX: f7 81 04 00 0e 81 00
+```
+
+La stessa query ha poi funzionato dall'host esterno attraverso:
+
+```text
+/dev/ttyUSB2
+  -> gser.usb2
+  -> /dev/ttyGS2
+  -> bridge byte-transparent
+  -> /dev/ttyS5
+  -> RS-485
+  -> controller X
+```
+
+Anche il controller Y ha risposto correttamente:
+
+```text
+TX: f7 82 04 00 0e 02 80
+RX: f7 82 04 00 0e 82 09
+```
+
+Questo conferma l'accesso end-to-end al bus RS-485 della K2 Pro dal terzo canale USB dell'host esterno.
+
+## 9. Stato CFS
+
+Lo stesso `/dev/ttyS5` viene usato dal percorso CFS nella configurazione stock.
+
+I primi probe `A2` online-check e `A1` discovery non hanno ricevuto risposta, ma durante quei test l'unità CFS era fisicamente scollegata. I risultati quindi non vengono considerati fallimenti del trasporto.
+
+La validazione CFS con hardware collegato resta da eseguire.
+
+## 10. Comportamento durante unbind/rebind
+
+L'unbind del gadget ConfigFS rimuove le interfacce host e invalida i file descriptor `/dev/ttyGS*` già aperti. Di conseguenza i processi bridge byte-transparent attivi terminano quando il gadget viene sganciato.
+
+Dopo il rebind vengono ricreati `/dev/ttyGS0`, `/dev/ttyGS1` e `/dev/ttyGS2`, mentre l'host enumera nuovamente `/dev/ttyUSB0`, `/dev/ttyUSB1` e `/dev/ttyUSB2`. I processi bridge devono quindi essere riavviati.
+
+Il futuro service manager OpenHost dovrà gestire automaticamente questo comportamento.
+
+## 11. Trasporto attualmente verificato
+
+```text
+Host Linux esterno
+
 /dev/ttyUSB0
+    |
+    v
+T113 gser.usb0 / ttyGS0
+    |
+    v
+/dev/ttyS2 -> Main MCU
+
+/dev/ttyUSB1
+    |
+    v
+T113 gser.usb1 / ttyGS1
+    |
+    v
+/dev/ttyS3 -> Nozzle MCU
+
+/dev/ttyUSB2
+    |
+    v
+T113 gser.usb2 / ttyGS2
+    |
+    v
+/dev/ttyS5 -> RS-485 -> X/Y verificati, CFS da validare
 ```
 
-L'avviso di `usbserial_generic` relativo all'uso per test e prototipi è previsto in questa fase di sviluppo.
+## 12. Lavoro USB ancora da eseguire
 
-## 7. Trasferimento seriale bidirezionale verificato
+Il trasporto principale è ormai verificato. Restano:
 
-### CM5 -> K2
-
-K2:
-
-```sh
-cat /dev/ttyGS0
-```
-
-CM5:
-
-```sh
-printf 'K2_OPENHOST_CM5_TO_K2_001\n' | sudo tee /dev/ttyUSB0
-```
-
-La K2 ha ricevuto correttamente:
-
-```text
-K2_OPENHOST_CM5_TO_K2_001
-```
-
-### K2 -> CM5
-
-CM5:
-
-```sh
-sudo cat /dev/ttyUSB0
-```
-
-K2:
-
-```sh
-printf 'K2_OPENHOST_K2_TO_CM5_001\n' > /dev/ttyGS0
-```
-
-Il CM5 ha ricevuto correttamente:
-
-```text
-K2_OPENHOST_K2_TO_CM5_001
-```
-
-Il seguente percorso è quindi verificato direttamente:
-
-```text
-Raspberry Pi CM5 /dev/ttyUSB0
-        ^
-        | seriale bidirezionale
-        v
-USB 2.0 High-Speed (480M)
-        ^
-        |
-        v
-Micro-USB service/recovery K2 Pro
-        ^
-        |
-        v
-UDC Allwinner T113 / gser.usb0
-        ^
-        |
-        v
-K2 Pro /dev/ttyGS0
-```
-
-## 8. Test USB ancora da eseguire
-
-Il trasporto dati di base è verificato. Restano da validare:
-
-- recovery dopo disconnessione/riconnessione;
-- role switch host/device ripetuti;
+- traffico multi-canale sostenuto;
 - funzionamento idle prolungato;
-- traffico seriale sostenuto;
-- automazione al boot;
-- configurazione gadget multi-funzione o multi-canale.
+- cicli ripetuti di disconnect/reconnect;
+- role switch ripetuti;
+- restart deterministico dei bridge dopo rebind USB;
+- nomi host stabili/regole udev;
+- automazione gadget e bridge al boot;
+- recovery quando l'host esterno è assente o viene riavviato.
 
-## 9. Ripristino della modalità host USB normale
+## 13. Ripristino della modalità USB host stock
 
-Il test runtime non richiede modifiche persistenti.
-
-Per sganciare il gadget e tornare in host mode:
+La procedura attuale resta runtime-only. Per sganciare il gadget e tornare in host mode:
 
 ```sh
 ROLE=/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0
@@ -271,34 +241,10 @@ echo "" > /sys/kernel/config/usb_gadget/g1/UDC 2>/dev/null
 cat $ROLE/usb_host
 ```
 
-Se necessario si può richiamare l'helper vendor della camera:
+Se necessario:
 
 ```sh
 /usr/bin/chamber_cam_power.sh restart
 ```
 
-Anche un reboot ripristina il normale comportamento stock USB host sull'unità testata.
-
-## 10. Importanza per K2-OpenHost
-
-Il test fisico Micro-USB è riuscito. La mainboard T113 originale può esporre un link seriale virtuale verso un host Linux esterno senza richiedere Arduino, RP2040, bridge USB-UART aggiuntivi o una mainboard sostitutiva.
-
-Il prossimo obiettivo diventa:
-
-```text
-Host Kalico esterno /dev/ttyUSBx
-        |
-        v
-Micro-USB -> UDC T113 -> /dev/ttyGSx
-        |
-        v
-bridge userspace byte-transparent
-        |
-        v
-T113 /dev/ttySx
-        |
-        v
-MCU Main / Nozzle originali K2
-```
-
-La prossima fase hardware consiste nell'identificare le UART e i baud rate esatti degli MCU Main e Nozzle della K2 Pro e validare il bridge senza modificare il firmware originale degli MCU.
+Durante lo sviluppo, il reboot resta il percorso di recovery autoritativo.
