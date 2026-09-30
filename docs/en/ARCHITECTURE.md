@@ -78,7 +78,7 @@ The external host is intended to run:
 - Moonraker;
 - K2 extras;
 - higher-level planning and Python extensions;
-- eventually Cartographer host-side support.
+- Cartographer host-side support.
 
 The original K2 MCU firmware remains responsible for real-time MCU work.
 
@@ -144,22 +144,37 @@ The stock configuration maps CFS communication to the same `/dev/ttyS5` RS-485 U
 
 The external host therefore already has a verified transport path to the relevant bus. Connected-CFS protocol validation is still pending. Initial no-response probes were performed while the CFS was physically disconnected and are not considered failures.
 
-## 9. USB0 conflict with internal camera
+## 9. USB0 conflict and unresolved physical USB topology
 
-USB0 is normally used as a host path for the internal chamber camera. Switching it to device mode disconnects that camera.
+USB0 is normally used as a host path for the internal `CREALITY CAM`. Switching it to device mode disconnects that camera.
 
-The final architecture still needs one of these approaches:
+One additional hardware question remains open: the exact relationship between the printer's externally exposed USB-A port, the internal `CREALITY CAM`, and the service/recovery Micro-USB connector used for the external OpenHost link. It is not yet confirmed whether the external USB-A port shares the same physical hub/controller branch or sits on a separate USB path.
 
-1. move the camera to the external host;
-2. use another USB host path;
-3. accept loss of the stock camera;
-4. investigate alternate hardware routing.
+This must be mapped before finalizing the camera/external-USB strategy.
 
-## 10. Cartographer
+## 10. Cartographer wiring on the current test unit
 
-Cartographer is on a different internal USB path and is not disconnected by the USB0 role switch.
+The current K2 Pro test unit intentionally repurposes the internal USB connection originally intended for the nozzle camera on the Nozzle MCU/toolhead assembly.
 
-The preferred long-term design is still to connect Cartographer directly to the external host where practical.
+Current wiring choice:
+
+```text
+Nozzle MCU / toolhead internal camera USB connector
+                     |
+                     v
+                Cartographer
+```
+
+The stock nozzle camera is therefore not installed/used on this test unit. That camera is associated with Creality's automatic flow/pressure-related calibration workflow, which is not required for this machine's current configuration.
+
+This choice provides two practical advantages:
+
+- Cartographer uses an existing internal USB route instead of requiring another cable outside the printer;
+- the printer's single externally exposed USB port remains available for other uses.
+
+This is a **test-unit implementation choice**, not a requirement for all K2-OpenHost installations. Other installations may retain the nozzle camera and route Cartographer differently.
+
+The exact upstream hub/controller relationship of this internal path versus the external USB-A port and OpenHost Micro-USB link still requires topology verification.
 
 ## 11. Services expected to remain on the T113
 
@@ -200,13 +215,14 @@ The production OpenHost service manager must handle:
 Core UART identification and multi-channel exposure are no longer open questions. Remaining work includes:
 
 - CFS validation with connected hardware;
+- map the physical USB topology between external USB-A, `CREALITY CAM`, nozzle-camera/Cartographer path, and service/recovery Micro-USB;
 - sustained multi-channel load and printing traffic;
 - stable reconnect/re-enumeration handling;
 - production bridge implementation;
 - boot sequencing and automatic recovery;
 - HelixScreen integration;
-- Cartographer external-host integration;
-- camera relocation strategy;
+- validate the current Cartographer internal USB route during full OpenHost operation;
+- final camera strategy;
 - validation of motor tuning/write operations;
 - long-duration safety and reliability testing.
 
