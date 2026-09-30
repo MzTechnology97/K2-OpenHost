@@ -1,229 +1,92 @@
-# K2-OpenHost Architecture
+# K2-OpenHost architecture
 
-> Status: design in progress. The core external-host transport is now verified on hardware; UI, boot automation, CFS and long-duration validation remain in progress.
+Status: **experimental, hardware-validated in stages**. Target printer: **Creality K2 Pro**.
 
-## 1. Design objective
+## Design goal
 
-K2-OpenHost aims to preserve the original Creality K2 electronics while moving the main host-side Klipper/Kalico workload to an external Linux system.
-
-The current preferred split is:
+The project keeps the original K2 Pro electronics and moves the main Kalico/Klipper planning workload to an external Linux host. The T113 remains useful as the physical display/touch platform and as a transparent bridge to internal UART/RS-485 devices.
 
 ```text
-K2 original LCD + touch
-        |
-        v
-Allwinner T113 mainboard
-- Tina Linux
-- framebuffer/touch drivers
-- future HelixScreen
-- USB gadget transport
-- byte-transparent UART bridge services
-        |
-        | USB 2.0 High-Speed
-        v
-External Linux host
-- Kalico / Klippy
-- Moonraker
-- Mainsail / Fluidd
-- K2-specific extras
-        |
-        +-------------------+-------------------+
-        |                   |                   |
-        v                   v                   v
-     Main MCU           Nozzle MCU          RS-485 bus
-                                            X/Y + CFS
+K2 LCD/touch
+    |
+Allwinner T113 (Tina Linux)
+    |-- UI / future HelixScreen
+    |-- USB ConfigFS gadget
+    |-- ttyGS0 <-> ttyS2  Main MCU
+    |-- ttyGS1 <-> ttyS3  Nozzle MCU
+    `-- ttyGS2 <-> ttyS5  RS-485 / CFS / closed-loop
+           |
+           | service Micro-USB
+           v
+External Linux host / Raspberry Pi CM5
+    |-- Kalico
+    |-- Moonraker
+    |-- Mainsail/Fluidd
+    `-- K2-specific extras
 ```
 
-The T113 remains part of the system, but its role changes from primary host to a lightweight hardware-facing companion.
+A fourth Generic Serial interface is planned for Cartographer after its internal T113-side USB serial device is validated for transparent bridging.
 
-## 2. Why retain the T113 board
+## Repository layers
 
-The original mainboard already provides direct access to hardware that would otherwise require significant rewiring or reverse engineering:
+### K2-OpenHost
 
-- original LCD panel;
-- original touchscreen;
-- Main MCU;
-- Nozzle MCU;
-- internal USB topology;
-- RS-485 path used by closed-loop/CFS infrastructure;
-- printer-specific I/O and power-control paths.
+Canonical architecture, hardware observations, validation results and roadmap.
 
-Keeping the T113 allows K2-OpenHost to preserve the original display/mainboard while moving host-side compute elsewhere.
+### kalico-k2pro
 
-## 3. Display strategy
+`MzTechnology97/kalico-k2pro` is a fork of `Jacob10383/kalico`. The active `k2-pro-openhost` branch currently combines:
 
-The preferred UI design remains:
+- the upstream Kalico core;
+- a K2 Pro configuration baseline derived from the public `luketot/kalico-for-K2-Pro` work;
+- Jacobean K2 extras synchronized from `MzTechnology97/k2-pro-custom-firmware:k2-openhost`.
 
-```text
-Original LCD/touch
-      |
-      v
-T113 + HelixScreen
-      |
-      | network
-      v
-Moonraker on external host
-      |
-      v
-Kalico
-```
+Final machine-specific `.cfg` values will be migrated from the already-working K2 Pro only after the transport/control tests are complete.
 
-The display remains electrically attached to the T113. The external Linux host does not need to drive the panel directly.
+### k2-pro-custom-firmware
 
-## 4. Motion-control strategy
+Fork of `Jacob10383/k2-plus-custom-firmware`. The `k2-openhost` branch is the versioned source for K2 extras and OpenHost/K2 Pro compatibility changes. It preserves the upstream lineage while keeping our deltas auditable.
 
-The external host is intended to run:
+## Verified transport
 
-- Kalico / Klippy;
-- Moonraker;
-- K2 extras;
-- higher-level planning and Python extensions;
-- Cartographer host-side support.
+| External host | T113 gadget | T113 UART | Target | Status |
+|---|---|---|---|---|
+| `/dev/ttyUSB0` | `/dev/ttyGS0` | `/dev/ttyS2` | Main MCU | verified |
+| `/dev/ttyUSB1` | `/dev/ttyGS1` | `/dev/ttyS3` | Nozzle MCU | verified |
+| `/dev/ttyUSB2` | `/dev/ttyGS2` | `/dev/ttyS5` | RS-485/CFS | verified |
+| planned `/dev/ttyUSB3` | planned `ttyGS3` | internal Cartographer USB serial | Cartographer | pending |
 
-The original K2 MCU firmware remains responsible for real-time MCU work.
+All three verified channels operate through one composite USB gadget at USB 2.0 High-Speed.
 
-## 5. Verified three-channel USB transport
+## Main and nozzle MCU
 
-The K2 Pro T113 can expose three simultaneous ConfigFS Generic Serial functions through the service/recovery Micro-USB connector:
+Stock configuration uses 230400 baud on both MCU UARTs. External Kalico successfully established simultaneous sessions with both original Creality MCUs without firmware replacement.
 
-```text
-gser.usb0 -> /dev/ttyGS0
-gser.usb1 -> /dev/ttyGS1
-gser.usb2 -> /dev/ttyGS2
-```
+## RS-485
 
-The external Linux host enumerates three independent serial interfaces at USB 2.0 High-Speed (480M):
+`ttyS5` works with ordinary serial userspace access at 230400 8N1 for the tested frames; Linux RS-485 ioctl mode is not required for the observed traffic. The path carries CFS and other K2 peripherals, so protections must be scoped to the CFS layer rather than globally blocking the transport.
 
-```text
-/dev/ttyUSB0
-/dev/ttyUSB1
-/dev/ttyUSB2
-```
+## CFS integration
 
-Verified mapping:
+The CFS layer uses Jacobean K2 extras as the implementation baseline. K2-OpenHost adds only the compatibility/safety deltas actually required by the K2 Pro tests:
 
-```text
-External host               T113                       Hardware
+1. decode K2 Pro steady `BOX_STATE` replies with a 4-byte payload while preserving the existing 6-byte path;
+2. add `observation_mode` in `box.py`;
+3. wrap only the CFS stack in a read-only proxy, leaving the shared RS-485 transport available to closed-loop devices;
+4. suppress operational Box G-code, T commands, automatic RFID-policy write and runout hooks while observing.
 
-/dev/ttyUSB0 <--------> /dev/ttyGS0 <--------> /dev/ttyS2 <--> Main MCU
-/dev/ttyUSB1 <--------> /dev/ttyGS1 <--------> /dev/ttyS3 <--> Nozzle MCU
-/dev/ttyUSB2 <--------> /dev/ttyGS2 <--------> /dev/ttyS5 <--> RS-485
-```
+## UI split
 
-The bridge layer is currently a runtime Python byte-transparent prototype. A production daemon/service is still required.
+The intended UI architecture is HelixScreen on the T113 talking to Moonraker on the CM5. This avoids forcing the display stack onto the external host while still keeping the external host authoritative for printer planning/control.
 
-## 6. Main and Nozzle MCU validation
+## Safety model
 
-External Kalico has successfully established real protocol sessions with both original K2 Pro MCUs through the T113 bridge:
+The project moves from least invasive to more invasive tests:
 
-- Main MCU: `gd32f303xe` via `/dev/ttyS2`, 230400 baud;
-- Nozzle MCU: `gd32f303xb` via `/dev/ttyS3`, 230400 baud.
+1. passive observation;
+2. read-only protocol queries;
+3. guarded runtime integration;
+4. only after validation, narrowly-scoped state-changing commands;
+5. persistent installation only after the runtime architecture is proven.
 
-Both channels have been operated simultaneously without reflashing either MCU.
-
-## 7. RS-485 and closed-loop path
-
-The third bridge channel exposes `/dev/ttyS5` directly to the external host.
-
-Read-only address queries were verified end-to-end for both closed-loop controllers:
-
-```text
-X (0x81): response verified
-Y (0x82): response verified
-```
-
-For the tested traffic, `/dev/ttyS5` works as normal 230400 8N1 serial I/O without Linux `TIOCSRS485` configuration or explicit userspace RTS toggling.
-
-This proves that the external host can directly reach the X/Y controller bus through the T113 without requiring a separate RS-485 proxy protocol.
-
-The original MCU dictionaries also expose Creality's transparent serial commands. Historical stock logs confirm use of that path, but the direct third-channel `/dev/ttyS5` bridge is the currently verified external-host route for X/Y read-only communication.
-
-## 8. CFS path
-
-The stock configuration maps CFS communication to the same `/dev/ttyS5` RS-485 UART.
-
-The external host therefore already has a verified transport path to the relevant bus. Connected-CFS protocol validation is still pending. Initial no-response probes were performed while the CFS was physically disconnected and are not considered failures.
-
-## 9. USB0 conflict and unresolved physical USB topology
-
-USB0 is normally used as a host path for the internal `CREALITY CAM`. Switching it to device mode disconnects that camera.
-
-One additional hardware question remains open: the exact relationship between the printer's externally exposed USB-A port, the internal `CREALITY CAM`, and the service/recovery Micro-USB connector used for the external OpenHost link. It is not yet confirmed whether the external USB-A port shares the same physical hub/controller branch or sits on a separate USB path.
-
-This must be mapped before finalizing the camera/external-USB strategy.
-
-## 10. Cartographer wiring on the current test unit
-
-The current K2 Pro test unit intentionally repurposes the internal USB connection originally intended for the nozzle camera on the Nozzle MCU/toolhead assembly.
-
-Current wiring choice:
-
-```text
-Nozzle MCU / toolhead internal camera USB connector
-                     |
-                     v
-                Cartographer
-```
-
-The stock nozzle camera is therefore not installed/used on this test unit. That camera is associated with Creality's automatic flow/pressure-related calibration workflow, which is not required for this machine's current configuration.
-
-This choice provides two practical advantages:
-
-- Cartographer uses an existing internal USB route instead of requiring another cable outside the printer;
-- the printer's single externally exposed USB port remains available for other uses.
-
-This is a **test-unit implementation choice**, not a requirement for all K2-OpenHost installations. Other installations may retain the nozzle camera and route Cartographer differently.
-
-The exact upstream hub/controller relationship of this internal path versus the external USB-A port and OpenHost Micro-USB link still requires topology verification.
-
-## 11. Services expected to remain on the T113
-
-Minimal target set:
-
-- kernel and hardware drivers;
-- framebuffer/display driver;
-- touchscreen driver;
-- HelixScreen;
-- USB gadget configuration;
-- byte-transparent UART bridge daemon(s);
-- only required hardware-specific power/reset/control helpers.
-
-## 12. Services expected to move off the T113
-
-- Kalico / Klippy;
-- Moonraker;
-- Mainsail and/or Fluidd;
-- Cartographer host-side support;
-- K2 extras and diagnostics;
-- logging and development tools.
-
-## 13. Reconnect behavior
-
-A ConfigFS gadget unbind/rebind recreates `/dev/ttyGS*` endpoints. Existing bridge processes therefore exit and must be restarted after the rebind.
-
-The production OpenHost service manager must handle:
-
-- gadget creation;
-- host enumeration;
-- bridge startup;
-- bridge restart after USB reconnect;
-- deterministic naming;
-- fail-safe fallback when the external host is unavailable.
-
-## 14. Open design questions
-
-Core UART identification and multi-channel exposure are no longer open questions. Remaining work includes:
-
-- CFS validation with connected hardware;
-- map the physical USB topology between external USB-A, `CREALITY CAM`, nozzle-camera/Cartographer path, and service/recovery Micro-USB;
-- sustained multi-channel load and printing traffic;
-- stable reconnect/re-enumeration handling;
-- production bridge implementation;
-- boot sequencing and automatic recovery;
-- HelixScreen integration;
-- validate the current Cartographer internal USB route during full OpenHost operation;
-- final camera strategy;
-- validation of motor tuning/write operations;
-- long-duration safety and reliability testing.
-
-See [TEST_STATUS.md](TEST_STATUS.md) and [ROADMAP.md](ROADMAP.md) for current progress.
+No MCU reflashing is required for the transport tests documented so far.

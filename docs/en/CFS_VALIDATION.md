@@ -1,264 +1,104 @@
-# CFS validation
+# CFS validation on K2 Pro
 
-This document tracks hardware validation of the Creality Filament System (CFS) through the K2-OpenHost transport path.
+This document records only results validated on the project K2 Pro or directly derived from the cited public implementations. Private device identifiers and RFID payloads are intentionally omitted.
 
-## Verified transport path
+## Public implementation baseline
 
-```text
-External Linux host / CM5
-  -> /dev/ttyUSB2
-  -> K2 USB gadget gser.usb2 / ttyGS2
-  -> byte-transparent userspace bridge
-  -> T113 /dev/ttyS5 @ 230400 8N1
-  -> shared RS-485 bus
-  -> CFS
-```
+The CFS work uses public sources as implementation/reference material, especially:
 
-The path is verified bidirectionally on hardware. No MCU reflashing is required.
+- Creality K2-series Klipper extras;
+- Jacob10383 / Jacobean K2 custom firmware extras;
+- `gitstonelabs/creality-cfs-klipper` reverse engineering;
+- related public K2/CFS work listed in `REFERENCES.md`.
 
-## Addressing and discovery
+Public reverse engineering is treated as an implementation baseline, not as proof that every K2 Pro behavior is identical. Hardware tests are used only where K2 Pro/OpenHost differences need validation.
 
-| Operation | Code | Status | Result |
-|---|---:|---:|---|
-| Discover material box | `A1` | ✅ | Material Box discovered in application mode |
-| Assign address | `A0` | ✅ | Address `0x01` accepted |
-| Online check | `A2` | ✅ | Valid reply from address `0x01` |
-| Address-table query | `A3` | ✅ | Valid reply from address `0x01` |
+## Transport
 
-The 12-byte CFS UniID is intentionally not published.
-
-## Verified read-only operational commands
-
-| Operation | Code | Status | Hardware result |
-|---|---:|---:|---|
-| Box state | `0x0A` | ✅ | 4-byte steady format and `STATUS=0x30` slot events verified |
-| Version / serial query | `0x14` | ✅ | Valid 22-byte ASCII reply; identifier not published |
-| Slot / hardware mask | `0x08` | ✅ | `0x0F` with A-D present; `0x0E` with A empty and B-D present |
-| Buffer state | `0x05` | ✅ | `0x02` with buffer physically empty |
-| RFID/material records | `0x02` | ✅ | Empty, non-RFID and RFID slots distinguished correctly |
-| Remaining value | `0x03` | ✅ | Positional A-D values track physical state |
-
-## Slot-state correlation
-
-Controlled physical test:
-
-- slot A empty;
-- slot B containing an RFID spool;
-- slots C and D containing filament without RFID.
-
-Observed state:
+CFS shares the K2 RS-485 bus exposed by the stock system on `/dev/ttyS5` at 230400 baud. K2-OpenHost bridges it as:
 
 ```text
-READ_MATERIAL:
-A:none;B:<40-character RFID record>;C:unknown;D:unknown;
-
-READ_REMAIN:
-A=0, B=13, C=100, D=100
-
-SLOT_MASK:
-0x0E
+CM5 /dev/ttyUSB2 <-> T113 /dev/ttyGS2 <-> /dev/ttyS5 <-> CFS/RS-485
 ```
 
-This verifies on the K2 Pro test unit that:
+## Addressing verified
 
-- `none` = empty slot;
-- `unknown` = filament present without identified RFID;
-- a valid tag produces the 40-character RFID record;
-- `READ_REMAIN=0` follows the emptied slot;
-- command `0x08`, channel `0x00`, exposes a slot-presence bitmask.
+- frame head `0xF7`;
+- CFS/MB broadcast address `0xFE`;
+- A1 discovery verified repeatedly with a stable 12-byte private identifier;
+- A0 assignment to address `0x01` verified;
+- A2 online check verified;
+- A3 table query verified.
 
-The raw RFID record is intentionally redacted.
+## Read queries verified
 
-## Async slot event
+The current physical setup has been read successfully for:
 
-After changing the physical slot state, `CMD_BOX_STATE (0x0A)` returned:
+- slot-presence mask;
+- buffer state;
+- RFID state/records;
+- remaining material;
+- Box state.
 
-```text
-STATUS = 0x30
-DATA   = 02 03 00 00
-```
+No private RFID record is published in this repository.
 
-Public reverse-engineering identifies `0x30` as `SLOT_EVENT`; the four data bytes represent A/B/C/D event phases and `0x03` means insert complete. In this test the second byte matches insertion of the RFID spool into slot B.
+## K2 Pro BOX_STATE delta
 
-## Jacob10383 Kalico extras
+The Jacobean decoder originally expected a 6-byte steady payload. The tested K2 Pro returns a valid 4-byte steady payload.
 
-K2-OpenHost reuses Jacob10383's GPLv3 CFS stack instead of reimplementing the protocol:
+K2-OpenHost keeps the first two bytes opaque as `firmware_base`, then exposes:
 
-- `serial_485.py`
-- `box.py`
-- `box_addr.py`
-- `box_catalog.py`
-- `box_change.py`
-- `box_protocol.py`
+- `substatus`;
+- `load_flag`.
 
-The Jacobean firmware 6.18 extras were downloaded from its content-addressed store and SHA-256 verified inside the volatile `/dev/shm/k2-openhost-kalico` clone. The firmware installer was not executed and no persistent K2 system state was modified.
+The legacy 6-byte decoder path and asynchronous `STATUS=0x30` slot-event path remain available.
 
-## Native Jacob transport verified
+Repeated steady reads have produced changing opaque base values (for example `0x1E22`, `0x1E23`, `0x1F23`) while `substatus/load_flag` remained stable. This is why the first two bytes are not assigned an unsupported semantic meaning.
 
-`Serial_485_Wrapper` was connected directly to `/dev/ttyUSB2` without patches:
+## Native Jacobean tests
 
-```text
-connected: true
-port: /dev/ttyUSB2
-baud: 230400
-A2 response: valid
-CRC: valid
-crc_errors: 0
-timeouts: 0
-unmatched: 0
-send_errors: 0
-reader_errors: 0
-```
+### Serial_485_Wrapper
 
-This validates Jacob's native transport end-to-end through K2-OpenHost.
+Direct operation over `/dev/ttyUSB2` is verified.
 
-## Jacob AutoAddressManager and BoxDriver
+### AutoAddressManager + BoxDriver
 
-Jacobean 6.18 `AutoAddressClient`, `AutoAddressManager`, and `BoxDriver` were run directly over the OpenHost transport.
+With one connected CFS unit, read-only enumeration found address 1 without errors. Read queries returned the expected slot/buffer/RFID/remaining-material state.
 
-```text
-AutoAddressManager:
-online addresses: [1]
-known addresses: [1]
-errors: []
+### BoxStateReply compatibility patch
 
-query_slot_mask:
-status: 0x00
-value: 0x0E
+The patched native `box_protocol.py` successfully decoded both:
 
-query_hub_mask:
-status: 0x00
-value: 0x00
+- K2 Pro steady 4-byte state;
+- existing asynchronous slot events.
 
-query_buffer:
-status: 0x00
-value: 2
+## Observation guard
 
-query_rfid_records:
-A: none
-B: RFID_RECORD_40_CHARS
-C: unknown
-D: unknown
+A CFS-only proxy allows the known read/discovery function set and blocks all other CFS function codes before they reach `_write_frame`.
 
-query_rfid_remaining:
-[0, 13, 100, 100]
-```
+This guard is intentionally not implemented globally in `serial_485.py`, because the same bus also carries closed-loop motor/belt devices.
 
-`hub_mask=0x00` is verified only in the current state with no loaded CFS path; its semantics under load still need correlation.
+A direct self-test proved that function `0x0D` is blocked with no increase in the serial transport TX counter.
 
-The complete test produced:
+## Real Box() observation test
 
-```text
-tx_frames: 6
-rx_frames: 6
-crc_errors: 0
-invalid_len: 0
-unmatched: 0
-stale_dropped: 0
-timeouts: 0
-send_errors: 0
-reader_errors: 0
-```
+The actual Jacobean `Box()` class was instantiated with `observation_mode: True` and the real `/dev/ttyUSB2` transport.
 
-Transport, addressing, A2 decoding, slot mask, hub mask, buffer, RFID, and remaining queries therefore work unmodified.
+Verified behavior:
 
-## BOX_STATE compatibility delta: Jacobean 6.18 vs K2 Pro
+- only transport diagnostic G-code was registered;
+- one CFS driver was enumerated;
+- CFS proxy active;
+- RFID presence initialized by reads only;
+- no runout observer installed;
+- ten live state polls remained stable;
+- internal `_poll()` completed;
+- guard blocked `0x0D` before TX;
+- **35 TX / 35 RX**;
+- all transport error counters were zero.
 
-The first actual compatibility delta is `CMD_GET_BOX_STATE (0x0A)`.
+This is the current strongest end-to-end CFS milestone.
 
-The K2 Pro CFS returns this steady-state form:
+## Next validation
 
-```text
-STATUS = 0x00
-DATA   = 1f 23 00 00
-```
-
-Public wire-correct reverse-engineering describes it as:
-
-```text
-[b0][b1][b2][b3]
- b0/b1 = opaque firmware base
- b2    = substatus
- b3    = load flag
-         0x00 = feed/change
-         0x02 = loaded/print-locked
-```
-
-`b0/b1` vary between reads and must not be treated as state.
-
-Jacobean 6.18 `box_protocol.py`, however, expects a 6-byte steady payload and raises:
-
-```text
-ProtocolError: box-state payload has the wrong shape
-```
-
-The K2 Pro frame is complete and CRC-valid. This is a decoder incompatibility, not a transport failure.
-
-## Compatibility strategy
-
-The first OpenHost patch is intentionally conservative:
-
-1. accept the 4-byte steady `0x0A` form as well;
-2. keep `b0/b1` opaque;
-3. expose the real `substatus` and `load_flag`;
-4. do not fabricate missing temperature, humidity, `box_state`, or `downstream_mask` values;
-5. keep `STATUS=0x30` slot-event parsing unchanged;
-6. validate the patch in `/dev/shm` before enabling full `box.py`.
-
-That is sufficient for monitoring. Before automatic load/unload is enabled, the loaded slot/path must be derived reliably, likely by correlating the load flag with separate bus queries instead of synthesizing the Jacobean 6-byte model.
-
-## K2-Pro BOX_STATE shim validated in RAM
-
-The compatibility shim was tested runtime-only, without modifying the vendor file and without persistent state. `BoxDriver.query_box_state()` accepted the real K2-Pro frame and returned:
-
-```text
-reply_type: K2BoxStateReply
-status: 0x00
-payload: 1f 23 00 00
-firmware_base: 0x1F23
-substatus: 0x00
-load_flag: 0x00
-loaded: False
-feed_change: True
-temp_c: None
-humidity_pct: None
-box_state: None
-downstream_mask: None
-```
-
-The same shim preserved Jacob's existing event decoder: the previously captured real `STATUS=0x30` frame was decoded again as `slot_events=[2, 3, 0, 0]`.
-
-During the same test, the separate queries still returned `slot_mask=0x0E`, `hub_mask=0x00`, and `buffer=2`. The transport completed 4 TX and 4 RX with zero CRC errors, timeouts, unmatched frames, stale frames, or reader/send errors.
-
-Jacob's `box.py` uses `reply.downstream_mask or 0` while reconciling the loaded path, so `downstream_mask=None` is safe for polling/monitoring but intentionally identifies no loaded path. This is the desired behavior until loaded-path semantics are correlated on hardware.
-
-## BOX_STATE compatibility integrated into the volatile copy
-
-The same compatibility was then applied only to the volatile `/dev/shm/k2-openhost-kalico/klippy/extras/box_protocol.py`, with the original Jacobean 6.18 file preserved as `.orig`. The module passed `py_compile` and the test was repeated without any monkey patch.
-
-`BoxDriver.query_box_state()` returned the native extended `BoxStateReply`:
-
-```text
-type: BoxStateReply
-status: 0x00
-payload: 1e 23 00 00
-firmware_base: 0x1E23
-substatus: 0
-load_flag: 0
-loaded: False
-feed_change: True
-temp_c: None
-humidity_pct: None
-box_state: None
-downstream_mask: None
-```
-
-The opaque base changing from `0x1F23` to `0x1E23` across successive reads further confirms that `b0/b1` must not be used as state. Jacob's existing `STATUS=0x30` event decoder remained unchanged and continued to return `slot_events=[2, 3, 0, 0]`.
-
-The separate queries again returned `slot_mask=0x0E`, `hub_mask=0x00`, and `buffer=2`. The test completed 4 TX and 4 RX with zero CRC errors, invalid lengths, unmatched/stale frames, timeouts, send errors, or reader errors.
-
-This closes the first K2-Pro/Jacobean software delta: the native transport and `BoxDriver` can now read the K2-Pro steady `BOX_STATE` correctly without fabricating fields that are absent from the 4-byte model.
-
-## Next step
-
-Start `box.py` logic behind a protected observation mode. The first bootstrap must use `box_count=1`, a volatile `state_path`, and a transport guard that allows only read-only functions; automatic RFID/preload initialization writes, mode changes, load, and unload must remain blocked until polling behavior and loaded-path state have been verified end-to-end.
+The next CFS step is the same observation mode inside a complete CM5 Kalico/Klippy process rather than the standalone harness. State-changing CFS commands will remain disabled until the full host integration is stable.

@@ -1,272 +1,47 @@
-# USB Gadget and Micro-USB Investigation
+# USB gadget transport on the K2 Pro
 
-> Scope: Creality K2 Pro test unit. This document separates direct hardware observations from assumptions still awaiting validation.
+## Verified facts
 
-## 1. Initial discovery
+The K2 Pro T113 exposes a USB Device Controller at `4100000.udc-controller`. Its kernel includes ConfigFS/libcomposite and Generic Serial gadget support.
 
-The K2 Pro stock Linux image exposes an Allwinner USB Device Controller:
+The stock helper can create a Generic Serial gadget, and direct ConfigFS configuration has been verified with **three simultaneous serial functions**:
 
-```text
-/sys/class/udc/4100000.udc-controller
-```
+- `gser.usb0` -> `/dev/ttyGS0`
+- `gser.usb1` -> `/dev/ttyGS1`
+- `gser.usb2` -> `/dev/ttyGS2`
 
-Kernel configuration on the tested unit includes:
+The CM5/external host sees the same composite device as three `usbserial_generic` interfaces, currently mapped to `/dev/ttyUSB0..2`. Enumeration is USB 2.0 High-Speed (**480M**).
 
-```text
-CONFIG_USB_GADGET=y
-CONFIG_USB_LIBCOMPOSITE=y
-CONFIG_USB_F_SERIAL=y
-CONFIG_USB_CONFIGFS=y
-CONFIG_USB_CONFIGFS_UEVENT=y
-CONFIG_USB_CONFIGFS_SERIAL=y
-CONFIG_USB_CONFIGFS_F_FS=y
-```
-
-CDC ACM is not enabled in the tested kernel, but Generic Serial is built in and usable.
-
-## 2. USB0 normal role
-
-In stock operation USB0 is a host path for the internal chamber camera. The host controllers are:
+## Verified mapping
 
 ```text
-4101000.ehci0-controller
-4101400.ohci0-controller
+/dev/ttyUSB0 <-> ttyGS0 <-> ttyS2 <-> Main MCU
+/dev/ttyUSB1 <-> ttyGS1 <-> ttyS3 <-> Nozzle MCU
+/dev/ttyUSB2 <-> ttyGS2 <-> ttyS5 <-> RS-485 / CFS
 ```
 
-Switching USB0 to device mode cleanly disconnects the camera and removes those host controllers.
+Main and nozzle UARTs use 230400 baud. The RS-485 path is also operated at 230400 8N1.
 
-## 3. Switching USB0 to device mode
+## Role-switch caveat
 
-The vendor OTG driver exposes runtime role-selection nodes under:
+USB0 is dual-role. In stock operation it participates in the internal USB-host topology, including the chamber-camera path. Switching USB0 into device/gadget mode therefore changes the stock USB topology and can disconnect the camera. Runtime tests are designed to be reboot-reversible.
 
-```text
-/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0
-```
+Unbinding/rebinding the gadget recreates the `ttyGS*` endpoints. Any bridge processes holding those devices must be restarted after a rebind.
 
-Reading `usb_device` switches USB0 to device mode. On the tested unit this returned:
+## Bridge model
 
-```text
-device_chose finished!
-```
+The current bridge is intentionally byte-transparent. The T113 should not parse Klipper or CFS frames unless a future hardware-specific service proves necessary.
 
-The operation is runtime-only; a reboot restores stock USB-host behavior.
+This separation makes it possible to keep the CM5 as the planner/Python host while using the T113 only as a hardware gateway.
 
-## 4. Vendor Generic Serial gadget
+## Planned fourth channel
 
-The stock utility:
+The tested K2 Pro uses the internal toolhead/nozzle-camera USB route for Cartographer. A future test will identify the Cartographer serial device on the T113 and expose it through a fourth `gser` function (`ttyGS3` -> external `ttyUSB3`).
 
-```text
-/bin/setusbconfig
-```
+Normal Cartographer traffic is expected to be bridgeable, but firmware-update/bootloader operations may rely on USB control-line semantics that a simple serial-to-gser bridge does not automatically preserve. That must be validated separately.
 
-supports `gser`. Running:
+## What is not claimed
 
-```sh
-/bin/setusbconfig gser
-```
-
-creates the initial function:
-
-```text
-functions/gser.usb0
-/dev/ttyGS0
-```
-
-with:
-
-```text
-VID:     0x0525
-PID:     0xa4a6
-Product: Gadget Serial
-UDC:     4100000.udc-controller
-```
-
-## 5. Physical Micro-USB link
-
-With an external Linux host connected to the K2 Pro service/recovery Micro-USB connector, the gadget enumerates successfully at USB 2.0 High-Speed:
-
-```text
-480M
-```
-
-Host-side enumeration uses the Linux `usbserial_generic` driver. The development host exposes `/dev/ttyUSB*` devices after binding VID:PID `0525:a4a6`.
-
-Bidirectional transfer was verified between `/dev/ttyUSB0` and `/dev/ttyGS0`.
-
-## 6. Three simultaneous Generic Serial functions
-
-ConfigFS was extended at runtime with two additional serial functions:
-
-```text
-gser.usb0  port_num=0  -> /dev/ttyGS0
-gser.usb1  port_num=1  -> /dev/ttyGS1
-gser.usb2  port_num=2  -> /dev/ttyGS2
-```
-
-All three functions were linked into the same configuration and rebound to the same UDC.
-
-The external Linux host then enumerated one USB device with three vendor-specific interfaces:
-
-```text
-If 0 -> usbserial_generic -> /dev/ttyUSB0
-If 1 -> usbserial_generic -> /dev/ttyUSB1
-If 2 -> usbserial_generic -> /dev/ttyUSB2
-```
-
-The full device remained negotiated at 480M.
-
-This directly verifies that the stock K2 Pro kernel and ConfigFS implementation can expose at least three simultaneous Generic Serial channels through the single physical Micro-USB connection.
-
-## 7. Verified UART mapping through the gadget
-
-Runtime byte-transparent bridges were used on the T113:
-
-```text
-/dev/ttyGS0 <-> /dev/ttyS2   Main MCU
-/dev/ttyGS1 <-> /dev/ttyS3   Nozzle MCU
-/dev/ttyGS2 <-> /dev/ttyS5   RS-485 bus
-```
-
-All three underlying UARTs are used at 230400 baud in the tested stock configuration.
-
-Main and Nozzle MCU protocol sessions were verified simultaneously from external Kalico. The original MCU firmware was not reflashed.
-
-## 8. RS-485 through the third USB serial channel
-
-`/dev/ttyS5` was first tested locally on the T113 and then through the complete external-host path.
-
-Linux RS-485 ioctl state was read as disabled:
-
-```text
-SER_RS485_ENABLED = false
-```
-
-Despite this, normal 230400 8N1 userspace serial I/O works correctly for the tested bus traffic. No explicit RTS toggling or `TIOCSRS485` configuration was required.
-
-A read-only closed-loop X controller query sent directly on `/dev/ttyS5` returned:
-
-```text
-TX: f7 81 04 00 0e 02 80
-RX: f7 81 04 00 0e 81 00
-```
-
-The same query then succeeded from the external host through:
-
-```text
-/dev/ttyUSB2
-  -> gser.usb2
-  -> /dev/ttyGS2
-  -> byte-transparent bridge
-  -> /dev/ttyS5
-  -> RS-485
-  -> X controller
-```
-
-The Y controller also replied correctly:
-
-```text
-TX: f7 82 04 00 0e 02 80
-RX: f7 82 04 00 0e 82 09
-```
-
-This confirms end-to-end third-channel access to the K2 Pro RS-485 bus from the external host.
-
-## 9. CFS status
-
-The same `/dev/ttyS5` bus is used by the CFS path in the stock configuration.
-
-Initial `A2` online-check and `A1` discovery probes received no reply, but the CFS unit was physically disconnected during those tests. These results are therefore not considered transport failures.
-
-Connected-CFS validation remains pending.
-
-## 10. Current Cartographer USB wiring
-
-On the current K2 Pro test unit, Cartographer is connected through the internal USB connector on the Nozzle MCU/toolhead that was originally intended for the nozzle camera.
-
-The stock nozzle camera is intentionally not used on this unit. It is associated with Creality's automatic flow/pressure-related calibration workflow, which is not required for this test setup.
-
-This wiring avoids running an additional external USB cable to Cartographer and leaves the printer's single exposed external USB port available for other uses.
-
-This is specific to the current test unit and is not a mandatory K2-OpenHost wiring scheme.
-
-## 11. External USB port topology still to map
-
-The physical USB relationship between the following nodes has not yet been fully verified:
-
-- externally exposed USB-A port;
-- internal `CREALITY CAM`;
-- Nozzle MCU/toolhead nozzle-camera connector now used by Cartographer;
-- service/recovery Micro-USB connector currently used for the OpenHost link.
-
-In particular, it remains to be determined whether the exposed USB-A port shares the same hub/controller branch as the chamber camera and/or the Micro-USB OTG path. This should be checked with runtime USB-tree observations and controlled connect/disconnect tests before finalizing camera and USB routing decisions.
-
-## 12. Gadget rebind behavior
-
-Unbinding the ConfigFS gadget removes the host interfaces and invalidates currently open `/dev/ttyGS*` file descriptors. As a result, active byte-bridge processes exit when the gadget is unbound.
-
-After rebinding, `/dev/ttyGS0`, `/dev/ttyGS1`, and `/dev/ttyGS2` are recreated and the host re-enumerates `/dev/ttyUSB0`, `/dev/ttyUSB1`, and `/dev/ttyUSB2`. The bridge processes must then be restarted.
-
-This behavior is expected and must be handled by the future OpenHost service manager.
-
-## 13. Current verified transport
-
-```text
-External Linux host
-
-/dev/ttyUSB0
-    |
-    v
-T113 gser.usb0 / ttyGS0
-    |
-    v
-/dev/ttyS2 -> Main MCU
-
-/dev/ttyUSB1
-    |
-    v
-T113 gser.usb1 / ttyGS1
-    |
-    v
-/dev/ttyS3 -> Nozzle MCU
-
-/dev/ttyUSB2
-    |
-    v
-T113 gser.usb2 / ttyGS2
-    |
-    v
-/dev/ttyS5 -> RS-485 -> X/Y verified, CFS pending
-```
-
-## 14. Remaining USB-layer work
-
-The core transport is now verified. Remaining work includes:
-
-- map the external USB-A / chamber-camera / nozzle-camera-Cartographer / Micro-USB topology;
-- sustained multi-channel traffic;
-- long idle operation;
-- repeated disconnect/reconnect cycles;
-- repeated role switching;
-- deterministic bridge restart after USB rebind;
-- stable host naming/udev rules;
-- boot-time gadget and bridge automation;
-- failure recovery when the external host is absent or rebooting.
-
-## 15. Returning to stock USB host mode
-
-The current test procedure remains runtime-only. To unbind the gadget and return USB0 to host mode:
-
-```sh
-ROLE=/sys/devices/platform/soc@3000000/soc@3000000:usbc0@0
-
-echo "" > /sys/kernel/config/usb_gadget/g1/UDC 2>/dev/null
-cat $ROLE/usb_host
-```
-
-If needed:
-
-```sh
-/usr/bin/chamber_cam_power.sh restart
-```
-
-A reboot remains the authoritative recovery path during development.
+- The final physical USB topology of every external/internal connector is not yet fully mapped.
+- A fourth gadget serial interface for Cartographer has not yet been hardware-validated.
+- Gadget operation is not yet packaged as the final persistent boot configuration.

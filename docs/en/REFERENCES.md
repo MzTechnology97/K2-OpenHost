@@ -1,192 +1,45 @@
-# Credits and References
+# Credits and references
 
-K2-OpenHost is an independent experimental project. It builds on public documentation, source code, reverse-engineering work and community research produced by several projects and developers.
+K2-OpenHost is an integration and hardware-validation project. It intentionally preserves upstream authorship and does not claim original ownership of code, protocol discoveries or reverse-engineering results that originate elsewhere.
 
-This repository does **not** claim authorship of findings that originated elsewhere. Whenever possible, K2-OpenHost distinguishes between:
+## Core firmware projects
 
-- observations independently verified on the project's K2 Pro test hardware;
-- information derived from public source code or documentation;
-- design hypotheses that still require testing.
+- **Klipper3d/klipper** — original Klipper firmware project and contributors.
+- **KalicoCrew/kalico** — community Kalico fork and contributors.
+- **Jacob10383/kalico** — Jacob's Kalico work used as the upstream base for the K2-oriented fork.
+- **CrealityOfficial/K2_Series_Klipper** — public Creality K2 Klipper sources and proprietary-extension references.
 
-## Creality official K2 Klipper sources
+## K2 projects and authors
 
-### CrealityOfficial/K2_Series_Klipper
+- **jamincollins/k2-improvements** — original `k2-improvements` project lineage.
+- **Jacob10383/k2-improvements** — Jacob's fork and K2 work used by the project as a public reference.
+- **Jacob10383/k2-plus-custom-firmware** — source of the Jacobean K2 custom-firmware extras used as the implementation baseline for CFS, motor control and other K2 features.
+- **luketot/kalico-for-K2-Pro** — public K2 Pro `.cfg` adaptation used as a baseline reference for geometry/pin/config differences; the final OpenHost machine configuration will instead use the proven settings from the actual test K2 Pro.
 
-Repository:
+## CFS / protocol references
 
-https://github.com/CrealityOfficial/K2_Series_Klipper
+- Creality public K2/Hi Klipper extras, including auto-addressing and material-system wrappers.
+- **gitstonelabs/creality-cfs-klipper** — public CFS reverse-engineering work, mainly Hi/CFS-v1 oriented; used as a reference, not assumed to prove all K2 Pro behavior.
+- **grant0013/k2-reverse-engineering** and other public K2 reverse-engineering contributions.
 
-Credit: **CrealityOfficial**
+## UI and probing
 
-Used as a primary reference for:
+- **Cartographer3D/cartographer3d-plugin** and the Cartographer project contributors.
+- **prestonbrown/helixscreen** — HelixScreen UI project considered for the T113 display side.
 
-- K2-series Klipper configuration structure;
-- MCU declarations;
-- serial-port assignments on known K2 variants;
-- printer-specific extras and configuration names;
-- hardware model/configuration differences.
+## K2-OpenHost repositories
 
-This is an important reference when comparing the K2 Pro test unit against known K2-series configurations.
+- `MzTechnology97/K2-OpenHost` — documentation and validation.
+- `MzTechnology97/k2-pro-custom-firmware` — forked Jacobean extras and K2 Pro/OpenHost patches.
+- `MzTechnology97/kalico-k2pro` — Kalico fork integrating the K2 Pro baseline and validated extras.
+- `MzTechnology97/k2-improvements` — preserved/reference fork in the upstream K2-improvements lineage.
 
-## K2 reverse engineering
+## Attribution rule
 
-### grant0013/k2-reverse-engineering
+A result should be labelled as one of:
 
-Repository:
+- **verified on K2 Pro hardware**;
+- **derived from public source/configuration**;
+- **inferred / not yet tested**.
 
-https://github.com/grant0013/k2-reverse-engineering
-
-Credit: **grant0013** and contributors
-
-Important reference material includes work on:
-
-- K2 system architecture;
-- communication paths between host, MCU(s) and motor controllers;
-- RS-485 protocol investigation;
-- motor-controller parameter mapping;
-- analysis of Creality userspace components and services;
-- transparent communication mechanisms used by K2 motor-control infrastructure.
-
-K2-OpenHost relies on this work as a major source when planning future MCU and closed-loop transport experiments.
-
-### grant0013/K2-OpenKlipper
-
-Repository:
-
-https://github.com/grant0013/K2-OpenKlipper
-
-Credit: **grant0013** and contributors
-
-Relevant as a practical reference for replacing or reimplementing parts of the Creality K2 software stack and for understanding which K2 features can be supported without depending entirely on the stock host environment.
-
-## HelixScreen and K2 platform research
-
-### prestonbrown/helixscreen
-
-Repository:
-
-https://github.com/prestonbrown/helixscreen
-
-Credit: **prestonbrown** and HelixScreen contributors
-
-Used as a reference for:
-
-- K2-series display support;
-- framebuffer and touchscreen access;
-- K2 platform research;
-- using the original physical display without the stock Creality UI;
-- remote Moonraker UI architecture.
-
-K2-OpenHost currently plans to use HelixScreen on the original T113/display side of the system.
-
-## Kalico
-
-### KalicoCrew/kalico
-
-Repository:
-
-https://github.com/KalicoCrew/kalico
-
-Credit: **KalicoCrew** and contributors
-
-Kalico is the upstream community project from which the preferred external-host firmware stack is derived.
-
-### Jacob10383/kalico
-
-Repository:
-
-https://github.com/Jacob10383/kalico
-
-Credit: **Jacob10383** and upstream Kalico contributors
-
-This fork is currently the preferred candidate for the K2-OpenHost external Linux host because of its relevance to K2 experimentation and the broader K2 community ecosystem.
-
-K2-OpenHost does not redistribute or claim ownership of Kalico or Jacob10383's changes.
-
-## Additional K2 community work
-
-### night-gnida/k2-vanilla-public
-
-Repository:
-
-https://github.com/night-gnida/k2-vanilla-public
-
-Credit: **night-gnida** and contributors
-
-Useful as a reference for experiments that replace parts of the stock K2 Klipper environment while retaining original printer hardware and parts of the Creality software environment.
-
-## Linux USB Gadget framework
-
-### Linux kernel USB Gadget / ConfigFS documentation
-
-Project:
-
-https://www.kernel.org/
-
-Relevant upstream documentation includes the Linux USB Gadget ConfigFS and gadget-testing documentation.
-
-Credit: **Linux kernel developers and documentation contributors**
-
-Used as a reference for:
-
-- USB Device Controller concepts;
-- ConfigFS gadget construction;
-- generic serial gadget (`gser`);
-- UDC binding;
-- expected gadget states and host enumeration behavior.
-
-The K2 Pro experiments documented in this repository use the vendor Tina kernel implementation, but the Linux Gadget framework provides the underlying model.
-
-## Allwinner Tina Linux
-
-Credit: **Allwinner Technology / Tina Linux developers**
-
-The stock K2 Pro host runs Tina Linux based on OpenWrt. Public Tina Linux documentation and the software present on the printer itself are references for:
-
-- USB0 OTG role switching;
-- vendor sysfs nodes such as `usb_host` and `usb_device`;
-- ConfigFS initialization;
-- `/bin/setusbconfig` behavior;
-- FunctionFS/ADB and gadget setup patterns.
-
-The most important USB findings in K2-OpenHost were not assumed solely from documentation: role switching and Generic Serial gadget creation were independently verified on the project's K2 Pro hardware.
-
-## Archworks K2 Plus reverse-engineering notes
-
-Reference:
-
-https://archworks.co/docs/k2-plus-reverse-engineering/
-
-Credit: **Archworks authors**
-
-Used as an additional independent source when comparing K2-series hardware and userspace observations.
-
-## Project-specific hardware verification
-
-The following results currently documented by K2-OpenHost were independently observed on the project's K2 Pro test machine:
-
-- `CREALITY CAM` at USB ID `1d6c:0103` on USB0 host bus;
-- USB0 EHCI controller at `4101000.ehci0-controller`;
-- USB0 OHCI controller at `4101400.ohci0-controller`;
-- UDC at `4100000.udc-controller`;
-- successful runtime host-to-device role switch;
-- clean camera disconnect during the role switch;
-- presence of USB Gadget/ConfigFS/Generic Serial kernel options;
-- stock Tina `/bin/setusbconfig` support for `gser`;
-- creation of `/dev/ttyGS0`;
-- creation and binding of `gser.usb0`;
-- gadget VID `0x0525`, PID `0xa4a6`, product `Gadget Serial`.
-
-These observations are documented to add hardware-specific validation, not to supersede or appropriate the reverse-engineering work listed above.
-
-## Attribution policy for future contributions
-
-When adding material from another project:
-
-1. link the original project/document;
-2. credit the original author or project where identifiable;
-3. do not copy large sections of documentation verbatim;
-4. describe what K2-OpenHost independently tested;
-5. distinguish confirmed behavior from inference.
-
-If an attribution is missing or inaccurate, please open an issue or pull request so it can be corrected.
+This distinction is important because K2 Plus, K2 Pro and other Creality K2 variants can share substantial code while still differing in mechanics, pin mapping and protocol behavior.

@@ -1,214 +1,80 @@
-# Roadmap
+# Roadmap K2-OpenHost
 
-K2-OpenHost viene sviluppato in modo incrementale. Ogni fase deve essere validata prima di rendere persistenti modifiche più invasive o critiche per la sicurezza.
+La roadmap è guidata dalla validazione: la fase successiva parte solo quando quella precedente è dimostrata sulla K2 Pro.
 
-## Fase 0 — Preservare la possibilità di recovery
+## Fondamenta completate
 
-- Conservare un'immagine o slot stock noto e funzionante.
-- Evitare modifiche persistenti finché i test a runtime non sono ripetibili.
-- Documentare ogni modifica sysfs e ogni procedura di ripristino.
+- identificazione UDC e supporto gadget del T113;
+- Micro-USB di servizio validata come device path runtime;
+- tre Generic Serial simultanee;
+- bridge Main MCU, Nozzle MCU e RS-485;
+- sessioni MCU Kalico simultanee;
+- query closed-loop X/Y;
+- discovery/address/read CFS;
+- BoxDriver Jacobean sul trasporto OpenHost;
+- decoder Box state 4-byte K2 Pro;
+- guardia CFS observation;
+- vera `Box()` in observation mode;
+- patch versionate in `k2-pro-custom-firmware:k2-openhost`;
+- assemblaggio `kalico-k2pro:k2-pro-openhost` con baseline K2 Pro ed extra K2.
 
-Stato: **in corso / parzialmente soddisfatto**.
+## Fase 1 — vera istanza Kalico sul CM5 in observation mode
 
-## Fase 1 — Validare il collegamento Micro-USB a runtime
+- eseguire `kalico-k2pro:k2-pro-openhost` come servizio reale;
+- usare `ttyUSB0`, `ttyUSB1`, `ttyUSB2` per i bridge verificati;
+- mantenere CFS in `observation_mode`;
+- validare startup Klippy, telemetria, heater/sensori senza movimenti;
+- validare sensore filamento reale e stato Box.
 
-Obiettivo: dimostrare che la porta Micro-USB service/recovery può trasportare un normale USB gadget Linux durante il runtime.
+I `.cfg` macchina definitivi sono volutamente rimandati fino alla stabilità dello stack host/trasporto.
 
-Completato:
+## Fase 2 — bridge Cartographer
 
-- switch USB0 host -> device;
-- enumerazione `0525:a4a6 Gadget Serial`;
-- binding Linux `usbserial_generic`;
-- trasferimento byte bidirezionale;
-- link USB 2.0 High-Speed a 480M.
+- identificare il device seriale Cartographer lato T113;
+- aggiungere una quarta funzione gadget;
+- verificare comunicazione MCU Cartographer normale;
+- verificare separatamente eventuali esigenze USB dirette per bootloader/update.
 
-Stato: **completato per il trasporto base**.
+## Fase 3 — migrazione configurazione macchina
 
-I test di affidabilità residui sono spostati alla Fase 12.
+Importare i valori già funzionanti dalla K2 Pro attuale:
 
-## Fase 2 — Mappare i link hardware K2 Pro
+- configurazione Cartographer;
+- `motor_control.cfg` già tunato;
+- PID/termiche;
+- estrusore/pressure advance;
+- macro e altri `.cfg` validati.
 
-Mappatura completata:
+Cambiare solo path/seriali dipendenti dal nuovo host quando necessario.
 
-```text
-/dev/ttyS2 -> Main MCU @ 230400
-/dev/ttyS3 -> Nozzle MCU @ 230400
-/dev/ttyS5 -> percorso RS-485 / closed-loop / CFS @ 230400
-```
+## Fase 4 — mutazioni CFS controllate
 
-Stato: **completato per l'identificazione delle UART necessarie**.
+Dopo la stabilità observation:
 
-## Fase 3 — Creare un bridge seriale trasparente
+- validare loaded-path;
+- validare policy RFID;
+- abilitare una funzione mutante alla volta;
+- testare load/unload con supervisione meccanica;
+- validare cutter, buffer e runout recovery.
 
-Prototipo Python runtime verificato per:
+## Fase 5 — UI
 
-```text
-/dev/ttyGS0 <-> /dev/ttyS2
-/dev/ttyGS1 <-> /dev/ttyS3
-/dev/ttyGS2 <-> /dev/ttyS5
-```
+- Moonraker/planner sul CM5;
+- HelixScreen sul T113 con LCD/touch originali;
+- ridurre il T113 a UI e bridge hardware.
 
-Stato: **prototipo completato**.
+## Fase 6 — deployment persistente
 
-Resta da fare:
+Solo dopo la validazione completa runtime:
 
-- sostituire il prototipo con service/daemon production;
-- gestione deterministica reconnect;
-- health check/statistiche;
-- startup/shutdown puliti.
+- startup persistente bridge;
+- boot/recovery;
+- conservazione slot stock funzionante;
+- procedura di rebase/update rispetto agli upstream.
 
-## Fase 4 — Handshake MCU con Kalico esterno
+## Non-obiettivi attuali
 
-Completato:
-
-- Kalico esterno connesso al Main MCU originale;
-- dictionary e telemetria Main MCU decodificati;
-- Kalico esterno connesso al Nozzle MCU originale;
-- dictionary e telemetria Nozzle MCU decodificati;
-- nessun reflashing MCU necessario.
-
-Stato: **completato per la connettività protocollo**.
-
-## Fase 5 — Trasporto multi-MCU / multi-bus
-
-Mappatura verificata:
-
-```text
-/dev/ttyUSB0 -> gser.usb0 -> ttyGS0 -> ttyS2 -> Main MCU
-/dev/ttyUSB1 -> gser.usb1 -> ttyGS1 -> ttyS3 -> Nozzle MCU
-/dev/ttyUSB2 -> gser.usb2 -> ttyGS2 -> ttyS5 -> RS-485
-```
-
-Completato:
-
-- tre funzioni ConfigFS `gser` simultanee;
-- tre interfacce host `usbserial_generic`;
-- sessioni Main + Nozzle simultanee;
-- terzo canale RS-485 attivo contemporaneamente.
-
-Stato: **completato per la validazione funzionale**.
-
-Resta da fare:
-
-- naming host stabile / regole udev;
-- automazione reconnect;
-- traffico concorrente sostenuto.
-
-## Fase 6 — HelixScreen sul display originale
-
-Obiettivo: eliminare la dipendenza dalla UI Creality mantenendo display e touch originali.
-
-Attività:
-
-- installare/testare HelixScreen sul T113;
-- verificare framebuffer e touch;
-- collegare HelixScreen a Moonraker remoto;
-- validare comandi base, stato stampa, temperature e selezione file;
-- determinare i servizi T113 realmente necessari.
-
-Stato: **da eseguire**.
-
-## Fase 7 — Integrazione Cartographer
-
-Il cablaggio dell'unità di test è già stato definito:
-
-```text
-Connettore USB interno camera nozzle su Nozzle MCU/toolhead -> Cartographer
-```
-
-La camera nozzle stock non viene utilizzata intenzionalmente su questa macchina perché il workflow Creality di calibrazione automatica legato a flusso/pressure non è richiesto nella configurazione attuale. Il riutilizzo di quel percorso USB interno evita un ulteriore cavo USB esterno e lascia libera l'unica porta USB esposta della stampante.
-
-Resta da fare:
-
-- validare enumerazione e stabilità Cartographer con lo stack OpenHost completo;
-- validare probe/homing/mesh con Kalico;
-- mappare la topologia USB a monte di questo percorso rispetto a porta USB-A esterna, camera interna e Micro-USB service/recovery;
-- documentare un cablaggio alternativo per chi desidera mantenere la camera nozzle stock.
-
-Stato: **cablaggio implementato; validazione OpenHost completa da eseguire**.
-
-## Fase 8 — Motori closed-loop ed extras K2
-
-Completato:
-
-- dictionary Main e Nozzle stock confermati con `config_transparent` / `transparent_send`;
-- log stock confermati con traffico reale `transparent_response`;
-- `/dev/ttyS5` aperta direttamente a 230400 8N1;
-- nessuna modalità Linux `TIOCSRS485` necessaria per il traffico testato;
-- query read-only controller X (`0x81`) verificata direttamente sul T113;
-- query X verificata end-to-end dall'host esterno;
-- query Y (`0x82`) verificata end-to-end dall'host esterno.
-
-Stato: **trasporto e accesso read-only X/Y verificati**.
-
-Resta da fare:
-
-- mappare solo le operazioni di scrittura strettamente necessarie;
-- validare tuning/telemetria;
-- validare fault handling;
-- evitare scritture persistenti finché il protocollo non è completamente compreso.
-
-## Fase 9 — CFS
-
-Obiettivo: mantenere il supporto CFS senza dipendere dall'intero stack host Creality.
-
-Stato attuale:
-
-- UART host identificata come `/dev/ttyS5`;
-- trasporto dall'host esterno verso la UART già verificato;
-- i primi probe A1/A2 sono stati eseguiti mentre il CFS era fisicamente scollegato e sono quindi inconclusivi.
-
-Prossimi test:
-
-- collegare il CFS;
-- ripetere online-check/discovery;
-- acquisire e documentare le risposte;
-- validare reporting stato prima di qualsiasi comando che cambi indirizzo o muova il filamento;
-- successivamente integrare con Moonraker/HelixScreen.
-
-Stato: **prossima validazione hardware**.
-
-## Fase 10 — Topologia USB e strategia camera
-
-La strategia camera/USB non può essere definita definitivamente finché non viene mappata la topologia USB fisica.
-
-Verifiche richieste:
-
-- stabilire se la porta USB-A esposta esternamente condivide lo stesso ramo hub/controller della `CREALITY CAM` interna;
-- stabilire la relazione con la porta Micro-USB service/recovery usata da OpenHost;
-- stabilire come il percorso USB camera-nozzle ora usato da Cartographer si collega a monte;
-- osservare gli alberi USB prima/dopo collegamenti controllati e role switch USB0.
-
-L'unità di test attuale sacrifica intenzionalmente la camera nozzle stock a favore di Cartographer sul connettore interno. La camera interna/chamber camera resta invece una questione distinta, perché il device mode USB0 attualmente la disconnette.
-
-Stato: **mappatura hardware da eseguire**.
-
-## Fase 11 — Automazione boot e fail-safe recovery
-
-Solo dopo la validazione dell'architettura runtime:
-
-- automatizzare USB role switching;
-- creare automaticamente tutte e tre le funzioni gadget;
-- avviare/riavviare i bridge;
-- rilevare la presenza dell'host esterno;
-- aggiungere health check;
-- preservare un recovery stock semplice.
-
-Stato: **futuro**.
-
-## Fase 12 — Validazione di lunga durata
-
-Necessaria prima di considerare il progetto utilizzabile:
-
-- endurance idle;
-- traffico sostenuto su tutti e tre i canali;
-- reconnect USB ripetuti;
-- unbind/rebind gadget ripetuti;
-- reboot e cold boot ripetuti;
-- stampe multi-ora;
-- workload ad alta frequenza comandi;
-- gestione restart MCU;
-- crash/reboot dell'host esterno;
-- validazione termica e fail-safe.
-
-Stato: **futuro**.
+- reflashing degli MCU Creality originali;
+- sostituzione inutile dell'elettronica funzionante;
+- pubblicazione UID/RFID privati;
+- assumere che il comportamento K2 Plus valga automaticamente per K2 Pro.
