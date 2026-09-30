@@ -138,11 +138,30 @@ Y RX: f7 82 04 00 0e 82 09
 |---|---:|---|
 | Identify CFS/RS-485 host UART | ✅ | `/dev/ttyS5` |
 | Expose CFS/RS-485 UART to external host | ✅ | Third gadget serial channel verified |
-| CFS `A2` online-check probe | 🟡 | No reply, but CFS was physically disconnected during test |
-| CFS `A1` discovery probe | 🟡 | No reply, but CFS was physically disconnected during test |
-| Validate connected CFS from external host | ⏳ | Next CFS test once hardware is connected |
+| CFS connected after OpenHost runtime was already active | ✅ | Hot-plugged CFS responded without rebooting the printer |
+| CFS `A1` discovery from external host | ✅ | Three repeated broadcast discovery requests returned identical valid frames |
+| CFS device type | ✅ | `0x01` = Material Box |
+| CFS application/loader mode | ✅ | `0x00` = application mode |
+| CFS response CRC | ✅ | Captured discovery frame CRC verified |
+| CFS unique ID | ✅ | 12-byte UniID received; exact identifier intentionally not published |
+| CFS address assignment (`A0`) | ⏳ | Not yet performed |
+| CFS online-check after assignment (`A2`) | ⏳ | Pending after controlled address assignment |
+| CFS state/filament operations | ⏳ | Pending; no filament-motion command sent yet |
 
-The no-response CFS tests are **not classified as failures** because the CFS unit was disconnected. The transport itself is independently validated by successful X/Y traffic on the same `/dev/ttyS5` path.
+Verified discovery path:
+
+```text
+External host /dev/ttyUSB2
+        -> T113 gser.usb2 / ttyGS2
+        -> byte-transparent bridge
+        -> /dev/ttyS5 @ 230400
+        -> CFS
+        -> valid A1 discovery response
+```
+
+The connected box replied as an unaddressed Material Box in application mode. The response contained a valid 12-byte hardware UniID and valid CRC. The UniID is deliberately omitted from public documentation.
+
+An earlier `A2` probe produced four zero bytes rather than a valid `F7` protocol frame; this is not classified as a CFS response. Repeated `A1` discovery immediately afterward produced clean, identical valid frames.
 
 ## Display / UI
 
@@ -191,6 +210,6 @@ All current experiments on the working stock slot are runtime-only and reboot-re
 
 The current transport milestone is now verified on hardware:
 
-> **One physical Micro-USB link exposes three independent Generic Serial interfaces from the K2 Pro T113 to an external Linux host. The channels have been validated as Main MCU (`ttyS2`), Nozzle MCU (`ttyS3`), and RS-485 (`ttyS5`). Main and Nozzle Klipper protocol sessions can run concurrently, and the third RS-485 channel has successfully queried both original closed-loop X and Y motor controllers end-to-end from the external host. No MCU reflashing was required.**
+> **One physical Micro-USB link exposes three independent Generic Serial interfaces from the K2 Pro T113 to an external Linux host. Main MCU, Nozzle MCU and RS-485 are reachable simultaneously; X/Y closed-loop queries work end-to-end, and a physically connected CFS now returns valid discovery frames from the external host over the same RS-485 bridge. No MCU reflashing was required.**
 
-Next priorities are connected-CFS validation, USB topology mapping, reconnect/endurance testing, boot automation, and eventual HelixScreen/Moonraker integration.
+Next priorities are controlled CFS address assignment/online-check validation, USB topology mapping, reconnect/endurance testing, boot automation, Cartographer forwarding validation, and eventual HelixScreen/Moonraker integration.
