@@ -108,18 +108,24 @@ Attività:
 
 Stato: **da eseguire**.
 
-## Fase 7 — Integrazione Cartographer sull'host esterno
+## Fase 7 — Integrazione Cartographer
 
-Obiettivo: collegare Cartographer direttamente all'host esterno.
+Il cablaggio dell'unità di test è già stato definito:
 
-Attività:
+```text
+Connettore USB interno camera nozzle su Nozzle MCU/toolhead -> Cartographer
+```
 
-- spostare il collegamento USB se necessario;
-- validare enumerazione MCU;
+La camera nozzle stock non viene utilizzata intenzionalmente su questa macchina perché il workflow Creality di calibrazione automatica legato a flusso/pressure non è richiesto nella configurazione attuale. Il riutilizzo di quel percorso USB interno evita un ulteriore cavo USB esterno e lascia libera l'unica porta USB esposta della stampante.
+
+Resta da fare:
+
+- validare enumerazione e stabilità Cartographer con lo stack OpenHost completo;
 - validare probe/homing/mesh con Kalico;
-- rimuovere dipendenze T113 ridondanti.
+- mappare la topologia USB a monte di questo percorso rispetto a porta USB-A esterna, camera interna e Micro-USB service/recovery;
+- documentare un cablaggio alternativo per chi desidera mantenere la camera nozzle stock.
 
-Stato: **da eseguire**.
+Stato: **cablaggio implementato; validazione OpenHost completa da eseguire**.
 
 ## Fase 8 — Motori closed-loop ed extras K2
 
@@ -162,18 +168,20 @@ Prossimi test:
 
 Stato: **prossima validazione hardware**.
 
-## Fase 10 — Strategia camera
+## Fase 10 — Topologia USB e strategia camera
 
-Poiché USB0 viene usata dalla camera interna in modalità host stock, OpenHost necessita di una soluzione definitiva.
+La strategia camera/USB non può essere definita definitivamente finché non viene mappata la topologia USB fisica.
 
-Opzioni:
+Verifiche richieste:
 
-- collegare la camera originale direttamente all'host esterno;
-- instradarla su un altro percorso USB host;
-- modificare solo il collegamento camera;
-- lasciare la camera disabilitata.
+- stabilire se la porta USB-A esposta esternamente condivide lo stesso ramo hub/controller della `CREALITY CAM` interna;
+- stabilire la relazione con la porta Micro-USB service/recovery usata da OpenHost;
+- stabilire come il percorso USB camera-nozzle ora usato da Cartographer si collega a monte;
+- osservare gli alberi USB prima/dopo collegamenti controllati e role switch USB0.
 
-Stato: **decisione progettuale aperta**.
+L'unità di test attuale sacrifica intenzionalmente la camera nozzle stock a favore di Cartographer sul connettore interno. La camera interna/chamber camera resta invece una questione distinta, perché il device mode USB0 attualmente la disconnette.
+
+Stato: **mappatura hardware da eseguire**.
 
 ## Fase 11 — Automazione boot e fail-safe recovery
 
