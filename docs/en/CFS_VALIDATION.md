@@ -196,7 +196,7 @@ The K2 Pro frame is complete and CRC-valid. This is a decoder incompatibility, n
 
 ## Compatibility strategy
 
-The first OpenHost patch will intentionally be conservative:
+The first OpenHost patch is intentionally conservative:
 
 1. accept the 4-byte steady `0x0A` form as well;
 2. keep `b0/b1` opaque;
@@ -206,3 +206,32 @@ The first OpenHost patch will intentionally be conservative:
 6. validate the patch in `/dev/shm` before enabling full `box.py`.
 
 That is sufficient for monitoring. Before automatic load/unload is enabled, the loaded slot/path must be derived reliably, likely by correlating the load flag with separate bus queries instead of synthesizing the Jacobean 6-byte model.
+
+## K2-Pro BOX_STATE shim validated in RAM
+
+The compatibility shim was tested runtime-only, without modifying the vendor file and without persistent state. `BoxDriver.query_box_state()` accepted the real K2-Pro frame and returned:
+
+```text
+reply_type: K2BoxStateReply
+status: 0x00
+payload: 1f 23 00 00
+firmware_base: 0x1F23
+substatus: 0x00
+load_flag: 0x00
+loaded: False
+feed_change: True
+temp_c: None
+humidity_pct: None
+box_state: None
+downstream_mask: None
+```
+
+The same shim preserved Jacob's existing event decoder: the previously captured real `STATUS=0x30` frame was decoded again as `slot_events=[2, 3, 0, 0]`.
+
+During the same test, the separate queries still returned `slot_mask=0x0E`, `hub_mask=0x00`, and `buffer=2`. The transport completed 4 TX and 4 RX with zero CRC errors, timeouts, unmatched frames, stale frames, or reader/send errors.
+
+Jacob's `box.py` uses `reply.downstream_mask or 0` while reconciling the loaded path, so `downstream_mask=None` is safe for polling/monitoring but intentionally identifies no loaded path. This is the desired behavior until loaded-path semantics are correlated on hardware.
+
+## Next step
+
+Apply the same compatibility only to the volatile `/dev/shm/k2-openhost-kalico/klippy/extras/box_protocol.py`, keeping a `.orig` backup, and rerun the native queries without a monkey patch. Only after that validation should full `box.py` observation-mode startup be considered, with automatic load/unload still disabled until loaded-path reporting is reliable.
