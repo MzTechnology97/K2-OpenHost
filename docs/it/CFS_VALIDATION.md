@@ -232,6 +232,33 @@ Durante lo stesso test le query separate hanno continuato a restituire `slot_mas
 
 Il codice Jacob usa `reply.downstream_mask or 0` quando riconcilia il percorso caricato, quindi `downstream_mask=None` è sicuro per il polling/monitoraggio ma non identifica alcun loaded path. Questo comportamento è desiderato finché la semantica del percorso caricato non viene correlata su hardware.
 
+## Compatibilità BOX_STATE integrata nella copia volatile
+
+La stessa compatibilità è stata poi applicata esclusivamente alla copia volatile `/dev/shm/k2-openhost-kalico/klippy/extras/box_protocol.py`, mantenendo il file Jacobean 6.18 originale come backup `.orig`. Il modulo ha superato `py_compile` e il test è stato ripetuto senza monkey-patch.
+
+`BoxDriver.query_box_state()` ha restituito il `BoxStateReply` nativo esteso:
+
+```text
+type: BoxStateReply
+status: 0x00
+payload: 1e 23 00 00
+firmware_base: 0x1E23
+substatus: 0
+load_flag: 0
+loaded: False
+feed_change: True
+temp_c: None
+humidity_pct: None
+box_state: None
+downstream_mask: None
+```
+
+Il cambio della base opaca da `0x1F23` a `0x1E23` in letture successive conferma ulteriormente che `b0/b1` non devono essere usati come stato. Il decoder Jacob degli eventi `STATUS=0x30` è rimasto invariato e ha continuato a produrre `slot_events=[2, 3, 0, 0]`.
+
+Le query separate hanno restituito ancora `slot_mask=0x0E`, `hub_mask=0x00` e `buffer=2`. Il test ha prodotto 4 TX e 4 RX con zero CRC error, invalid length, unmatched/stale frame, timeout, send error o reader error.
+
+Questo chiude il primo delta software K2-Pro/Jacobean: il transport e il `BoxDriver` nativo possono ora leggere correttamente lo steady `BOX_STATE` K2-Pro senza inventare i campi assenti del modello a 6 byte.
+
 ## Prossimo step
 
-Portare la stessa compatibilità nella sola copia volatile `/dev/shm/k2-openhost-kalico/klippy/extras/box_protocol.py`, conservando un backup `.orig`, e rieseguire le query native senza monkey-patch. Solo dopo quella verifica verrà valutato il primo avvio di `box.py` in modalità osservazione, evitando qualsiasi sequenza automatica di load/unload finché il loaded-path non è affidabile.
+Avviare la logica `box.py` in una modalità di osservazione protetta. Il primo bootstrap deve usare `box_count=1`, uno `state_path` volatile e un transport guard che permetta solo funzioni read-only; le scritture automatiche di inizializzazione RFID/preload, mode-change, load e unload devono essere bloccate finché il comportamento di polling e lo stato loaded-path non sono stati verificati end-to-end.
