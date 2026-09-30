@@ -40,16 +40,18 @@ Original K2 display + touch / Display + touch originali K2
                          v
                   Allwinner T113
              Tina Linux + HelixScreen
-               USB gadget / bridges
+          USB gadget + byte-transparent bridges
                          |
-                         | USB 2.0
+                         | USB 2.0 High-Speed
                          v
                  External Linux host
-              Raspberry Pi / CM / SBC
-          Jacob10383 Kalico + Moonraker
+          Kalico + Moonraker + Mainsail/Fluidd
                          |
-                         v
-                 Original K2 MCU(s)
+          +--------------+--------------+
+          |              |              |
+          v              v              v
+       Main MCU      Nozzle MCU     RS-485 bus
+                                   X/Y + CFS path
 ```
 
 ### Main objective / Obiettivo principale
@@ -67,18 +69,29 @@ The following has been verified directly on a **K2 Pro** running Tina 5.0 / Open
 Quanto segue è stato verificato direttamente su una **K2 Pro** con Tina 5.0 / OpenWrt 21.02-SNAPSHOT e Linux 5.4.61:
 
 - USB0 is dual-role / USB0 è dual-role.
-- In normal operation USB0 works as a host and carries the internal `CREALITY CAM` / In funzionamento normale USB0 opera come host e gestisce la `CREALITY CAM` interna.
-- The USB0 host side uses `4101000.ehci0-controller` and `4101400.ohci0-controller`.
+- In stock operation USB0 is a host path for the internal chamber camera / In modalità stock USB0 gestisce la camera interna.
 - The USB Device Controller is exposed as `4100000.udc-controller`.
 - The kernel includes USB Gadget, ConfigFS, FunctionFS and Generic Serial support.
-- Reading the Allwinner `usb_device` sysfs node successfully switches USB0 from host mode to device mode.
-- During the switch, the camera disconnects cleanly and EHCI0/OHCI0 are removed.
-- Tina's `/bin/setusbconfig` utility already supports a `gser` mode.
-- `/bin/setusbconfig gser` successfully creates `/dev/ttyGS0`, `gser.usb0`, VID `0x0525`, PID `0xa4a6`, product `Gadget Serial`, and binds the gadget to `4100000.udc-controller`.
+- The service/recovery Micro-USB connector has been verified as the runtime USB device path to an external Linux host.
+- Generic Serial gadget enumeration is verified at USB 2.0 High-Speed (480M), using VID:PID `0525:a4a6`.
+- Three simultaneous ConfigFS serial functions are verified: `gser.usb0`, `gser.usb1`, `gser.usb2`.
+- The external host enumerates the three interfaces as independent `usbserial_generic` ports.
+- Main MCU path verified: `ttyGS0 <-> ttyS2`, 230400 baud, original `gd32f303xe` firmware.
+- Nozzle MCU path verified: `ttyGS1 <-> ttyS3`, 230400 baud, original `gd32f303xb` firmware.
+- Main and Nozzle MCU protocol sessions have been run simultaneously from external Kalico without reflashing the MCUs.
+- RS-485 path verified: `ttyGS2 <-> ttyS5`, 230400 baud.
+- Closed-loop X (`0x81`) and Y (`0x82`) controllers have both replied correctly to read-only address queries sent from the external host through the complete USB gadget -> T113 -> RS-485 path.
+- `/dev/ttyS5` does not require Linux `TIOCSRS485` mode for the tested traffic; direction handling is transparent to the userspace bridge.
+- CFS protocol validation is still pending. Initial CFS probes were intentionally inconclusive because the CFS unit was physically disconnected during that test session.
 
-The physical Micro-USB-to-external-host data path and direct MCU bridging are **not yet fully validated**.
+The currently verified runtime transport is therefore:
 
-Il percorso dati fisico Micro-USB verso host esterno e il bridge diretto verso gli MCU **non sono ancora completamente validati**.
+```text
+External host
+  /dev/ttyUSB0 <-> gser.usb0 / ttyGS0 <-> ttyS2 <-> Main MCU
+  /dev/ttyUSB1 <-> gser.usb1 / ttyGS1 <-> ttyS3 <-> Nozzle MCU
+  /dev/ttyUSB2 <-> gser.usb2 / ttyGS2 <-> ttyS5 <-> RS-485 (X/Y verified, CFS pending)
+```
 
 ---
 
@@ -90,7 +103,7 @@ Il percorso dati fisico Micro-USB verso host esterno e il bridge diretto verso g
 - original LCD and touchscreen drivers
 - HelixScreen
 - USB Gadget transport
-- MCU/UART bridge services
+- byte-transparent UART bridge services
 - only the hardware-specific services that prove necessary
 
 ### External host
@@ -110,9 +123,9 @@ Il percorso dati fisico Micro-USB verso host esterno e il bridge diretto verso g
 
 **IT:** Questo progetto è sperimentale. Non eseguire commutazioni del ruolo USB o test di bridge verso gli MCU durante una stampa. Conservare sempre un backup o uno slot di sistema stock funzionante prima di applicare modifiche persistenti.
 
-The USB experiments documented so far were runtime-only. On the tested K2 Pro, a reboot restores the normal stock USB-host behavior.
+The USB and bridge experiments documented so far are runtime-only. On the tested K2 Pro, a reboot restores the normal stock USB-host behavior. Unbinding/rebinding the gadget recreates the `/dev/ttyGS*` endpoints, so active bridge processes must be restarted afterwards.
 
-Gli esperimenti USB documentati finora sono stati eseguiti solo a runtime. Sulla K2 Pro testata, un riavvio ripristina il normale comportamento USB-host stock.
+Gli esperimenti USB e bridge documentati finora sono eseguiti solo a runtime. Sulla K2 Pro testata, un riavvio ripristina il normale comportamento USB-host stock. Unbind/rebind del gadget ricrea gli endpoint `/dev/ttyGS*`, quindi i processi bridge attivi devono essere riavviati.
 
 ---
 
@@ -147,4 +160,4 @@ Quando si contribuisce con risultati di test, indicare chiaramente se il risulta
 - **Derived from public source or configuration / Derivato da sorgenti o configurazioni pubbliche**
 - **Inferred, not yet tested / Dedotto, non ancora testato**
 
-This distinction is important because the project is still in an early reverse-engineering and validation phase.
+This distinction is important because the project is still in an active reverse-engineering and validation phase.
