@@ -26,6 +26,7 @@ Legenda:
 | Identificazione camera interna su USB0 | ✅ | `1d6c:0103 CREALITY CAM` |
 | Disconnessione camera durante role switch | ✅ | Disconnessione pulita osservata in dmesg |
 | Rimozione controller host | ✅ | EHCI0 e OHCI0 rimossi |
+| Mappatura porta USB-A esterna rispetto a camera/Micro-USB | ⏳ | Da verificare se la porta USB-A esposta condivide lo stesso hub/controller della `CREALITY CAM` e/o della Micro-USB service/recovery usata dall'host esterno |
 
 ## Supporto USB gadget
 
@@ -112,7 +113,7 @@ La `console.py` standalone di Kalico può mostrare `DangerOptions has not been l
 |---|---:|---|
 | Comandi transparent presenti nei dictionary MCU stock | ✅ | Main e Nozzle espongono `config_transparent` e `transparent_send` |
 | Uso stock di `transparent_send` nei log | ✅ | I log storici contengono `transparent_response` validi |
-| Probe minimale del canale transparent | 🟡 | L'MCU accetta `config_transparent`, ma il frame di test restituisce payload vuoto; il percorso raggiunge l'MCU ma il motore non era ancora preparato su quel path |
+| Probe minimale del canale transparent | 🟡 | L'MCU accetta `config_transparent`, ma il frame di test restituisce payload vuoto; il controller a valle non era preparato su quel path |
 | Apertura diretta `/dev/ttyS5` | ✅ | 230400 8N1 |
 | Necessità ioctl RS-485 Linux | ✅ | Non richiesta per il traffico testato; flag `TIOCGRS485` disabilitati |
 | Query diretta controller X dal T113 | ✅ | Indirizzo `0x81` risponde correttamente |
@@ -152,12 +153,21 @@ I test CFS senza risposta **non vengono classificati come fallimenti**, perché 
 | HelixScreen collegato a Moonraker remoto | ⏳ | Pianificato |
 | Eliminazione dipendenza dallo stack UI Creality | ⏳ | Pianificato |
 
-## Cartographer
+## Cartographer e connettore camera nozzle
 
-| Test | Stato | Risultato |
+L'unità K2 Pro usata per i test differisce intenzionalmente dal cablaggio stock.
+
+| Test / scelta | Stato | Risultato |
 |---|---:|---|
-| Cartographer su percorso USB interno separato | ✅ | Non coinvolto dal role switch USB0 |
-| Cartographer diretto sull'host esterno | ⏳ | Pianificato |
+| Cartographer installato su percorso USB interno | ✅ | Funzionante sull'unità di test |
+| Cartographer collegato tramite connettore camera della Nozzle MCU | ✅ | Il collegamento USB originariamente destinato alla camera nozzle è stato riutilizzato per Cartographer |
+| Camera nozzle stock mantenuta | ❌ | Rimossa/non utilizzata intenzionalmente sull'unità di test |
+| Necessità di un ulteriore cavo USB esterno per Cartographer | ✅ | No; il percorso USB interno della camera nozzle evita un cavo esterno aggiuntivo |
+| Porta USB esterna della stampante lasciata libera | ✅ | Il cablaggio attuale evita di occupare l'unica porta USB esposta per Cartographer |
+
+La camera nozzle stock è destinata al workflow Creality di calibrazione automatica legato a flusso/pressure. Questa funzione non è richiesta sull'unità di test attuale, quindi il relativo collegamento è stato deliberatamente riassegnato a Cartographer. Si tratta di una **scelta di cablaggio della macchina di test**, non di un requisito generale di K2-OpenHost.
+
+Resta da verificare la relazione topologica esatta tra porta USB esterna, `CREALITY CAM` interna e percorso Micro-USB service/recovery.
 
 ## Affidabilità
 
@@ -183,4 +193,4 @@ Il milestone di trasporto attuale è verificato su hardware:
 
 > **Un singolo collegamento Micro-USB espone tre interfacce Generic Serial indipendenti dal T113 della K2 Pro verso un host Linux esterno. I tre canali sono stati validati come Main MCU (`ttyS2`), Nozzle MCU (`ttyS3`) e RS-485 (`ttyS5`). Le sessioni protocollo Klipper Main e Nozzle possono funzionare contemporaneamente, mentre il terzo canale RS-485 ha interrogato con successo entrambi i controller closed-loop X e Y originali end-to-end dall'host esterno. Non è stato necessario riflashare alcun MCU.**
 
-Le prossime priorità sono la validazione CFS con unità collegata, test di reconnect/endurance, automazione boot e successiva integrazione HelixScreen/Moonraker.
+Le prossime priorità sono la validazione CFS con unità collegata, la mappatura della topologia USB, test di reconnect/endurance, automazione boot e successiva integrazione HelixScreen/Moonraker.
