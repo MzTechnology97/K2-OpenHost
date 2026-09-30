@@ -69,9 +69,11 @@ Legenda:
 | Conferma baud rate | ✅ | Main, nozzle e RS-485 configurati a 230400 baud |
 | Arresto Klipper stock senza disturbare i servizi hardware | ✅ | `/etc/init.d/klipper stop`; `klipper_mcu -r` rimane attivo mentre le UART vengono liberate |
 | Apertura UART Main MCU da processo di test | ✅ | `/dev/ttyS2` aperta correttamente dopo lo stop di Klippy stock |
+| Apertura UART Nozzle MCU da processo di test | ✅ | `/dev/ttyS3` aperta correttamente dopo lo stop di Klippy stock |
 | Bridge trasparente `ttyGS0 <-> ttyS2` | ✅ | Bridge Python volatile raw attivo a 230400 baud |
+| Bridge trasparente `ttyGS0 <-> ttyS3` | ✅ | Stesso bridge volatile riutilizzato con successo sul Nozzle MCU |
 | Handshake Kalico con MCU principale originale | ✅ | La console Kalico sul CM5 si è connessa attraverso il bridge USB e ha decodificato traffico MCU reale |
-| Handshake Kalico con MCU nozzle originale | ⏳ | Da eseguire |
+| Handshake Kalico con MCU nozzle originale | ✅ | La console Kalico sul CM5 ha recuperato il dictionary del Nozzle MCU e decodificato telemetria live |
 
 ### Identità Main MCU verificata
 
@@ -86,7 +88,20 @@ L'host esterno CM5 ha recuperato correttamente il protocol dictionary del Main M
 
 Dopo l'handshake, il CM5 ha ricevuto e decodificato messaggi live come `analog_in_state` e `stats`, confermando una reale comunicazione bidirezionale del protocollo Klipper con il Main MCU Creality originale.
 
-Durante l'uso standalone di `console.py` è comparsa l'eccezione `DangerOptions has not been loaded yet!`, ma la connessione seriale è stata completata correttamente e la telemetria MCU ha continuato a essere decodificata. Il problema viene quindi classificato come incompatibilità del tool console standalone, non come errore di trasporto.
+### Identità Nozzle MCU verificata
+
+Lo stesso percorso USB gadget e bridge byte-transparent è stato reindirizzato da `/dev/ttyS2` a `/dev/ttyS3`. Il CM5 ha recuperato correttamente il protocol dictionary del Nozzle MCU originale. I valori riportati includono:
+
+- MCU: `gd32f303xb`
+- Clock: `120000000`
+- Baud seriale: `230400`
+- Receive window: `192`
+- Firmware build: `1.1.0.48-293-g493f9a0f-dirty-20241220_143931-ubuntu1804`
+- Toolchain: GNU Arm Embedded 9.2.1 / binutils 2.33.1
+
+Dopo `connected`, il CM5 ha continuato a ricevere e decodificare `analog_in_state` e `stats`, confermando comunicazione bidirezionale reale anche con il Nozzle MCU.
+
+Durante l'uso standalone di `console.py` è comparsa l'eccezione `DangerOptions has not been loaded yet!`, ma sia la connessione Main sia la connessione Nozzle sono state completate correttamente e la telemetria MCU ha continuato a essere decodificata. Il problema viene quindi classificato come incompatibilità del tool console standalone, non come errore di trasporto.
 
 ## Trasporto multi-canale
 
@@ -129,6 +144,7 @@ Durante l'uso standalone di `console.py` è comparsa l'eccezione `DangerOptions 
 |---|---:|---|
 | Test breve serial gadget | ✅ | Traffico bidirezionale CM5 <-> K2 verificato |
 | Sessione live protocollo Main MCU | ✅ | La console Kalico è rimasta connessa e ha decodificato telemetria ricorrente |
+| Sessione live protocollo Nozzle MCU | ✅ | La console Kalico è rimasta connessa e ha decodificato telemetria ricorrente |
 | Test idle 1 ora | ⏳ | Da eseguire |
 | Stampa lunga | ⏳ | Da eseguire |
 | Recovery dopo reboot | 🟡 | Il comportamento stock USB host ritorna dopo reboot; automazione OpenHost non implementata |
@@ -140,8 +156,8 @@ Tutti gli esperimenti attuali sullo slot stock funzionante sono esclusivamente r
 
 ## Milestone attuale
 
-È stato completato il terzo importante milestone di piattaforma:
+È stato completato il quarto importante milestone di piattaforma:
 
-> **Un Raspberry Pi CM5 con Kalico ha stabilito con successo una sessione reale del protocollo Klipper con il Main MCU originale della K2 Pro passando attraverso l'Allwinner T113 stock, il connettore Micro-USB service, il Generic Serial gadget ConfigFS e un bridge byte-transparent `/dev/ttyGS0 <-> /dev/ttyS2`. L'host esterno ha recuperato il dictionary MCU e decodificato telemetria live senza riflashare o modificare il firmware del Main MCU.**
+> **Un Raspberry Pi CM5 con Kalico ha stabilito con successo sessioni reali del protocollo Klipper con entrambi gli MCU originali della K2 Pro attraverso il T113 stock e un bridge byte-transparent sul Generic Serial USB gadget: Main MCU `gd32f303xe` su `/dev/ttyS2` e Nozzle MCU `gd32f303xb` su `/dev/ttyS3`, entrambi a 230400 baud. I dictionary MCU e la telemetria live sono stati recuperati senza riflashare o modificare il firmware degli MCU.**
 
-Il prossimo passo di validazione è ripetere lo stesso test sul Nozzle MCU originale collegato a `/dev/ttyS3`, quindi valutare una seconda funzione seriale gadget per far funzionare Main e Nozzle MCU contemporaneamente.
+Il prossimo passo di validazione è esporre Main e Nozzle MCU contemporaneamente verso il CM5, preferibilmente tramite una seconda funzione `gser`, e verificare due sessioni Klipper simultanee prima di affrontare il bus RS-485/CFS.
