@@ -23,7 +23,7 @@ Legend:
 |---|---:|---|
 | Identify USB0 host controller | ✅ | `4101000.ehci0-controller` |
 | Identify USB0 OHCI controller | ✅ | `4101400.ohci0-controller` |
-| Identify internal camera on USB0 | ✅ | `1d6c:0103 CREALITY CAM` on Bus 003 |
+| Identify internal camera on USB0 | ✅ | `1d6c:0103 CREALITY CAM` |
 | Verify camera disconnect during role switch | ✅ | Clean disconnect observed in dmesg |
 | Verify host controllers are removed | ✅ | EHCI0 and OHCI0 removed |
 
@@ -37,10 +37,12 @@ Legend:
 | `CONFIG_USB_F_SERIAL=y` | ✅ | Present |
 | `CONFIG_USB_CONFIGFS_SERIAL=y` | ✅ | Present |
 | `CONFIG_USB_CONFIGFS_F_FS=y` | ✅ | Present |
-| Switch USB0 to device mode | ✅ | `cat .../usb_device` returned `device_chose finished!` |
-| Create ConfigFS gadget with vendor tool | ✅ | `/bin/setusbconfig gser` returned exit 0 |
-| Create `/dev/ttyGS0` | ✅ | Character device created |
-| Create `gser.usb0` function | ✅ | Verified in ConfigFS |
+| Switch USB0 to device mode | ✅ | Runtime switch verified |
+| Create initial gadget with vendor tool | ✅ | `/bin/setusbconfig gser` works |
+| Create `gser.usb0` / `/dev/ttyGS0` | ✅ | Verified |
+| Add `gser.usb1` / `/dev/ttyGS1` | ✅ | ConfigFS function and port 1 verified |
+| Add `gser.usb2` / `/dev/ttyGS2` | ✅ | ConfigFS function and port 2 verified |
+| Bind three serial functions to one gadget | ✅ | All three linked to `configs/c.1` |
 | Bind gadget to UDC | ✅ | `4100000.udc-controller` |
 | Verify VID/PID | ✅ | `0525:a4a6` |
 | Verify product string | ✅ | `Gadget Serial` |
@@ -49,68 +51,97 @@ Legend:
 
 | Test | Status | Result |
 |---|---:|---|
-| Confirm Micro-USB is runtime USB0 device connector | ✅ | CM5 enumerated the K2 gadget through the service/recovery Micro-USB connector |
-| Enumerate `0525:a4a6` on Linux host | ✅ | `Netchip Technology, Inc. Linux-USB Serial Gadget` detected |
-| Create host `/dev/ttyUSB0` | ✅ | Bound with Linux `usbserial_generic` via `new_id` |
-| Host -> K2 serial transfer | ✅ | `K2_OPENHOST_CM5_TO_K2_001` received on `/dev/ttyGS0` |
-| K2 -> host serial transfer | ✅ | `K2_OPENHOST_K2_TO_CM5_001` received on `/dev/ttyUSB0` |
-| High-speed negotiation | ✅ | USB tree reports 480M; K2 UDC reports `current_speed: high-speed` |
-| K2 UDC reaches configured state | ✅ | `state: configured`, `function: g1` |
-| Disconnect/reconnect recovery | ⏳ | Pending |
-| Repeated role-switch stability | ⏳ | Pending |
+| Confirm Micro-USB is runtime USB0 device connector | ✅ | External Linux host enumerated K2 gadget through service/recovery connector |
+| High-speed negotiation | ✅ | 480M |
+| Expose one serial interface | ✅ | `/dev/ttyUSB0` |
+| Expose two serial interfaces | ✅ | `/dev/ttyUSB0` + `/dev/ttyUSB1` |
+| Expose three serial interfaces | ✅ | `/dev/ttyUSB0` + `/dev/ttyUSB1` + `/dev/ttyUSB2` |
+| Host driver binding | ✅ | All three interfaces bind to `usbserial_generic` |
+| Bidirectional byte transfer | ✅ | Verified |
+| Disconnect/reconnect recovery | 🟡 | Re-enumeration works; bridge daemons must be restarted after gadget unbind/rebind |
+| Repeated role-switch stability | ⏳ | Pending endurance test |
 
 ## MCU mapping
 
 | Test | Status | Result |
 |---|---:|---|
-| Identify K2 Pro main MCU serial device | ✅ | `/dev/ttyS2` |
-| Identify K2 Pro nozzle MCU serial device | ✅ | `/dev/ttyS3` |
-| Identify RS-485 / CFS serial device | ✅ | `/dev/ttyS5` via `[serial_485 serial485]` in `box.cfg` |
-| Confirm baud rates | ✅ | Main, nozzle and RS-485 paths are configured at 230400 baud |
-| Stop stock Klipper without disturbing hardware services | ✅ | `/etc/init.d/klipper stop`; `klipper_mcu -r` remained active while UARTs were released |
-| Open main MCU UART directly from test process | ✅ | `/dev/ttyS2` opened successfully after stock Klippy stop |
-| Open nozzle MCU UART directly from test process | ✅ | `/dev/ttyS3` opened successfully after stock Klippy stop |
-| Transparent `ttyGS0 <-> ttyS2` bridge | ✅ | Volatile Python raw bridge active at 230400 baud |
-| Transparent `ttyGS0 <-> ttyS3` bridge | ✅ | Same volatile bridge reused successfully for the Nozzle MCU |
-| Kalico handshake with original main MCU | ✅ | CM5 Kalico console connected through USB gadget bridge and decoded live MCU traffic |
-| Kalico handshake with original nozzle MCU | ✅ | CM5 Kalico console retrieved the Nozzle MCU dictionary and decoded live telemetry |
+| Main MCU serial device | ✅ | `/dev/ttyS2` |
+| Nozzle MCU serial device | ✅ | `/dev/ttyS3` |
+| RS-485 / CFS serial device | ✅ | `/dev/ttyS5` |
+| Baud rates | ✅ | Main, Nozzle and RS-485 are 230400 baud |
+| Stop stock Klipper and free UARTs | ✅ | Runtime-only test successful |
+| `ttyGS0 <-> ttyS2` raw bridge | ✅ | Main MCU |
+| `ttyGS1 <-> ttyS3` raw bridge | ✅ | Nozzle MCU |
+| `ttyGS2 <-> ttyS5` raw bridge | ✅ | RS-485 bus |
+| Kalico handshake with Main MCU | ✅ | Dictionary and live telemetry decoded |
+| Kalico handshake with Nozzle MCU | ✅ | Dictionary and live telemetry decoded |
+| Main + Nozzle sessions simultaneously | ✅ | Two concurrent host serial interfaces verified |
 
 ### Verified Main MCU identity
-
-The external CM5 successfully retrieved the Main MCU protocol dictionary through the transparent path. Reported values include:
 
 - MCU: `gd32f303xe`
 - Clock: `120000000`
 - Serial baud: `230400`
 - Receive window: `192`
-- Firmware build string: `1.1.0.48-312-gcd5c2b81-dirty-20241227_092331-ubuntu`
-- Toolchain: GNU Arm Embedded 9.2.1 / binutils 2.33.1
-
-After the handshake, the CM5 received and decoded live messages such as `analog_in_state` and `stats`, confirming real bidirectional Klipper protocol communication with the original Creality Main MCU.
+- Firmware build: `1.1.0.48-312-gcd5c2b81-dirty-20241227_092331-ubuntu`
 
 ### Verified Nozzle MCU identity
-
-The same USB gadget and byte-transparent bridge path was redirected from `/dev/ttyS2` to `/dev/ttyS3`. The CM5 successfully retrieved the original Nozzle MCU protocol dictionary. Reported values include:
 
 - MCU: `gd32f303xb`
 - Clock: `120000000`
 - Serial baud: `230400`
 - Receive window: `192`
-- Firmware build string: `1.1.0.48-293-g493f9a0f-dirty-20241220_143931-ubuntu1804`
-- Toolchain: GNU Arm Embedded 9.2.1 / binutils 2.33.1
+- Firmware build: `1.1.0.48-293-g493f9a0f-dirty-20241220_143931-ubuntu1804`
 
-After `connected`, the CM5 continued receiving and decoding `analog_in_state` and `stats`, confirming real bidirectional communication with the Nozzle MCU as well.
-
-A `DangerOptions has not been loaded yet!` exception was emitted by Kalico's standalone `console.py` path, but both Main and Nozzle serial sessions completed successfully and live MCU traffic continued to decode. This is tracked as a standalone console-tool compatibility issue, not a transport failure.
+Kalico standalone `console.py` may emit `DangerOptions has not been loaded yet!`, but protocol connections and live telemetry continue. This is tracked as a console-tool compatibility issue, not a transport failure.
 
 ## Multi-channel transport
 
 | Test | Status | Result |
 |---|---:|---|
-| Create `gser.usb1` / second gadget serial | ⏳ | Pending |
-| Expose two serial ports to Linux host | ⏳ | Pending |
-| Run main + nozzle MCU links simultaneously | ⏳ | Pending |
-| Stress-test both channels under printing traffic | ⏳ | Pending |
+| Create `gser.usb1` | ✅ | Port number 1 |
+| Create `gser.usb2` | ✅ | Port number 2 |
+| Expose three host serial ports | ✅ | Interfaces 0/1/2 enumerate at 480M |
+| Run Main + Nozzle links simultaneously | ✅ | Concurrent sessions verified |
+| Run RS-485 as third simultaneous channel | ✅ | `ttyUSB2 -> ttyGS2 -> ttyS5` verified |
+| Stress all channels during printing | ⏳ | Pending |
+
+## Closed-loop motors / RS-485
+
+| Test | Status | Result |
+|---|---:|---|
+| Confirm stock MCU dictionaries expose transparent serial commands | ✅ | Main and Nozzle dictionaries include `config_transparent` and `transparent_send` |
+| Confirm stock logs use `transparent_send` | ✅ | Historical stock logs contain valid `transparent_response` traffic |
+| Clean minimal transparent-channel probe | 🟡 | MCU accepted `config_transparent`, but test frame returned empty payload; indicates transport reached MCU but downstream motor was not yet prepared through that path |
+| Open `/dev/ttyS5` directly | ✅ | 230400 8N1 |
+| Linux RS-485 ioctl required | ✅ | Not required for tested traffic; `TIOCGRS485` flags remain disabled |
+| Direct X controller query on T113 | ✅ | Address `0x81` replied correctly |
+| External-host X query through third USB channel | ✅ | End-to-end response verified |
+| External-host Y query through third USB channel | ✅ | Address `0x82` replied correctly |
+| Determine practical external-host motor transport | ✅ | Raw third-channel bridge to `/dev/ttyS5` works for X/Y read-only queries |
+| Validate write/tuning operations | ⏳ | Pending; no tuning or persistent controller changes performed |
+
+Verified read-only address-query results:
+
+```text
+X TX: f7 81 04 00 0e 02 80
+X RX: f7 81 04 00 0e 81 00
+
+Y TX: f7 82 04 00 0e 02 80
+Y RX: f7 82 04 00 0e 82 09
+```
+
+## CFS
+
+| Test | Status | Result |
+|---|---:|---|
+| Identify CFS/RS-485 host UART | ✅ | `/dev/ttyS5` |
+| Expose CFS/RS-485 UART to external host | ✅ | Third gadget serial channel verified |
+| CFS `A2` online-check probe | 🟡 | No reply, but CFS was physically disconnected during test |
+| CFS `A1` discovery probe | 🟡 | No reply, but CFS was physically disconnected during test |
+| Validate connected CFS from external host | ⏳ | Next CFS test once hardware is connected |
+
+The no-response CFS tests are **not classified as failures** because the CFS unit was disconnected. The transport itself is independently validated by successful X/Y traffic on the same `/dev/ttyS5` path.
 
 ## Display / UI
 
@@ -125,39 +156,31 @@ A `DangerOptions has not been loaded yet!` exception was emitted by Kalico's sta
 
 | Test | Status | Result |
 |---|---:|---|
-| Cartographer visible on USB1 path | ✅ | `1d50:614e Cartographer stm32g431xx` via internal hub |
-| USB0 role switch leaves Cartographer bus separate | ✅ | Cartographer is not on USB0 |
+| Cartographer visible on separate internal USB path | ✅ | Not affected by USB0 role switch |
 | Move Cartographer directly to external host | ⏳ | Planned |
-
-## Closed-loop motors / CFS
-
-| Test | Status | Result |
-|---|---:|---|
-| Reuse existing reverse-engineering references | 🟡 | Public documentation identified |
-| Determine required transport for closed-loop motor control | ⏳ | Pending |
-| Validate transparent motor-control path from external Kalico | ⏳ | Pending |
-| Validate CFS from external host | ⏳ | Pending |
 
 ## Reliability
 
 | Test | Status | Result |
 |---|---:|---|
-| Short serial gadget test | ✅ | Bidirectional CM5 <-> K2 traffic verified |
-| Main MCU live-protocol session | ✅ | Kalico console remained connected and decoded recurring telemetry |
-| Nozzle MCU live-protocol session | ✅ | Kalico console remained connected and decoded recurring telemetry |
+| Short serial gadget test | ✅ | Bidirectional traffic verified |
+| Main MCU live protocol session | ✅ | Verified |
+| Nozzle MCU live protocol session | ✅ | Verified |
+| Three-interface enumeration | ✅ | Verified |
+| Gadget unbind/rebind behavior | 🟡 | Interfaces reappear; existing bridge processes exit and must be restarted |
 | 1-hour idle link test | ⏳ | Pending |
 | Long print | ⏳ | Pending |
-| Reboot recovery | 🟡 | Stock USB host behavior observed after reboot; full OpenHost boot automation not implemented |
+| Reboot recovery | 🟡 | Stock USB host behavior returns after reboot; OpenHost boot automation not implemented |
 | Watchdog/fail-safe behavior | ⏳ | Pending |
 
 ## Safety policy during reverse engineering
 
-All current experiments on the working stock slot are runtime-only and must be recoverable by reboot. No active-slot configuration, boot environment, MCU firmware, or persistent service state is modified during this validation phase.
+All current experiments on the working stock slot are runtime-only and reboot-reversible. No active-slot configuration, boot environment, MCU firmware, persistent service enable state, or persistent motor-controller parameters are modified during this validation phase.
 
 ## Current milestone
 
-The project has completed its fourth major platform milestone:
+The current transport milestone is now verified on hardware:
 
-> **A Raspberry Pi CM5 running Kalico has successfully established real Klipper protocol sessions with both original K2 Pro MCUs through the stock T113 and a byte-transparent bridge on the Generic Serial USB gadget: Main MCU `gd32f303xe` on `/dev/ttyS2` and Nozzle MCU `gd32f303xb` on `/dev/ttyS3`, both at 230400 baud. MCU dictionaries and live telemetry were recovered without reflashing or modifying either MCU firmware.**
+> **One physical Micro-USB link exposes three independent Generic Serial interfaces from the K2 Pro T113 to an external Linux host. The channels have been validated as Main MCU (`ttyS2`), Nozzle MCU (`ttyS3`), and RS-485 (`ttyS5`). Main and Nozzle Klipper protocol sessions can run concurrently, and the third RS-485 channel has successfully queried both original closed-loop X and Y motor controllers end-to-end from the external host. No MCU reflashing was required.**
 
-The next validation step is to expose Main and Nozzle MCU links to the CM5 simultaneously, preferably with a second `gser` function, and verify two concurrent Klipper sessions before addressing the RS-485/CFS bus.
+Next priorities are connected-CFS validation, reconnect/endurance testing, boot automation, and eventual HelixScreen/Moonraker integration.
