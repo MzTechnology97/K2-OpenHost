@@ -63,14 +63,30 @@ Legend:
 
 | Test | Status | Result |
 |---|---:|---|
-| Identify K2 Pro main MCU serial device | ⏳ | Pending |
-| Identify K2 Pro nozzle MCU serial device | ⏳ | Pending |
-| Confirm baud rates | ⏳ | Pending |
-| Stop stock Klipper without disturbing hardware services | ⏳ | Pending |
-| Open MCU UART directly from test process | ⏳ | Pending |
-| Transparent `ttyGSx <-> ttySx` bridge | ⏳ | Pending |
-| Kalico handshake with original main MCU | ⏳ | Pending |
+| Identify K2 Pro main MCU serial device | ✅ | `/dev/ttyS2` |
+| Identify K2 Pro nozzle MCU serial device | ✅ | `/dev/ttyS3` |
+| Identify RS-485 / CFS serial device | ✅ | `/dev/ttyS5` via `[serial_485 serial485]` in `box.cfg` |
+| Confirm baud rates | ✅ | Main, nozzle and RS-485 paths are configured at 230400 baud |
+| Stop stock Klipper without disturbing hardware services | ✅ | `/etc/init.d/klipper stop`; `klipper_mcu -r` remained active while UARTs were released |
+| Open main MCU UART directly from test process | ✅ | `/dev/ttyS2` opened successfully after stock Klippy stop |
+| Transparent `ttyGS0 <-> ttyS2` bridge | ✅ | Volatile Python raw bridge active at 230400 baud |
+| Kalico handshake with original main MCU | ✅ | CM5 Kalico console connected through USB gadget bridge and decoded live MCU traffic |
 | Kalico handshake with original nozzle MCU | ⏳ | Pending |
+
+### Verified Main MCU identity
+
+The external CM5 successfully retrieved the Main MCU protocol dictionary through the transparent path. Reported values include:
+
+- MCU: `gd32f303xe`
+- Clock: `120000000`
+- Serial baud: `230400`
+- Receive window: `192`
+- Firmware build string: `1.1.0.48-312-gcd5c2b81-dirty-20241227_092331-ubuntu`
+- Toolchain: GNU Arm Embedded 9.2.1 / binutils 2.33.1
+
+After the handshake, the CM5 received and decoded live messages such as `analog_in_state` and `stats`, confirming real bidirectional Klipper protocol communication with the original Creality Main MCU.
+
+A `DangerOptions has not been loaded yet!` exception was emitted by Kalico's standalone `console.py` path, but the serial connection completed successfully and live MCU traffic continued to decode. This is tracked as a console-tool compatibility issue, not a transport failure.
 
 ## Multi-channel transport
 
@@ -112,15 +128,20 @@ Legend:
 | Test | Status | Result |
 |---|---:|---|
 | Short serial gadget test | ✅ | Bidirectional CM5 <-> K2 traffic verified |
+| Main MCU live-protocol session | ✅ | Kalico console remained connected and decoded recurring telemetry |
 | 1-hour idle link test | ⏳ | Pending |
 | Long print | ⏳ | Pending |
 | Reboot recovery | 🟡 | Stock USB host behavior observed after reboot; full OpenHost boot automation not implemented |
 | Watchdog/fail-safe behavior | ⏳ | Pending |
 
+## Safety policy during reverse engineering
+
+All current experiments on the working stock slot are runtime-only and must be recoverable by reboot. No active-slot configuration, boot environment, MCU firmware, or persistent service state is modified during this validation phase.
+
 ## Current milestone
 
-The project has completed its second major platform milestone:
+The project has completed its third major platform milestone:
 
-> **The K2 Pro Micro-USB service/recovery connector has been verified as a working runtime USB device path. A Raspberry Pi CM5 successfully enumerates the stock T113 ConfigFS Generic Serial gadget at `0525:a4a6`, binds it as `/dev/ttyUSB0`, negotiates USB 2.0 High-Speed (480M), and exchanges data bidirectionally with the K2-side `/dev/ttyGS0`.**
+> **A Raspberry Pi CM5 running Kalico has successfully established a real Klipper protocol session with the original K2 Pro Main MCU through the stock Allwinner T113, the service Micro-USB connector, the ConfigFS Generic Serial gadget, and a byte-transparent `/dev/ttyGS0 <-> /dev/ttyS2` bridge. The external host retrieved the MCU dictionary and decoded live telemetry without reflashing or modifying the Main MCU firmware.**
 
-The next milestone is to identify the K2 Pro Main MCU and Nozzle MCU UARTs and validate a byte-transparent `ttyGSx <-> ttySx` bridge without modifying the original MCU firmware.
+The next validation step is to repeat the same test against the original Nozzle MCU on `/dev/ttyS3`, then evaluate a second gadget serial function so Main and Nozzle MCU links can operate simultaneously.
