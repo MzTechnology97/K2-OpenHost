@@ -138,11 +138,30 @@ Y RX: f7 82 04 00 0e 82 09
 |---|---:|---|
 | Identificazione UART host CFS/RS-485 | ✅ | `/dev/ttyS5` |
 | Esposizione UART CFS/RS-485 all'host esterno | ✅ | Terza seriale gadget verificata |
-| Probe CFS `A2` online-check | 🟡 | Nessuna risposta, ma il CFS era fisicamente scollegato |
-| Probe CFS `A1` discovery | 🟡 | Nessuna risposta, ma il CFS era fisicamente scollegato |
-| Validazione CFS collegato dall'host esterno | ⏳ | Prossimo test CFS con hardware collegato |
+| Collegamento CFS a OpenHost già attivo | ✅ | Il CFS collegato a caldo ha risposto senza riavviare la stampante |
+| Discovery CFS `A1` dall'host esterno | ✅ | Tre richieste broadcast consecutive hanno restituito frame validi e identici |
+| Tipo dispositivo CFS | ✅ | `0x01` = Material Box |
+| Modalità application/loader CFS | ✅ | `0x00` = application mode |
+| CRC risposta CFS | ✅ | CRC del frame discovery acquisito verificato |
+| Unique ID CFS | ✅ | Ricevuto UniID a 12 byte; identificatore esatto intenzionalmente non pubblicato |
+| Assegnazione indirizzo CFS (`A0`) | ⏳ | Non ancora eseguita |
+| Online-check CFS dopo assegnazione (`A2`) | ⏳ | Da verificare dopo assegnazione controllata |
+| Stato/operazioni filamento CFS | ⏳ | Da eseguire; nessun comando di movimento filamento inviato |
 
-I test CFS senza risposta **non vengono classificati come fallimenti**, perché l'unità CFS era scollegata. Il trasporto è comunque validato indipendentemente dal traffico X/Y riuscito sullo stesso `/dev/ttyS5`.
+Percorso discovery verificato:
+
+```text
+Host esterno /dev/ttyUSB2
+        -> T113 gser.usb2 / ttyGS2
+        -> bridge byte-transparent
+        -> /dev/ttyS5 @ 230400
+        -> CFS
+        -> risposta discovery A1 valida
+```
+
+Il box collegato ha risposto come Material Box non ancora indirizzato in application mode. La risposta contiene un UniID hardware valido a 12 byte e CRC valido. L'UniID viene deliberatamente omesso dalla documentazione pubblica.
+
+Un precedente probe `A2` aveva prodotto quattro byte zero invece di un frame protocollo valido con header `F7`; non viene quindi classificato come risposta CFS. Subito dopo, tre discovery `A1` consecutive hanno prodotto frame puliti, identici e validi.
 
 ## Display / UI
 
@@ -191,6 +210,6 @@ Tutti gli esperimenti attuali sullo slot stock funzionante sono esclusivamente r
 
 Il milestone di trasporto attuale è verificato su hardware:
 
-> **Un singolo collegamento Micro-USB espone tre interfacce Generic Serial indipendenti dal T113 della K2 Pro verso un host Linux esterno. I tre canali sono stati validati come Main MCU (`ttyS2`), Nozzle MCU (`ttyS3`) e RS-485 (`ttyS5`). Le sessioni protocollo Klipper Main e Nozzle possono funzionare contemporaneamente, mentre il terzo canale RS-485 ha interrogato con successo entrambi i controller closed-loop X e Y originali end-to-end dall'host esterno. Non è stato necessario riflashare alcun MCU.**
+> **Un singolo collegamento Micro-USB espone tre interfacce Generic Serial indipendenti dal T113 della K2 Pro verso un host Linux esterno. Main MCU, Nozzle MCU e RS-485 sono raggiungibili contemporaneamente; le query closed-loop X/Y funzionano end-to-end e un CFS fisicamente collegato restituisce ora frame discovery validi dall'host esterno attraverso lo stesso bridge RS-485. Non è stato necessario riflashare alcun MCU.**
 
-Le prossime priorità sono la validazione CFS con unità collegata, la mappatura della topologia USB, test di reconnect/endurance, automazione boot e successiva integrazione HelixScreen/Moonraker.
+Le prossime priorità sono assegnazione controllata indirizzo/online-check CFS, mappatura topologia USB, test reconnect/endurance, automazione boot, validazione forwarding Cartographer e successiva integrazione HelixScreen/Moonraker.
