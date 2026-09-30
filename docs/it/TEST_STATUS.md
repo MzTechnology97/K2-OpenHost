@@ -63,14 +63,30 @@ Legenda:
 
 | Test | Stato | Risultato |
 |---|---:|---|
-| Identificazione seriale MCU principale K2 Pro | ⏳ | Da eseguire |
-| Identificazione seriale MCU nozzle K2 Pro | ⏳ | Da eseguire |
-| Conferma baud rate | ⏳ | Da eseguire |
-| Arresto Klipper stock senza disturbare i servizi hardware | ⏳ | Da eseguire |
-| Apertura UART MCU da processo di test | ⏳ | Da eseguire |
-| Bridge trasparente `ttyGSx <-> ttySx` | ⏳ | Da eseguire |
-| Handshake Kalico con MCU principale originale | ⏳ | Da eseguire |
+| Identificazione seriale MCU principale K2 Pro | ✅ | `/dev/ttyS2` |
+| Identificazione seriale MCU nozzle K2 Pro | ✅ | `/dev/ttyS3` |
+| Identificazione seriale RS-485 / CFS | ✅ | `/dev/ttyS5` tramite `[serial_485 serial485]` in `box.cfg` |
+| Conferma baud rate | ✅ | Main, nozzle e RS-485 configurati a 230400 baud |
+| Arresto Klipper stock senza disturbare i servizi hardware | ✅ | `/etc/init.d/klipper stop`; `klipper_mcu -r` rimane attivo mentre le UART vengono liberate |
+| Apertura UART Main MCU da processo di test | ✅ | `/dev/ttyS2` aperta correttamente dopo lo stop di Klippy stock |
+| Bridge trasparente `ttyGS0 <-> ttyS2` | ✅ | Bridge Python volatile raw attivo a 230400 baud |
+| Handshake Kalico con MCU principale originale | ✅ | La console Kalico sul CM5 si è connessa attraverso il bridge USB e ha decodificato traffico MCU reale |
 | Handshake Kalico con MCU nozzle originale | ⏳ | Da eseguire |
+
+### Identità Main MCU verificata
+
+L'host esterno CM5 ha recuperato correttamente il protocol dictionary del Main MCU attraverso il percorso trasparente. I valori riportati includono:
+
+- MCU: `gd32f303xe`
+- Clock: `120000000`
+- Baud seriale: `230400`
+- Receive window: `192`
+- Firmware build: `1.1.0.48-312-gcd5c2b81-dirty-20241227_092331-ubuntu`
+- Toolchain: GNU Arm Embedded 9.2.1 / binutils 2.33.1
+
+Dopo l'handshake, il CM5 ha ricevuto e decodificato messaggi live come `analog_in_state` e `stats`, confermando una reale comunicazione bidirezionale del protocollo Klipper con il Main MCU Creality originale.
+
+Durante l'uso standalone di `console.py` è comparsa l'eccezione `DangerOptions has not been loaded yet!`, ma la connessione seriale è stata completata correttamente e la telemetria MCU ha continuato a essere decodificata. Il problema viene quindi classificato come incompatibilità del tool console standalone, non come errore di trasporto.
 
 ## Trasporto multi-canale
 
@@ -112,15 +128,20 @@ Legenda:
 | Test | Stato | Risultato |
 |---|---:|---|
 | Test breve serial gadget | ✅ | Traffico bidirezionale CM5 <-> K2 verificato |
+| Sessione live protocollo Main MCU | ✅ | La console Kalico è rimasta connessa e ha decodificato telemetria ricorrente |
 | Test idle 1 ora | ⏳ | Da eseguire |
 | Stampa lunga | ⏳ | Da eseguire |
 | Recovery dopo reboot | 🟡 | Il comportamento stock USB host ritorna dopo reboot; automazione OpenHost non implementata |
 | Watchdog / fail-safe | ⏳ | Da eseguire |
 
+## Policy di sicurezza durante il reverse engineering
+
+Tutti gli esperimenti attuali sullo slot stock funzionante sono esclusivamente runtime e devono essere completamente reversibili con un reboot. In questa fase non vengono modificati configurazione dello slot attivo, ambiente di boot, firmware MCU o stato persistente dei servizi.
+
 ## Milestone attuale
 
-È stato completato il secondo importante milestone di piattaforma:
+È stato completato il terzo importante milestone di piattaforma:
 
-> **Il connettore Micro-USB service/recovery della K2 Pro è stato verificato come percorso USB device funzionante a runtime. Un Raspberry Pi CM5 enumera correttamente il Generic Serial gadget ConfigFS del T113 stock come `0525:a4a6`, lo associa a `/dev/ttyUSB0`, negozia USB 2.0 High-Speed (480M) e scambia dati bidirezionalmente con `/dev/ttyGS0` lato K2.**
+> **Un Raspberry Pi CM5 con Kalico ha stabilito con successo una sessione reale del protocollo Klipper con il Main MCU originale della K2 Pro passando attraverso l'Allwinner T113 stock, il connettore Micro-USB service, il Generic Serial gadget ConfigFS e un bridge byte-transparent `/dev/ttyGS0 <-> /dev/ttyS2`. L'host esterno ha recuperato il dictionary MCU e decodificato telemetria live senza riflashare o modificare il firmware del Main MCU.**
 
-Il prossimo milestone è identificare le UART degli MCU Main e Nozzle della K2 Pro e validare un bridge byte-transparent `ttyGSx <-> ttySx` senza modificare il firmware originale degli MCU.
+Il prossimo passo di validazione è ripetere lo stesso test sul Nozzle MCU originale collegato a `/dev/ttyS3`, quindi valutare una seconda funzione seriale gadget per far funzionare Main e Nozzle MCU contemporaneamente.
