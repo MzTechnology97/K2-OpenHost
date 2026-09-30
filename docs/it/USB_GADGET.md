@@ -179,7 +179,28 @@ I primi probe `A2` online-check e `A1` discovery non hanno ricevuto risposta, ma
 
 La validazione CFS con hardware collegato resta da eseguire.
 
-## 10. Comportamento durante unbind/rebind
+## 10. Cablaggio USB Cartographer attuale
+
+Sulla K2 Pro usata per i test, Cartographer è collegato tramite il connettore USB interno sulla Nozzle MCU/toolhead originariamente destinato alla camera nozzle.
+
+La camera nozzle stock non viene utilizzata intenzionalmente su questa unità. È associata al workflow Creality di calibrazione automatica legato a flusso/pressure, funzione non necessaria per questa configurazione di test.
+
+Questo cablaggio evita di portare un ulteriore cavo USB esterno fino a Cartographer e lascia libera l'unica porta USB esposta esternamente sulla stampante.
+
+È una scelta specifica dell'unità di test e non un requisito obbligatorio di K2-OpenHost.
+
+## 11. Topologia porta USB esterna ancora da mappare
+
+Non è ancora stata verificata completamente la relazione fisica USB tra:
+
+- porta USB-A esposta esternamente;
+- `CREALITY CAM` interna;
+- connettore camera nozzle sulla Nozzle MCU/toolhead ora usato da Cartographer;
+- porta Micro-USB service/recovery attualmente usata per il collegamento OpenHost.
+
+In particolare, resta da stabilire se la porta USB-A esterna condivida lo stesso ramo hub/controller della camera interna e/o del percorso Micro-USB OTG. La verifica andrà effettuata osservando l'albero USB runtime e con test controllati di collegamento/disconnessione prima di fissare la strategia definitiva camera/USB.
+
+## 12. Comportamento durante unbind/rebind
 
 L'unbind del gadget ConfigFS rimuove le interfacce host e invalida i file descriptor `/dev/ttyGS*` già aperti. Di conseguenza i processi bridge byte-transparent attivi terminano quando il gadget viene sganciato.
 
@@ -187,7 +208,7 @@ Dopo il rebind vengono ricreati `/dev/ttyGS0`, `/dev/ttyGS1` e `/dev/ttyGS2`, me
 
 Il futuro service manager OpenHost dovrà gestire automaticamente questo comportamento.
 
-## 11. Trasporto attualmente verificato
+## 13. Trasporto attualmente verificato
 
 ```text
 Host Linux esterno
@@ -217,10 +238,11 @@ T113 gser.usb2 / ttyGS2
 /dev/ttyS5 -> RS-485 -> X/Y verificati, CFS da validare
 ```
 
-## 12. Lavoro USB ancora da eseguire
+## 14. Lavoro USB ancora da eseguire
 
 Il trasporto principale è ormai verificato. Restano:
 
+- mappare la topologia USB-A esterna / camera interna / camera-nozzle-Cartographer / Micro-USB;
 - traffico multi-canale sostenuto;
 - funzionamento idle prolungato;
 - cicli ripetuti di disconnect/reconnect;
@@ -230,7 +252,7 @@ Il trasporto principale è ormai verificato. Restano:
 - automazione gadget e bridge al boot;
 - recovery quando l'host esterno è assente o viene riavviato.
 
-## 13. Ripristino della modalità USB host stock
+## 15. Ripristino della modalità USB host stock
 
 La procedura attuale resta runtime-only. Per sganciare il gadget e tornare in host mode:
 
