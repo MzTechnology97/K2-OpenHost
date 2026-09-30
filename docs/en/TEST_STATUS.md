@@ -49,12 +49,13 @@ Legend:
 
 | Test | Status | Result |
 |---|---:|---|
-| Confirm Micro-USB is runtime USB0 device connector | ⏳ | Pending external-host test |
-| Enumerate `0525:a4a6` on Linux host | ⏳ | Pending |
-| Create host `/dev/ttyUSB0` | ⏳ | Pending |
-| Host -> K2 serial transfer | ⏳ | Pending |
-| K2 -> host serial transfer | ⏳ | Pending |
-| High-speed negotiation | ⏳ | Pending |
+| Confirm Micro-USB is runtime USB0 device connector | ✅ | CM5 enumerated the K2 gadget through the service/recovery Micro-USB connector |
+| Enumerate `0525:a4a6` on Linux host | ✅ | `Netchip Technology, Inc. Linux-USB Serial Gadget` detected |
+| Create host `/dev/ttyUSB0` | ✅ | Bound with Linux `usbserial_generic` via `new_id` |
+| Host -> K2 serial transfer | ✅ | `K2_OPENHOST_CM5_TO_K2_001` received on `/dev/ttyGS0` |
+| K2 -> host serial transfer | ✅ | `K2_OPENHOST_K2_TO_CM5_001` received on `/dev/ttyUSB0` |
+| High-speed negotiation | ✅ | USB tree reports 480M; K2 UDC reports `current_speed: high-speed` |
+| K2 UDC reaches configured state | ✅ | `state: configured`, `function: g1` |
 | Disconnect/reconnect recovery | ⏳ | Pending |
 | Repeated role-switch stability | ⏳ | Pending |
 
@@ -110,7 +111,7 @@ Legend:
 
 | Test | Status | Result |
 |---|---:|---|
-| Short serial gadget test | ⏳ | Pending physical host connection |
+| Short serial gadget test | ✅ | Bidirectional CM5 <-> K2 traffic verified |
 | 1-hour idle link test | ⏳ | Pending |
 | Long print | ⏳ | Pending |
 | Reboot recovery | 🟡 | Stock USB host behavior observed after reboot; full OpenHost boot automation not implemented |
@@ -118,8 +119,8 @@ Legend:
 
 ## Current milestone
 
-The project has completed the first major platform milestone:
+The project has completed its second major platform milestone:
 
-> **USB0 can be switched from the stock internal-camera host role into Allwinner USB device mode, and the stock Tina userspace can create a bound Generic Serial USB gadget (`/dev/ttyGS0`).**
+> **The K2 Pro Micro-USB service/recovery connector has been verified as a working runtime USB device path. A Raspberry Pi CM5 successfully enumerates the stock T113 ConfigFS Generic Serial gadget at `0525:a4a6`, binds it as `/dev/ttyUSB0`, negotiates USB 2.0 High-Speed (480M), and exchanges data bidirectionally with the K2-side `/dev/ttyGS0`.**
 
-The next milestone is physical enumeration through the Micro-USB service/recovery connector.
+The next milestone is to identify the K2 Pro Main MCU and Nozzle MCU UARTs and validate a byte-transparent `ttyGSx <-> ttySx` bridge without modifying the original MCU firmware.
