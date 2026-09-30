@@ -89,7 +89,7 @@ K2-OpenHost non reimplementerà il protocollo CFS. L'integrazione target è lo s
 - `box_change.py`
 - `box_protocol.py`
 
-Questi moduli non sono necessariamente tracciati nel repository Kalico di Jacob: il firmware custom li distribuisce come extras separati e possono apparire come file untracked. Il clone Kalico temporaneo usato da OpenHost al commit testato non li conteneva ancora.
+Gli extra K2/CFS non sono necessariamente presenti nel repository Kalico stesso: il firmware Jacobean li distribuisce separatamente. Sul clone Kalico volatile usato da OpenHost mancavano inizialmente questi file, quindi il primo bootstrap transport-only non poteva caricare `serial_485`/`motor_control`. Gli extra della release firmware Jacobean 6.18 sono stati quindi scaricati dal relativo store content-addressed e verificati tramite SHA-256, senza eseguire l'installer firmware e senza modificare il sistema persistente.
 
 Il lavoro specifico OpenHost consiste soprattutto nella sostituzione del trasporto:
 
@@ -101,22 +101,29 @@ Stack Jacob serial_485 / box
         -> bus RS-485 CFS
 ```
 
-`serial_485.py` accetta già un device seriale configurabile e usa di default 230400 8N1, quindi sul CM5 la configurazione prevista è semplicemente `serial: /dev/ttyUSB2`.
+`serial_485.py` accetta già un device seriale configurabile e usa 230400 8N1, quindi sul CM5 la configurazione prevista è semplicemente `serial: /dev/ttyUSB2`.
 
-## Primo tentativo transport-only
+## Transport nativo Jacob verificato
 
-Primo bootstrap dell'istanza Kalico temporanea:
+Il `Serial_485_Wrapper` originale di Jacob10383 è stato caricato direttamente dal clone Kalico volatile e collegato a `/dev/ttyUSB2` senza patch. Il wrapper ha aperto correttamente la porta a 230400 baud e una query nativa A2 verso il CFS assegnato a `0x01` ha prodotto una risposta valida:
 
-- commit Kalico osservato: `aa6bf7d`;
-- PySerial `3.4` disponibile;
-- gli extras K2/CFS Jacob non erano presenti nel clone;
-- il processo Klippy è partito ma non ha aperto `/dev/ttyUSB2`;
-- il log ha segnalato `ModuleNotFoundError` per un extra K2 mancante e una configurazione MCU incompleta.
+```text
+connected: true
+port: /dev/ttyUSB2
+baud: 230400
+A2 response: valid
+CRC: valid
+tx_frames: 1
+rx_frames: 1
+crc_errors: 0
+timeouts: 0
+unmatched: 0
+send_errors: 0
+reader_errors: 0
+```
 
-Il test non viene classificato come errore del bridge o di `serial_485`: il modulo di trasporto Jacob non era ancora disponibile nell'albero runtime, quindi il percorso nativo non è stato realmente esercitato.
+Il payload identificativo della risposta A2 è intenzionalmente redatto. Questo valida il trasporto nativo Jacob end-to-end attraverso K2-OpenHost senza alcuna modifica al driver `serial_485.py`.
 
 ## Prossimo step di validazione
 
-Recuperare gli extras K2/CFS dal content-addressed firmware store di Jacobean, verificandone gli SHA-256 dal manifest, e copiarli esclusivamente nel clone volatile `/dev/shm/k2-openhost-kalico`.
-
-Poi ripetere il test con `serial_485.py` puntato a `/dev/ttyUSB2`. Solo dopo il successo del transport nativo verrà abilitato `[box]`, perché l'avvio completo di `box.py` esegue inizializzazione CFS e policy RFID oltre alle letture di stato.
+Usare `box_protocol.AutoAddressClient` e `box_addr.AutoAddressManager` originali di Jacob sul transport appena validato. Con un solo box già online a `0x01`, il test iniziale sarà read-only: A2 deve riconoscere il box prima che il manager abbia necessità di eseguire discovery o assegnazione. Successivamente verrà istanziato `BoxDriver` per confrontare slot mask, buffer, box state, record RFID e remaining con i risultati raw già verificati.
