@@ -36,7 +36,7 @@ Allwinner T113 / Tina Linux
 Raspberry Pi CM5 / external Linux host
   - kalico-k2pro:k2-pro-openhost
   - Moonraker
-  - Mainsail / Fluidd
+  - mainsail-k2openhost
         |
         +-- ttyUSB0 -> T113 ttyGS0 -> ttyS2 -> Main MCU
         +-- ttyUSB1 -> T113 ttyGS1 -> ttyS3 -> Nozzle MCU
@@ -62,12 +62,27 @@ As of **2026-10-01**:
 - A resonance test using **Klippain-ShakeTune** completed successfully on the OpenHost stack.
 - RS-485/CFS transport remains functional on `/dev/ttyUSB2`; the earlier duplicate-bridge/process-contention issue has been identified and removed.
 - The real Jacobean CFS/Box stack remains validated in protected observation mode, including the K2 Pro 4-byte `BOX_STATE` path and mutation guard.
+- The normalized `box` object is visible through Moonraker with slot presence, buffer/path state and frontend-ready CFS data.
 - Cartographer3D plugin import, Kalico adapter selection and live sensor streaming were demonstrated through the experimental bridge path. Final Cartographer validation is now being moved to **direct USB on the CM5**.
 - `register_as_probe` support has been updated in the Cartographer fork so standalone Cartographer mode and a future PRTouch + Cartographer mixed mode can be maintained separately.
 
+## Newly implemented, pending hardware validation / Nuovo sviluppo da validare
+
+The current Jacob/Jacobean CFS print-mapping model has now been integrated additively into the OpenHost branches:
+
+- `BOX_PRINT_INFO` reads Orca tool/material metadata without mutating CFS state;
+- `BOX_PRINT_START` accepts a logical-tool -> physical-slot map;
+- `printer.objects.box` exposes `print_info` and `print_mapping` fields;
+- `mainsail-k2openhost` now hooks the normal Print dialog and presents a CFS filament-mapping step;
+- the compatibility layer translates purge-matrix and nozzle-temperature data from logical tools to the physical-slot indexing used by the currently validated OpenHost Box engine.
+
+This path is **implemented but not yet hardware-validated**. The first test should be metadata-only `BOX_PRINT_INFO` while CFS observation mode remains enabled. Controlled mapped printing follows only after an intentional switch to operational Box mode.
+
+Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in modo additivo, inclusa la finestra di mapping in Mainsail. Il percorso è **implementato ma non ancora validato sull'hardware**: il primo test previsto è `BOX_PRINT_INFO`, che legge soltanto i metadata del G-code e può essere provato mantenendo l'observation mode.
+
 ## Current project boundary / Stato attuale
 
-The OpenHost stack has moved beyond passive transport validation: real homing, heaters, emergency shutdown and resonance testing now work on the external Kalico host. It is still **pre-production** because Cartographer direct-USB validation, full print-path validation and later CFS mutation/load-unload tests are not yet complete.
+The OpenHost stack has moved beyond passive transport validation: real homing, heaters, emergency shutdown and resonance testing now work on the external Kalico host. It is still **pre-production** because mapped CFS printing, Cartographer direct-USB validation and a complete print workflow are not yet validated end to end.
 
 ## Documentation / Documentazione
 
@@ -77,6 +92,7 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 - [Test status](docs/en/TEST_STATUS.md)
 - [CFS validation](docs/en/CFS_VALIDATION.md)
 - [CFS observation mode](docs/en/CFS_OBSERVATION_MODE.md)
+- [CFS print mapping](docs/en/CFS_PRINT_MAPPING.md)
 - [Roadmap](docs/en/ROADMAP.md)
 - [Credits and references](docs/en/REFERENCES.md)
 
@@ -86,6 +102,7 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 - [Stato test](docs/it/TEST_STATUS.md)
 - [Validazione CFS](docs/it/CFS_VALIDATION.md)
 - [CFS observation mode](docs/it/CFS_OBSERVATION_MODE.md)
+- [Mappatura CFS delle stampe](docs/it/CFS_PRINT_MAPPING.md)
 - [Roadmap](docs/it/ROADMAP.md)
 - [Crediti e riferimenti](docs/it/REFERENCES.md)
 
@@ -101,13 +118,14 @@ Core upstream projects and authors include, among others:
 
 - **Klipper** — Klipper3d project and contributors
 - **Kalico** — KalicoCrew and contributors
-- **Jacob10383 / Jacobean** — Kalico K2 work, K2 custom firmware/extras, Cartographer K2 port and K2 improvements work
+- **Jacob10383 / Jacobean** — Kalico K2 work, K2 custom firmware/extras, Cartographer K2 port, Fluidd CFS workflow and K2 improvements work
 - **jamincollins** — original `k2-improvements` project lineage
 - **CrealityOfficial** — public K2 Klipper sources
 - **luketot** — public K2 Pro configuration adaptation used as a reference baseline
 - **Cartographer3D** project and contributors
 - **Klippain / ShakeTune** project and contributors
 - **Mainsail** project and contributors
+- **HimAndRobot/creality-cfs-mainsail-integration** — CFS Mainsail/Fluidd UI reference
 - **grant0013**, **gitstonelabs** and other public K2/CFS reverse-engineering contributors
 - **HelixScreen** / prestonbrown
 
