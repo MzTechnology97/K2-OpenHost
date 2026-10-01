@@ -1,40 +1,74 @@
 # K2-OpenHost test status
 
-Last updated: **2026-09-30**.
+Last updated: **2026-10-01**.
 
 ## Summary
 
-The project has moved beyond basic serial transport validation. Main MCU, Nozzle MCU, RS-485 closed-loop devices and the real CFS stack have all been exercised through the T113 USB gadget path from an external Kalico host.
+K2-OpenHost has moved beyond transport-only validation. The real K2 Pro now reaches a working external-Kalico baseline with Main MCU, Nozzle MCU, RS-485 motor control, PRTouch homing, heaters and resonance measurement operating from the CM5/external host.
+
+The remaining major hardware integration item is Cartographer on the preferred **direct USB to CM5** path, followed by full print-path validation and later controlled CFS mutation tests.
 
 ## Verified
+
+### External host / Kalico runtime
+
+- Kalico runs as the main host service on an AArch64 CM5-class Debian/MainsailOS system;
+- the Kalico C helper has been rebuilt natively as **ELF64/AArch64**;
+- the active source tree is `MzTechnology97/kalico-k2pro`, branch `k2-pro-openhost`;
+- Moonraker/Mainsail integration is active;
+- host startup waits for the K2 transport devices before starting Klippy.
 
 ### USB gadget
 
 - service Micro-USB works as the runtime device path to the external host;
-- composite Generic Serial gadget at 480M;
-- three simultaneous `gser` interfaces verified;
-- bidirectional byte transport verified on all three channels.
+- composite Generic Serial gadget operates at USB 2.0 High-Speed;
+- three simultaneous `gser` interfaces are verified;
+- bidirectional byte transport is verified on all three channels.
 
 ### Main MCU
 
-- path: external `ttyUSB0` -> `ttyGS0` -> `ttyS2`;
+- path: external `/dev/ttyUSB0` -> `ttyGS0` -> `ttyS2`;
 - 230400 baud;
-- original Creality GD32 MCU firmware;
+- original Creality GD32 firmware retained;
 - live Kalico protocol/telemetry verified.
 
 ### Nozzle MCU
 
-- path: external `ttyUSB1` -> `ttyGS1` -> `ttyS3`;
+- path: external `/dev/ttyUSB1` -> `ttyGS1` -> `ttyS3`;
 - 230400 baud;
 - live Kalico protocol/telemetry verified simultaneously with Main MCU.
 
-### RS-485 / closed-loop devices
+### RS-485 / motor control
 
-- path: external `ttyUSB2` -> `ttyGS2` -> `ttyS5`;
+- path: external `/dev/ttyUSB2` -> `ttyGS2` -> `ttyS5`;
 - 230400 8N1;
-- X controller address `0x81` verified;
-- Y controller address `0x82` verified;
-- no Linux RS-485 ioctl mode required for tested traffic.
+- K2 Pro closed-loop topology uses X/Y/E, with X/Y kinematic controllers discovered at `0x81`/`0x82`;
+- external-host startup timing hardened with retry/startup delays so transient first-attempt failures recover automatically;
+- normal CoreXY G-code moves verified;
+- X and Y sensorless/stall homing verified on hardware;
+- Z direction verified;
+- motor fault queries returned zero active X/Y/E faults during the validated runs.
+
+A duplicate GS2 bridge/process-contention condition was discovered during the experimental Cartographer MUX work. After returning GS2 to a single direct RS-485 bridge, motor-control communication returned to normal. The final architecture therefore keeps GS2 dedicated to RS-485/CFS.
+
+### Complete homing with PRTouch
+
+A complete homing cycle has been executed successfully with the original **PRTouch** path active and Cartographer disabled. This validates the machine coordinate/homing baseline independently of Cartographer.
+
+### Thermal outputs and emergency shutdown
+
+The following outputs have been exercised successfully from external Kalico:
+
+- nozzle heater;
+- bed heater;
+- chamber heater;
+- associated PID tuning workflow.
+
+An emergency shutdown was deliberately triggered while all heater loads were active. Measured printer consumption dropped back to near-idle, confirming that the tested heater outputs were disabled correctly by the Klipper emergency path.
+
+### Resonance / accelerometer path
+
+A real resonance test using **Klippain-ShakeTune** completed successfully on the external-host stack. This validates the nozzle accelerometer data path and host-side resonance analysis workflow.
 
 ### CFS protocol
 
@@ -59,41 +93,43 @@ Private CFS identifiers/RFID data are intentionally not published.
 - native `box_protocol.py` patched to support K2 Pro 4-byte steady state;
 - physical read-only transport guard verified;
 - real `Box()` class in `observation_mode` verified;
-- no operational Box G-code registered (transport diagnostic `SERIAL_STATUS` remains);
+- no operational Box G-code registered while observing;
 - mutation function `0x0D` blocked before TX;
 - ten consecutive live-state polls stable;
 - internal `_poll()` completed;
-- transport result: **35 TX / 35 RX, all error counters zero**.
+- reference observation run: **35 TX / 35 RX, all transport error counters zero**.
+
+### Cartographer plugin / experimental bridge
+
+The K2/OpenHost Cartographer plugin has been installed as an editable package and its Kalico adapter loads correctly. During the experimental T113 MUX/DEMUX test:
+
+- Cartographer V4 MCU communication was established;
+- live `cartographer_data` and ADC/temperature traffic reached external Kalico;
+- plugin configuration and `register_as_probe: true` loading were validated.
+
+The experimental bridge is **not** the final transport. Cartographer reset/re-enumeration and PTY lifecycle made that path unnecessarily fragile, and one test was additionally affected by a duplicate GS2 bridge process. The preferred topology is now direct Cartographer USB to the CM5.
+
+The Cartographer fork also contains `register_as_probe: false` support for a future mixed PRTouch + Cartographer mode. That mixed automatic-Z workflow remains unvalidated on hardware.
 
 ## Repository integration verified
 
-`MzTechnology97/k2-pro-custom-firmware:k2-openhost` contains the versioned K2 extras and OpenHost patches.
+`MzTechnology97/k2-pro-custom-firmware:k2-openhost` contains the versioned K2/Jacobean extra history and OpenHost patches.
 
-`MzTechnology97/kalico-k2pro:k2-pro-openhost` now contains:
+`MzTechnology97/kalico-k2pro:k2-pro-openhost` contains the integrated external-host Kalico tree, including K2-specific motor-control work and tracked loader modules.
 
-- current Jacob Kalico base from the fork point;
-- K2 Pro `.cfg` baseline;
-- the validated K2 extras synchronized into `klippy/extras/`;
-- a CI sync workflow that compiles the synchronized Python extras.
-
-No core Kalico module was modified for the K2 Pro/OpenHost integration at this stage.
-
-## Expected harness-only artefacts
-
-During standalone `Box()` testing, `filament_sensor_error` is true because the fake printer harness intentionally does not instantiate the real `filament_switch_sensor`. This is not a CFS transport failure.
-
-`loaded_slot = -1` is currently conservative/intentional until the loaded-path semantics are validated on real hardware.
+`MzTechnology97/cartographer3d-plugin-k2openhost` contains the K2/OpenHost Cartographer plugin, direct-USB guidance, mixed-mode support and Moonraker update-manager documentation.
 
 ## Pending
 
-- run a full real Klippy instance on the CM5 with CFS still in observation mode;
-- adapt host paths (`ttyUSB0..2`, printer-data paths) without importing final machine calibration yet;
-- validate Cartographer as a fourth T113 gadget channel;
-- validate the real filament sensor and loaded-path semantics;
-- only then enable controlled CFS mutation/load/unload tests;
-- migrate the proven production `.cfg` values from the currently-working K2 Pro;
-- integrate Moonraker/UI and eventually HelixScreen on the T113.
+- connect Cartographer directly to the CM5 USB host and validate persistent `/dev/serial/by-id/...` operation;
+- validate Cartographer automated reset/reconnect on direct USB;
+- validate Cartographer standalone probing/touch/scan on the external host;
+- optionally validate PRTouch + Cartographer mixed mode after standalone Cartographer is stable;
+- validate the real filament/CFS loaded-path semantics in the full service;
+- enable controlled CFS mutation/load/unload tests only after observation remains stable;
+- complete first full print-path validation from homing through heating, mesh/probing, extrusion and print completion;
+- continue UI split work, including the eventual T113 screen path.
 
 ## Not production-ready
 
-The project should not yet be treated as a drop-in production firmware replacement. Current results prove the architecture and several protocol layers, not the complete print workflow.
+The current milestone demonstrates substantially more than transport viability: real motion, full PRTouch homing, heaters, emergency shutdown and resonance analysis work from the external host. The project is still pre-production until Cartographer direct USB and a complete print workflow are validated.
