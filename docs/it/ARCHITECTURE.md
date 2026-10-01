@@ -2,9 +2,11 @@
 
 Stato: **sperimentale, validato a fasi su hardware**. Stampante target: **Creality K2 Pro**.
 
+Ultimo aggiornamento architetturale: **1 ottobre 2026**.
+
 ## Obiettivo
 
-Il progetto mantiene l'elettronica originale della K2 Pro e sposta il carico principale di pianificazione Kalico/Klipper su un host Linux esterno. Il T113 rimane come piattaforma fisica per display/touch e come bridge trasparente verso UART e bus RS-485 interni.
+Il progetto mantiene l'elettronica originale della K2 Pro e sposta il carico principale di pianificazione Kalico/Klipper su un host Linux esterno. Il T113 rimane come piattaforma fisica per display/touch e come bridge trasparente verso Main MCU, Nozzle MCU e bus RS-485 originali.
 
 ```text
 LCD/touch K2
@@ -19,13 +21,21 @@ Allwinner T113 (Tina Linux)
            | Micro-USB di servizio
            v
 Host Linux esterno / Raspberry Pi CM5
-    |-- Kalico
+    |-- Kalico (kalico-k2pro:k2-pro-openhost)
     |-- Moonraker
     |-- Mainsail/Fluidd
-    `-- extra specifici K2
+    |-- extra specifici K2
+    `-- USB host diretto <-> Cartographer
 ```
 
-È previsto un quarto canale Generic Serial per Cartographer dopo la validazione del relativo device USB seriale lato T113.
+## Perché Cartographer passa direttamente al CM5
+
+È stato prototipato un percorso Cartographer attraverso T113, MUX/DEMUX e gadget USB. Il test ha trasportato realmente i dati MCU Cartographer, ma ha anche evidenziato due problemi non necessari nell'architettura finale:
+
+1. il reset/re-enumeration di Cartographer può cambiare la PTY lato T113 e richiede logica di riapertura/reconnect robusta;
+2. condividere il canale gadget non porta vantaggi quando Cartographer può collegarsi nativamente alla USB host del CM5.
+
+Per questo i tre canali gadget restano dedicati ai bus originali K2 e **Cartographer diretto USB sul CM5** diventa la topologia preferita. Sul CM5 va usato un path persistente `/dev/serial/by-id/...`.
 
 ## Livelli repository
 
@@ -35,17 +45,21 @@ Architettura canonica, osservazioni hardware, risultati dei test e roadmap.
 
 ### kalico-k2pro
 
-`MzTechnology97/kalico-k2pro` è un fork di `Jacob10383/kalico`. Il branch attivo `k2-pro-openhost` combina attualmente:
+`MzTechnology97/kalico-k2pro`, branch attivo `k2-pro-openhost`, è il target Kalico integrato per host esterno. Combina:
 
-- core Kalico upstream;
-- baseline di configurazione K2 Pro derivata dal lavoro pubblico `luketot/kalico-for-K2-Pro`;
-- extra K2 Jacobean sincronizzati da `MzTechnology97/k2-pro-custom-firmware:k2-openhost`.
-
-I `.cfg` macchina definitivi verranno migrati dalla K2 Pro già funzionante solo al termine dei test di trasporto/controllo.
+- lineage Jacob/Kalico;
+- baseline e integrazione K2 Pro;
+- extra K2/Jacobean richiesti dalla macchina;
+- hardening dello startup motor-control per l'avvio da host esterno;
+- loader Cartographer tracciato usato dal plugin Cartographer separato.
 
 ### k2-pro-custom-firmware
 
-Fork di `Jacob10383/k2-plus-custom-firmware`. Il branch `k2-openhost` è la sorgente versionata degli extra K2 e delle modifiche di compatibilità K2 Pro/OpenHost.
+Fork di `Jacob10383/k2-plus-custom-firmware`. Il branch `k2-openhost` rimane sorgente/history versionata degli extra K2 Jacobean e delle patch di compatibilità K2 Pro/OpenHost.
+
+### cartographer3d-plugin-k2openhost
+
+Fork derivato dal plugin Cartographer3D e dal port K2 di Jacob10383. Mantiene il lavoro K2 specifico e aggiunge compatibilità Kalico/OpenHost, installazione editable, documentazione Moonraker update-manager e comportamento aggiornato `register_as_probe`.
 
 ## Trasporto verificato
 
@@ -53,31 +67,49 @@ Fork di `Jacob10383/k2-plus-custom-firmware`. Il branch `k2-openhost` è la sorg
 |---|---|---|---|---|
 | `/dev/ttyUSB0` | `/dev/ttyGS0` | `/dev/ttyS2` | Main MCU | verificato |
 | `/dev/ttyUSB1` | `/dev/ttyGS1` | `/dev/ttyS3` | Nozzle MCU | verificato |
-| `/dev/ttyUSB2` | `/dev/ttyGS2` | `/dev/ttyS5` | RS-485/CFS | verificato |
-| previsto `/dev/ttyUSB3` | previsto `ttyGS3` | USB seriale interno Cartographer | Cartographer | da testare |
+| `/dev/ttyUSB2` | `/dev/ttyGS2` | `/dev/ttyS5` | RS-485/CFS/closed-loop | verificato |
+| `/dev/serial/by-id/...` | n/a | n/a | Cartographer via USB CM5 | topologia target; validazione hardware finale pendente |
 
-I tre canali verificati viaggiano sullo stesso gadget USB composito a USB 2.0 High-Speed.
+I tre canali T113 verificati viaggiano sullo stesso gadget USB composito a USB 2.0 High-Speed.
 
-## Main e Nozzle MCU
+## Runtime host esterno
 
-La configurazione stock usa 230400 baud per entrambi. Kalico esterno ha aperto sessioni simultanee con gli MCU Creality originali senza reflashing.
+Il target validato è un host Linux AArch64 basato su CM5. Il C helper di Kalico viene ricompilato nativamente come ELF64/AArch64, senza riutilizzare binari della piattaforma T113 a 32 bit.
 
-## RS-485
+Il servizio Kalico attende la disponibilità dei trasporti K2 prima dell'avvio. Anche il motor-control usa startup delay e retry per tollerare il caso in cui il CM5 si avvii più velocemente dei controller periferici K2.
 
-`ttyS5` funziona con accesso seriale userspace ordinario a 230400 8N1 per i frame testati. Il bus è condiviso tra CFS e altri dispositivi K2, quindi le protezioni read-only devono essere applicate allo stack CFS e non globalmente al trasporto.
+## Movimento e homing
 
-## Integrazione CFS
+I controller closed-loop X/Y della K2 Pro sono gestiti sul bus RS-485 condiviso. Sono stati verificati movimenti CoreXY normali via G-code, homing sensorless/stall su X/Y e direzione Z corretta.
 
-Gli extra K2 Jacobean sono la baseline di implementazione. K2-OpenHost aggiunge solo le differenze necessarie e validate:
+È stato eseguito con successo un homing completo usando il **PRTouch** originale come probe Z attivo. Questo costituisce la baseline nota funzionante prima di reintrodurre Cartographer via USB diretta.
 
-1. supporto del `BOX_STATE` steady K2 Pro a 4 byte mantenendo il percorso legacy a 6 byte;
-2. `observation_mode` in `box.py`;
-3. proxy read-only limitato allo stack CFS;
-4. disabilitazione di comandi Box operativi, T command, write RFID automatico e hook runout durante l'osservazione.
+## Termica e sicurezza
+
+Bed, nozzle e chamber heater sono stati testati da Kalico esterno, inclusi i PID tuning. È stato inoltre eseguito un emergency shutdown con gli heater attivi: il carico termico è stato rimosso e il consumo della stampante è tornato quasi al livello idle.
+
+## Test risonanza
+
+Un test reale della risonanza con **Klippain-ShakeTune** è stato completato con successo sullo stack OpenHost, confermando il percorso dell'accelerometro nozzle e l'analisi lato host esterno.
+
+## RS-485 e CFS
+
+`ttyS5` funziona con accesso seriale userspace a 230400 8N1 per i frame testati. Il bus trasporta sia CFS sia motor-control, quindi le protezioni restano limitate allo stack CFS.
+
+Il layer CFS usa gli extra K2 Jacobean come baseline, con supporto `BOX_STATE` steady K2 Pro a 4 byte e `observation_mode` protetto.
+
+## Modalità Cartographer
+
+Il fork Cartographer supporta due ruoli:
+
+- `register_as_probe: true` — Cartographer possiede l'oggetto `probe` canonico e `probe:z_virtual_endstop`;
+- `register_as_probe: false` — base per mixed mode, dove PRTouch resta il probe principale per il riferimento Z e Cartographer rimane disponibile per scan/mesh con namespace endstop separato.
+
+Il mixed mode è implementato nel plugin ma non è ancora validato sull'intero workflow Z automatico OpenHost.
 
 ## UI
 
-L'obiettivo è HelixScreen sul T113 collegato a Moonraker sul CM5. Il CM5 resta il planner/Python host; il T113 gestisce display e bridge hardware.
+L'obiettivo resta HelixScreen o altra UI leggera sul T113 collegata a Moonraker sul CM5. Il CM5 resta autorevole per planning/controllo; il T113 gestisce display/touch e bridge hardware.
 
 ## Modello di sicurezza
 
@@ -86,5 +118,9 @@ Il progetto procede per livelli:
 1. osservazione passiva;
 2. query read-only;
 3. integrazione runtime protetta;
-4. solo dopo validazione, comandi mutanti strettamente controllati;
-5. installazione persistente solo a stack runtime dimostrato.
+4. test controllati movimento/termica;
+5. homing completo e test risonanza;
+6. solo dopo validazione, funzioni CFS mutanti strettamente controllate;
+7. deployment persistente e stampa non supervisionata solo dopo validazione completa del print path.
+
+Non è stato necessario riflashare Main MCU o Nozzle MCU per i test OpenHost validati.
