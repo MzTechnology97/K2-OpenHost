@@ -13,7 +13,8 @@ K2-OpenHost is an integration and hardware-validation project. It intentionally 
 
 - **jamincollins/k2-improvements** — original `k2-improvements` project lineage.
 - **Jacob10383/k2-improvements** — Jacob's fork and K2 work used by the project as a public reference.
-- **Jacob10383/k2-plus-custom-firmware** — source of the Jacobean K2 custom-firmware extras used as the implementation baseline for CFS, motor control and other K2 features.
+- **Jacob10383/k2-plus-custom-firmware** — source of the Jacobean K2 custom-firmware extras used as the implementation baseline for CFS, motor control and other K2 features. Its current Box implementation is also the source/reference for logical-tool CFS print mapping and Orca G-code metadata parsing.
+- **Jacob10383/fluidd** — Jacob's Fluidd fork and Filament Box workflow, used as the behavioral/UI reference for CFS slot presentation and the pre-print filament-mapping flow.
 - **Jacob10383/cartographer3d-plugin** — K2-oriented Cartographer port and K2-specific adapter/reconnect/touch work used as the direct base for the K2-OpenHost Cartographer fork.
 - **luketot/kalico-for-K2-Pro** — public K2 Pro `.cfg` adaptation used as a baseline reference for geometry/pin/config differences. Later machine values are validated against the real K2 Pro used by the project.
 
@@ -22,6 +23,7 @@ K2-OpenHost is an integration and hardware-validation project. It intentionally 
 - Creality public K2/Hi Klipper extras, including auto-addressing and material-system wrappers.
 - **gitstonelabs/creality-cfs-klipper** — public CFS reverse-engineering work, mainly Hi/CFS-v1 oriented; used as a reference, not assumed to prove all K2 Pro behavior.
 - **grant0013/k2-reverse-engineering** and other public K2 reverse-engineering contributions.
+- **HimAndRobot/creality-cfs-mainsail-integration** — visual/interaction reference for CFS slot cards, spool colors and action-state presentation in Mainsail/Fluidd. K2-OpenHost does not use its direct Creality `web-server` / port `9999` transport; the OpenHost frontend consumes the native Klipper `box` object through Moonraker instead.
 
 ## Probing, resonance and UI
 
