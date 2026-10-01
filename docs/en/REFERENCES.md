@@ -14,7 +14,8 @@ K2-OpenHost is an integration and hardware-validation project. It intentionally 
 - **jamincollins/k2-improvements** — original `k2-improvements` project lineage.
 - **Jacob10383/k2-improvements** — Jacob's fork and K2 work used by the project as a public reference.
 - **Jacob10383/k2-plus-custom-firmware** — source of the Jacobean K2 custom-firmware extras used as the implementation baseline for CFS, motor control and other K2 features.
-- **luketot/kalico-for-K2-Pro** — public K2 Pro `.cfg` adaptation used as a baseline reference for geometry/pin/config differences; the final OpenHost machine configuration will instead use the proven settings from the actual test K2 Pro.
+- **Jacob10383/cartographer3d-plugin** — K2-oriented Cartographer port and K2-specific adapter/reconnect/touch work used as the direct base for the K2-OpenHost Cartographer fork.
+- **luketot/kalico-for-K2-Pro** — public K2 Pro `.cfg` adaptation used as a baseline reference for geometry/pin/config differences. Later machine values are validated against the real K2 Pro used by the project.
 
 ## CFS / protocol references
 
@@ -22,17 +23,22 @@ K2-OpenHost is an integration and hardware-validation project. It intentionally 
 - **gitstonelabs/creality-cfs-klipper** — public CFS reverse-engineering work, mainly Hi/CFS-v1 oriented; used as a reference, not assumed to prove all K2 Pro behavior.
 - **grant0013/k2-reverse-engineering** and other public K2 reverse-engineering contributions.
 
-## UI and probing
+## Probing, resonance and UI
 
-- **Cartographer3D/cartographer3d-plugin** and the Cartographer project contributors.
+- **Cartographer3D/cartographer3d-plugin** and Cartographer project contributors — upstream Cartographer plugin and current probe/scan architecture.
+- **Klippain / ShakeTune** project and contributors — resonance-measurement/analysis tooling; a real OpenHost resonance test was completed successfully with this tooling.
+- **mainsail-crew/mainsail** and contributors — web UI used during OpenHost development.
+- **Moonraker / Arksine** and contributors — API/update-manager layer between Kalico and Mainsail.
 - **prestonbrown/helixscreen** — HelixScreen UI project considered for the T113 display side.
 
 ## K2-OpenHost repositories
 
-- `MzTechnology97/K2-OpenHost` — documentation and validation.
-- `MzTechnology97/k2-pro-custom-firmware` — forked Jacobean extras and K2 Pro/OpenHost patches.
-- `MzTechnology97/kalico-k2pro` — Kalico fork integrating the K2 Pro baseline and validated extras.
+- `MzTechnology97/K2-OpenHost` — canonical documentation and validation.
+- `MzTechnology97/k2-pro-custom-firmware` — forked Jacobean extras and K2 Pro/OpenHost patch history.
+- `MzTechnology97/kalico-k2pro` — Kalico fork integrating the K2 Pro runtime and validated extras.
+- `MzTechnology97/cartographer3d-plugin-k2openhost` — Cartographer K2/OpenHost integration fork.
 - `MzTechnology97/k2-improvements` — preserved/reference fork in the upstream K2-improvements lineage.
+- `MzTechnology97/mainsail-k2openhost` — Mainsail fork reserved for K2-OpenHost UI work while retaining upstream authorship.
 
 ## Attribution rule
 
