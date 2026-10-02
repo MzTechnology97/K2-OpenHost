@@ -84,8 +84,25 @@ Risultato:
 - **35 TX / 35 RX**;
 - tutti i contatori errore a zero.
 
-È attualmente il milestone CFS end-to-end più forte del progetto.
+Questo milestone resta la baseline di sicurezza in sola lettura.
+
+## Validazione in modalità operativa
+
+Il processo Kalico completo sul CM5 esegue ora il Box stack con `observation_mode: false`. Sulla K2 Pro reale sono stati verificati:
+
+- enumeration CFS e stato normalizzato con `driver_ready=true` / `data_ready=true`;
+- temperatura e umidità del CFS tramite adattatore K2 Pro;
+- inventario filamenti persistente e import del database materiali Creality/K2-RFID;
+- risoluzione automatica degli ID materiale K2-RFID custom senza creare un nuovo profilo quando cambia soltanto il colore della bobina;
+- rilettura RFID forzata per singolo slot;
+- percentuale residua riportata dal CFS;
+- stime residue indipendenti per bobine fisiche diverse anche quando i tag K2-RFID usano lo stesso seriale `000001`;
+- ordinamento dei gruppi runout usando per primi gli slot compatibili con percentuale residua minore.
+
+Un ID RFID custom Bambulab PLA Basic è stato risolto realmente su due bobine di colore diverso. Il CFS ha riportato rispettivamente 9% e 10%; OpenHost le mantiene indipendenti come circa 29,7 m e 33,0 m residui su una lunghezza taggata di 330 m.
+
+Lo stimatore live sottrae inoltre i delta positivi di `print_stats.filament_used` dalla bobina RFID attiva e persiste la stima. La logica è implementata e verificata sul codice; resta da validarne l'andamento durante una stampa completa supervisionata.
 
 ## Prossimo passo
 
-Ripetere la stessa observation mode all'interno di un processo Kalico/Klippy completo sul CM5. I comandi CFS mutanti resteranno disabilitati fino alla stabilità dell'integrazione host completa.
+Il prossimo milestone CFS è un `BOX_PRINT_START` mappato e controllato, seguito da cambio materiale reale, test runout/recovery e stampa completa supervisionata.
