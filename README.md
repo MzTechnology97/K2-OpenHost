@@ -48,7 +48,7 @@ The earlier Cartographer MUX/DEMUX experiment proved that Cartographer traffic c
 
 ## Verified on the K2 Pro / Verificato sulla K2 Pro
 
-As of **2026-10-01**:
+As of **2026-10-02**:
 
 - USB gadget mode on the service Micro-USB port is verified at **480M** with three simultaneous Generic Serial functions.
 - Main MCU, Nozzle MCU and RS-485 communicate from external Kalico at **230400 baud** without reflashing the original Creality MCUs.
@@ -61,8 +61,11 @@ As of **2026-10-01**:
 - Klipper emergency shutdown was tested with all heaters active and correctly removed heater load, with printer consumption dropping back to near-idle.
 - A resonance test using **Klippain-ShakeTune** completed successfully on the OpenHost stack.
 - RS-485/CFS transport remains functional on `/dev/ttyUSB2`; the earlier duplicate-bridge/process-contention issue has been identified and removed.
-- The real Jacobean CFS/Box stack remains validated in protected observation mode, including the K2 Pro 4-byte `BOX_STATE` path and mutation guard.
-- The normalized `box` object is visible through Moonraker with slot presence, buffer/path state and frontend-ready CFS data.
+- The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path, load-path state and per-slot RFID reads.
+- The normalized `box` object exposes persistent filament inventory, RFID material identity, hardware-reported remaining percentage and the OpenHost live remaining-filament estimate.
+- K2-RFID/Creality material-database compatibility is validated with custom tags: five-digit database IDs and `1xxxxx` RFID material IDs resolve to one reusable material profile while per-spool color remains slot metadata.
+- A per-slot forced RFID reread path is available for marginal/self-programmed tags; startup no longer blocks on a slow invalid RFID cache entry.
+- Runout groups and auto-mapping can prefer the lowest known remaining compatible spool while preserving manual/current source selection.
 - Cartographer3D plugin import, Kalico adapter selection and live sensor streaming were demonstrated through the experimental bridge path. Final Cartographer validation is now being moved to **direct USB on the CM5**.
 - `register_as_probe` support has been updated in the Cartographer fork so standalone Cartographer mode and a future PRTouch + Cartographer mixed mode can be maintained separately.
 
@@ -76,9 +79,9 @@ The current Jacob/Jacobean CFS print-mapping model has now been integrated addit
 - `mainsail-k2openhost` now hooks the normal Print dialog and presents a CFS filament-mapping step;
 - the compatibility layer translates purge-matrix and nozzle-temperature data from logical tools to the physical-slot indexing used by the currently validated OpenHost Box engine.
 
-This path is **implemented but not yet hardware-validated**. The first test should be metadata-only `BOX_PRINT_INFO` while CFS observation mode remains enabled. Controlled mapped printing follows only after an intentional switch to operational Box mode.
+`BOX_PRINT_INFO`, real slot inventory and auto-mapping decisions are now hardware-validated in operational Box mode. The remaining milestone is a controlled `BOX_PRINT_START`/tool-change print and then a complete supervised print.
 
-Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in modo additivo, inclusa la finestra di mapping in Mainsail. Il percorso è **implementato ma non ancora validato sull'hardware**: il primo test previsto è `BOX_PRINT_INFO`, che legge soltanto i metadata del G-code e può essere provato mantenendo l'observation mode.
+Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in modo additivo, inclusa la finestra di mapping in Mainsail. `BOX_PRINT_INFO`, inventario reale degli slot e auto-mapping sono ora verificati sulla K2 Pro in modalità Box operativa; restano da validare la stampa mappata con cambio materiale e una stampa completa supervisionata.
 
 ## Current project boundary / Stato attuale
 
