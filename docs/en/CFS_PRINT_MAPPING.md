@@ -1,6 +1,6 @@
 # CFS print mapping on K2-OpenHost
 
-Updated: **2026-10-01**.
+Updated: **2026-10-02**.
 
 ## Goal
 
@@ -118,7 +118,7 @@ When the normal Mainsail **Print** dialog opens and `print_mapping_version >= 1`
 1. Mainsail sends `BOX_PRINT_INFO` for the selected file.
 2. Kalico publishes the logical tools through `printer.objects.box.print_info`.
 3. Mainsail shows a CFS mapping row for every used tool.
-4. **Auto map** prefers a present slot with matching material + color, then matching material, then an available present slot; the user can override every choice.
+4. **Auto map** prefers a present slot with matching material + color. Among otherwise equivalent RFID candidates it prefers the lowest known remaining percentage, then falls back to the existing material/name/color scoring; the user can override every choice.
 5. Physical empty slots are disabled. The external spool remains a selectable mapping target.
 6. The Print button remains disabled while metadata is being read or while a required tool has no valid slot.
 7. Mainsail starts the mapped job with `BOX_PRINT_START` instead of the normal `printer.print.start` call.
@@ -183,15 +183,23 @@ This is the recommended first validation step on the real K2 Pro.
 - preservation of translated metadata through `PARSE_FLUSH_VOLUMES`;
 - native CFS mapping UI in `mainsail-k2openhost`.
 
+### Hardware-validated
+
+- `BOX_PRINT_INFO` against real Orca-sliced files on the CM5;
+- real `box.slots` inventory and CFS metadata in operational Box mode;
+- backend auto-map against real slot metadata;
+- fail-safe unresolved behavior when no compatible physical inventory exists;
+- lowest-known-RFID-remaining preference between otherwise equivalent candidates.
+
+A two-tool PETG `cubo.gcode` was inspected successfully. With temporary black and cyan PETG physical-slot metadata, the backend produced `{0:1, 1:2}`; after those temporary profiles were removed, both logical tools correctly returned unresolved instead of silently selecting an incompatible source.
+
 ### Still to validate on hardware
 
-1. `BOX_PRINT_INFO` against real sliced files on the CM5;
-2. Mainsail dialog population and auto-map against the real `box.slots` state;
-3. switch Box intentionally from observation mode to operational mode;
-4. controlled single-tool `BOX_PRINT_START`;
-5. controlled logical-tool -> different physical-slot mapping;
-6. controlled multi-material tool change including purge matrix and temperature handling;
-7. runout/recovery interactions during a mapped job;
-8. complete supervised print.
+1. controlled single-tool `BOX_PRINT_START`;
+2. controlled logical-tool -> different physical-slot mapping during a real print;
+3. controlled multi-material tool change including purge matrix and temperature handling;
+4. runout/recovery interactions during a mapped job;
+5. real-time RFID remaining estimate over a complete print;
+6. complete supervised print.
 
 Do not classify the mapped CFS print path as production-ready until those hardware tests are complete.
