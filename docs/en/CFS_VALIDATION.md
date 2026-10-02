@@ -97,8 +97,25 @@ Verified behavior:
 - **35 TX / 35 RX**;
 - all transport error counters were zero.
 
-This is the current strongest end-to-end CFS milestone.
+This observation-mode milestone remains the read-only safety baseline.
+
+## Operational-mode validation
+
+The complete CM5 Kalico process is now running the Box stack with `observation_mode: false`. On the real K2 Pro we have verified:
+
+- CFS enumeration and normalized state reach `driver_ready=true` / `data_ready=true`;
+- K2 Pro environment reporting including temperature and humidity;
+- persistent filament inventory and K2-RFID/Creality material-database import;
+- automatic resolution of custom K2-RFID material IDs without treating spool color as a new material profile;
+- per-slot forced RFID reread;
+- hardware remaining-material percentage;
+- independent remaining estimates for different physical spools even when K2-RFID tags use the same `000001` serial;
+- runout-group ordering by lowest known compatible remaining percentage.
+
+A live custom Bambulab PLA Basic RFID material ID was resolved on two different colored spools. The CFS reported 9% and 10% respectively; OpenHost tracked them independently as about 29.7 m and 33.0 m from a 330 m tagged length.
+
+The live remaining estimator also subtracts positive `print_stats.filament_used` deltas from the active RFID spool and persists the estimate. This logic is implemented and source-tested; a complete supervised print is still required to validate the real-time estimate over a full print.
 
 ## Next validation
 
-The next CFS step is the same observation mode inside a complete CM5 Kalico/Klippy process rather than the standalone harness. State-changing CFS commands will remain disabled until the full host integration is stable.
+The next CFS milestone is a controlled mapped `BOX_PRINT_START`, followed by a real multimaterial tool change, runout/recovery test and complete supervised print.
