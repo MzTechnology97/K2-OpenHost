@@ -1,6 +1,6 @@
 # Mappatura CFS delle stampe su K2-OpenHost
 
-Aggiornato: **2026-10-01**.
+Aggiornato: **2026-10-02**.
 
 ## Obiettivo
 
@@ -118,7 +118,7 @@ Quando si apre la normale finestra **Print** di Mainsail e `print_mapping_versio
 1. Mainsail invia `BOX_PRINT_INFO` per il file selezionato.
 2. Kalico pubblica i tool logici in `printer.objects.box.print_info`.
 3. Mainsail mostra una riga di mappatura CFS per ogni tool usato.
-4. **Auto map** preferisce uno slot presente con materiale + colore corrispondenti, poi lo stesso materiale, poi uno slot fisico presente disponibile; l'utente può cambiare ogni scelta.
+4. **Auto map** preferisce uno slot presente con materiale + colore corrispondenti. Tra candidati RFID altrimenti equivalenti preferisce quello con la percentuale residua conosciuta più bassa, poi applica lo scoring esistente su materiale/nome/colore; l'utente può cambiare ogni scelta.
 5. Gli slot fisici vuoti sono disabilitati. La bobina esterna resta selezionabile.
 6. Il pulsante Print resta disabilitato durante la lettura metadata o finché un tool richiesto non ha uno slot valido.
 7. Mainsail avvia il job mappato tramite `BOX_PRINT_START` invece del normale `printer.print.start`.
@@ -183,15 +183,23 @@ Questo è il primo test consigliato sulla K2 Pro reale.
 - protezione della traduzione attraverso `PARSE_FLUSH_VOLUMES`;
 - UI nativa di mappatura CFS in `mainsail-k2openhost`.
 
+### Verificato sull'hardware
+
+- `BOX_PRINT_INFO` con file Orca realmente sliciati sul CM5;
+- inventario reale `box.slots` e metadata CFS in modalità Box operativa;
+- auto-map backend contro metadata reali degli slot;
+- comportamento fail-safe unresolved quando manca un inventario fisico compatibile;
+- preferenza per la minore percentuale RFID nota tra candidati altrimenti equivalenti.
+
+Un `cubo.gcode` PETG a due tool è stato analizzato correttamente. Con metadata temporanei PETG nero e ciano sugli slot fisici il backend ha prodotto `{0:1, 1:2}`; dopo la rimozione dei profili temporanei entrambi i tool sono tornati correttamente unresolved invece di selezionare una sorgente incompatibile.
+
 ### Da validare sull'hardware
 
-1. `BOX_PRINT_INFO` con file realmente sliciati sul CM5;
-2. popolamento finestra Mainsail e auto-map contro lo stato reale `box.slots`;
-3. passaggio intenzionale del Box da observation mode a modalità operativa;
-4. `BOX_PRINT_START` controllato con singolo tool;
-5. mappatura controllata tool logico -> slot fisico differente;
-6. tool change multimateriale controllato, inclusi purge matrix e temperature;
-7. interazioni runout/recovery durante job mappato;
-8. stampa completa supervisionata.
+1. `BOX_PRINT_START` controllato con singolo tool;
+2. mappatura tool logico -> slot fisico differente durante una stampa reale;
+3. tool change multimateriale controllato, inclusi purge matrix e temperature;
+4. interazioni runout/recovery durante job mappato;
+5. stima residua RFID real-time durante una stampa completa;
+6. stampa completa supervisionata.
 
 Il percorso di stampa CFS mappato non va considerato production-ready finché questi test hardware non sono conclusi.
