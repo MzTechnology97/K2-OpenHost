@@ -2,7 +2,7 @@
 
 La roadmap è guidata dalla validazione: una fase successiva parte solo quando quella precedente è dimostrata sulla K2 Pro.
 
-Aggiornata al **1 ottobre 2026**.
+Aggiornata al **2 ottobre 2026**.
 
 ## Fondamenta completate
 
@@ -24,6 +24,9 @@ Aggiornata al **1 ottobre 2026**.
 - decoder Box state 4-byte K2 Pro;
 - guardia CFS observation;
 - vera `Box()` in observation mode;
+- stack Box in modalità operativa nel servizio Kalico completo, inclusi stato load-path, letture RFID per slot e rilettura forzata;
+- inventario filamenti persistente, risoluzione database materiali K2-RFID e tracciamento percentuale residua;
+- `BOX_PRINT_INFO` e auto-mapping backend contro l'inventario reale degli slot;
 - patch versionate in `k2-pro-custom-firmware:k2-openhost`;
 - assemblaggio `kalico-k2pro:k2-pro-openhost` con baseline K2 Pro ed extra K2;
 - creazione `cartographer3d-plugin-k2openhost` con compatibilità K2/Kalico, installazione editable, guida direct-USB e supporto `register_as_probe`;
@@ -63,10 +66,10 @@ Il mixed mode è opzionale e non è necessario per il primo profilo OpenHost pro
 
 ## Fase 4 — mutazioni CFS controllate
 
-Dopo la stabilità observation nel servizio completo:
+Stato Box in modalità operativa, letture RFID e auto-mapping sono già validati (vedi fondamenta completate). Resta da fare:
 
-- validare loaded-path;
-- validare policy RFID;
+- validare le transizioni loaded-path durante load/unload reali;
+- validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale;
 - abilitare una funzione mutante alla volta;
 - testare load/unload con supervisione meccanica;
 - validare cutter, buffer e runout recovery;

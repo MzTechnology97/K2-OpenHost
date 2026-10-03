@@ -2,7 +2,7 @@
 
 Stato: **sperimentale, validato a fasi su hardware**. Stampante target: **Creality K2 Pro**.
 
-Ultimo aggiornamento architetturale: **1 ottobre 2026**.
+Ultimo aggiornamento architetturale: **2 ottobre 2026**.
 
 ## Obiettivo
 
@@ -97,6 +97,8 @@ Un test reale della risonanza con **Klippain-ShakeTune** è stato completato con
 `ttyS5` funziona con accesso seriale userspace a 230400 8N1 per i frame testati. Il bus trasporta sia CFS sia motor-control, quindi le protezioni restano limitate allo stack CFS.
 
 Il layer CFS usa gli extra K2 Jacobean come baseline, con supporto `BOX_STATE` steady K2 Pro a 4 byte e `observation_mode` protetto.
+
+La observation mode è stata il primo livello di validazione in sola lettura. Il servizio Kalico completo esegue ora lo stack Box in modalità operativa (`observation_mode: false`), con inventario RFID e metadata di mappatura stampa esposti tramite l'oggetto nativo `box`. La stampa mappata con cambi materiale reali resta da validare.
 
 ## Modalità Cartographer
 
