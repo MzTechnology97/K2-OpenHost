@@ -151,7 +151,7 @@ Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test
 - validare sensore filamento reale e transizioni loaded-path durante load/unload supervisionati;
 - validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale inclusi purge matrix e temperature;
 - validare runout/recovery durante un job mappato e la stima residua RFID live su una stampa completa;
-- validare su hardware l'integrazione dell'aggiornamento upstream 071c813 (associazione utensili nativa, nuovo flusso di pausa `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT`, aggiornamento della mappa al cambio bobina) sul ramo `cfs-upstream-071c813` di `kalico-k2pro`, poi unirlo; i test passano e Klipper parte senza errori sul CM5 con questo ramo (3 ottobre 2026);
+- validare su hardware l'integrazione dell'aggiornamento upstream 071c813 (associazione utensili nativa, nuovo flusso di pausa `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT`, aggiornamento della mappa al cambio bobina) ora unita a `kalico-k2pro:k2-pro-openhost` prima delle prove hardware su richiesta del proprietario (3 ottobre 2026); i test software passano e Klipper parte senza errori sul CM5;
 - validare `PLR_RECOVER` con un'interruzione di corrente supervisionata (il power-loss recovery è attivo e ricava la Z tramite `[z_align]`, già verificato su hardware);
 - validare il cambio bobina automatico a fine filamento su hardware (il bug del profilo sorgente trovato il 3 ottobre 2026 è corretto e coperto da test);
 - completare la prima validazione del print path completo: homing, heating, mesh/probing, estrusione e fine stampa;
