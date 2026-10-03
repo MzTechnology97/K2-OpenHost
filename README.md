@@ -16,6 +16,7 @@ The project is deliberately split into several repositories so upstream authorsh
 - **[MzTechnology97/cartographer3d-plugin-k2openhost](https://github.com/MzTechnology97/cartographer3d-plugin-k2openhost)** — Cartographer3D K2/OpenHost integration fork, based on the upstream Cartographer plugin and Jacob10383's K2 port.
 - **[MzTechnology97/k2-improvements](https://github.com/MzTechnology97/k2-improvements)** — attributed reference fork in the `jamincollins -> Jacob10383` lineage.
 - **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork retained for the OpenHost UI track; upstream Mainsail authorship remains unchanged.
+- **[MzTechnology97/k2-openhost-firmware-tools](https://github.com/MzTechnology97/k2-openhost-firmware-tools)** — read-only tooling to inventory, compare and probe K2 peripheral (MCU, motor, CFS) firmware from the OpenHost host; controlled flashing is a later phase.
 
 Original author and upstream project references are intentionally preserved. K2-OpenHost does not claim authorship of code or discoveries originating in those projects.
 
@@ -62,7 +63,7 @@ As of **2026-10-02**:
 - A resonance test using **Klippain-ShakeTune** completed successfully on the OpenHost stack.
 - RS-485/CFS transport remains functional on `/dev/ttyUSB2`; the earlier duplicate-bridge/process-contention issue has been identified and removed.
 - The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path, load-path state and per-slot RFID reads.
-- The normalized `box` object exposes persistent filament inventory, RFID material identity, hardware-reported remaining percentage and the OpenHost live remaining-filament estimate.
+- The normalized `box` object exposes persistent filament inventory, RFID material identity, hardware-reported remaining percentage and the OpenHost live remaining-filament estimate (the estimator is implemented and source-tested; its behaviour over a complete supervised print is still pending).
 - K2-RFID/Creality material-database compatibility is validated with custom tags: five-digit database IDs and `1xxxxx` RFID material IDs resolve to one reusable material profile while per-spool color remains slot metadata.
 - A per-slot forced RFID reread path is available for marginal/self-programmed tags; startup no longer blocks on a slow invalid RFID cache entry.
 - Runout groups and auto-mapping can prefer the lowest known remaining compatible spool while preserving manual/current source selection.
@@ -92,6 +93,7 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 ### English
 
 - [Architecture](docs/en/ARCHITECTURE.md)
+- [USB gadget transport](docs/en/USB_GADGET.md)
 - [Test status](docs/en/TEST_STATUS.md)
 - [CFS validation](docs/en/CFS_VALIDATION.md)
 - [CFS observation mode](docs/en/CFS_OBSERVATION_MODE.md)
@@ -102,6 +104,7 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 ### Italiano
 
 - [Architettura](docs/it/ARCHITECTURE.md)
+- [Trasporto USB gadget](docs/it/USB_GADGET.md)
 - [Stato test](docs/it/TEST_STATUS.md)
 - [Validazione CFS](docs/it/CFS_VALIDATION.md)
 - [CFS observation mode](docs/it/CFS_OBSERVATION_MODE.md)

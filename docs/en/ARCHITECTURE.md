@@ -2,7 +2,7 @@
 
 Status: **experimental, hardware-validated in stages**. Target printer: **Creality K2 Pro**.
 
-Last architecture update: **2026-10-01**.
+Last architecture update: **2026-10-02**.
 
 ## Design goal
 
@@ -97,6 +97,8 @@ A real resonance measurement has completed through **Klippain-ShakeTune** on the
 `ttyS5` works with ordinary serial userspace access at 230400 8N1 for the tested frames. It carries both CFS and motor-control traffic, so protections remain scoped to the CFS layer rather than globally blocking the transport.
 
 The CFS layer uses Jacobean K2 extras as the implementation baseline. K2-OpenHost adds only the compatibility/safety deltas required by K2 Pro testing, including K2 Pro 4-byte steady `BOX_STATE` decoding and protected observation mode.
+
+Observation mode was the first, read-only validation layer. The full Kalico service now runs the Box stack in operational mode (`observation_mode: false`), with RFID inventory and print-mapping metadata exposed through the native `box` object. Mapped printing with real tool changes is still pending validation.
 
 ## Cartographer modes
 

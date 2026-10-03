@@ -168,7 +168,7 @@ observation_mode: True
 
 `BOX_PRINT_INFO` remains useful because it only reads a G-code file. `BOX_PRINT_START` deliberately refuses to run because it would enable mutating CFS operations.
 
-This is the recommended first validation step on the real K2 Pro.
+This was the first validation step on the real K2 Pro and remains the safe fallback configuration. Hardware validation has since moved to operational Box mode (`observation_mode: false`), where `BOX_PRINT_INFO` and auto-mapping are verified (see below).
 
 ## Validation status
 
