@@ -126,3 +126,5 @@ Il progetto procede per livelli:
 7. deployment persistente e stampa non supervisionata solo dopo validazione completa del print path.
 
 Non è stato necessario riflashare Main MCU o Nozzle MCU per i test OpenHost validati.
+
+L'uso di OpenHost invalida la garanzia del produttore e comporta rischi di danni irreparabili, brick del firmware e incendio; è pensato solo per utenti esperti. Anche le fotocamere e la porta USB esterna cambiano ruolo. Vedi [Esclusione di responsabilità e limiti hardware](DISCLAIMER.md).
