@@ -146,7 +146,8 @@ Il fork Cartographer contiene anche supporto `register_as_probe: false` per il f
 - validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale inclusi purge matrix e temperature;
 - validare runout/recovery durante un job mappato e la stima residua RFID live su una stampa completa;
 - adottare il flusso pausa/ripresa Box upstream insieme al relativo `box.py`; fino ad allora le macro K2 Pro mantengono il percorso `_BOX_RESUME_CHECK` esistente (le macro K2 Plus importate sono state annullate il 3 ottobre 2026 perché chiamavano comandi assenti nel Box engine attuale);
-- implementare un power-loss recovery sicuro per K2 Pro; il `power_loss_recovery` upstream richiede `[z_align]`, presente solo sulla K2 Plus, ed è disattivato;
+- validare `[z_align]` sul sensore di fondo corsa della K2 Pro (`PA15`, come nella configurazione originale Creality) tramite `G28` integrato, poi `PLR_RECOVER` con un'interruzione di corrente supervisionata; sono attivi e coperti da test ma non ancora provati su hardware;
+- validare il cambio bobina automatico a fine filamento su hardware (il bug del profilo sorgente trovato il 3 ottobre 2026 è corretto e coperto da test);
 - completare la prima validazione del print path completo: homing, heating, mesh/probing, estrusione e fine stampa;
 - proseguire con lo split UI e il futuro percorso display sul T113.
 
