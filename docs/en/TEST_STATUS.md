@@ -151,7 +151,7 @@ The step-by-step procedures for the physical tests below are in the [hardware te
 - validate the real filament sensor and loaded-path transitions during supervised load/unload;
 - validate a controlled single-tool `BOX_PRINT_START`, then a mapped multimaterial tool change including purge matrix and temperatures;
 - validate runout/recovery during a mapped job and the live RFID remaining estimate over a complete print;
-- validate on hardware the upstream 071c813 integration (native print mapping, new `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT` pause flow, runout map update) on the `kalico-k2pro` branch `cfs-upstream-071c813`, then merge it; tests pass and Klipper starts cleanly on the CM5 with it (2026-10-03);
+- validate on hardware the upstream 071c813 integration (native print mapping, new `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT` pause flow, runout map update) now merged into `kalico-k2pro:k2-pro-openhost` before the hardware tests at the owner's request (2026-10-03); software tests pass and Klipper starts cleanly on the CM5 with it;
 - validate `PLR_RECOVER` with a supervised power cut (power-loss recovery is enabled and re-references Z through the hardware-validated `[z_align]`);
 - validate automatic runout swap on hardware (the source-profile bug found on 2026-10-03 is fixed and covered by tests);
 - complete first full print-path validation from homing through heating, mesh/probing, extrusion and print completion;
