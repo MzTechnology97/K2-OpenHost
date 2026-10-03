@@ -17,6 +17,7 @@ The project is deliberately split into several repositories so upstream authorsh
 - **[MzTechnology97/k2-improvements](https://github.com/MzTechnology97/k2-improvements)** — attributed reference fork in the `jamincollins -> Jacob10383` lineage.
 - **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork retained for the OpenHost UI track; upstream Mainsail authorship remains unchanged.
 - **[MzTechnology97/k2-openhost-firmware-tools](https://github.com/MzTechnology97/k2-openhost-firmware-tools)** — read-only tooling to inventory, compare and probe K2 peripheral (MCU, motor, CFS) firmware from the OpenHost host; controlled flashing is a later phase.
+- **[MzTechnology97/k2-openhost-helper](https://github.com/MzTechnology97/k2-openhost-helper)** — installer that prepares an external Linux host (Kalico K2-OpenHost, K2 Pro profile, Moonraker, Mainsail fork, udev names and start gate); experimental, pending a fresh-host test. A T113 bootstrap will follow after the hardware tests.
 
 Original author and upstream project references are intentionally preserved. K2-OpenHost does not claim authorship of code or discoveries originating in those projects.
 
