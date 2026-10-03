@@ -142,6 +142,8 @@ The Cartographer fork also contains `register_as_probe: false` support for a fut
 
 ## Pending
 
+The step-by-step procedures for the physical tests below are in the [hardware test plan](HARDWARE_TEST_PLAN.md).
+
 - connect Cartographer directly to the CM5 USB host and validate persistent `/dev/serial/by-id/...` operation;
 - validate Cartographer automated reset/reconnect on direct USB;
 - validate Cartographer standalone probing/touch/scan on the external host;
@@ -149,7 +151,7 @@ The Cartographer fork also contains `register_as_probe: false` support for a fut
 - validate the real filament sensor and loaded-path transitions during supervised load/unload;
 - validate a controlled single-tool `BOX_PRINT_START`, then a mapped multimaterial tool change including purge matrix and temperatures;
 - validate runout/recovery during a mapped job and the live RFID remaining estimate over a complete print;
-- adopt the upstream Box pause/resume flow together with its matching `box.py`; until then the K2 Pro macros keep the existing `_BOX_RESUME_CHECK` path (the imported K2 Plus macros were reverted on 2026-10-03 because they called commands missing from the current Box engine);
+- validate on hardware the upstream 071c813 integration (native print mapping, new `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT` pause flow, runout map update) on the `kalico-k2pro` branch `cfs-upstream-071c813`, then merge it; tests pass and Klipper starts cleanly on the CM5 with it (2026-10-03);
 - validate `PLR_RECOVER` with a supervised power cut (power-loss recovery is enabled and re-references Z through the hardware-validated `[z_align]`);
 - validate automatic runout swap on hardware (the source-profile bug found on 2026-10-03 is fixed and covered by tests);
 - complete first full print-path validation from homing through heating, mesh/probing, extrusion and print completion;
