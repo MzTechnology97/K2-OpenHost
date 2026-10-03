@@ -146,7 +146,8 @@ The Cartographer fork also contains `register_as_probe: false` support for a fut
 - validate a controlled single-tool `BOX_PRINT_START`, then a mapped multimaterial tool change including purge matrix and temperatures;
 - validate runout/recovery during a mapped job and the live RFID remaining estimate over a complete print;
 - adopt the upstream Box pause/resume flow together with its matching `box.py`; until then the K2 Pro macros keep the existing `_BOX_RESUME_CHECK` path (the imported K2 Plus macros were reverted on 2026-10-03 because they called commands missing from the current Box engine);
-- implement a K2 Pro-safe power-loss recovery; upstream `power_loss_recovery` requires the K2 Plus-only `[z_align]` and is disabled;
+- validate `[z_align]` on the K2 Pro bottom switch (`PA15`, as in the Creality stock config) through integrated `G28`, then `PLR_RECOVER` with a supervised power cut; both are enabled and unit-tested but not yet exercised on hardware;
+- validate automatic runout swap on hardware (the source-profile bug found on 2026-10-03 is fixed and covered by tests);
 - complete first full print-path validation from homing through heating, mesh/probing, extrusion and print completion;
 - continue UI split work, including the eventual T113 screen path.
 

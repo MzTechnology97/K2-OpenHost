@@ -44,9 +44,9 @@ Sono stati letti correttamente:
 
 Il decoder Jacobean originario attendeva payload steady a 6 byte. La K2 Pro testata risponde validamente con 4 byte.
 
-K2-OpenHost mantiene i primi due byte opachi come `firmware_base`, poi espone `substatus` e `load_flag`. Il percorso 6-byte e gli eventi asincroni `STATUS=0x30` restano compatibili.
+La prima patch di validazione manteneva i primi due byte opachi come `firmware_base` ed esponeva `substatus` / `load_flag`. L'analisi del firmware CFS 1.1.3 e le catture live hanno poi stabilito il layout, ora decodificato dall'adattatore `box_k2pro`: temperatura con segno in °C, umidità in %, byte evento e stato del box.
 
-Valori opachi differenti osservati nel tempo confermano che non è corretto assegnare ai primi due byte una semantica non dimostrata.
+I valori registrati allora come basi opache (`0x1E22`, `0x1E23`, `0x1F23`) sono coerenti: 30–31 °C e 34–35 % di umidità. I campi opachi restano solo come ripiego in `box_protocol.py` quando `[box_k2pro]` non è caricato. Il percorso 6-byte e gli eventi asincroni `STATUS=0x30` restano compatibili.
 
 ## Test nativi Jacobean
 

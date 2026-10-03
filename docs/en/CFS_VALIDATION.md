@@ -46,14 +46,14 @@ No private RFID record is published in this repository.
 
 The Jacobean decoder originally expected a 6-byte steady payload. The tested K2 Pro returns a valid 4-byte steady payload.
 
-K2-OpenHost keeps the first two bytes opaque as `firmware_base`, then exposes:
+The first validation patch kept the first two bytes opaque as `firmware_base` and exposed `substatus` / `load_flag`. Firmware analysis of the CFS 1.1.3 image and live captures later established the layout, now decoded by the `box_k2pro` adapter:
 
-- `substatus`;
-- `load_flag`.
+- signed temperature in °C;
+- humidity in %;
+- event byte;
+- box state.
 
-The legacy 6-byte decoder path and asynchronous `STATUS=0x30` slot-event path remain available.
-
-Repeated steady reads have produced changing opaque base values (for example `0x1E22`, `0x1E23`, `0x1F23`) while `substatus/load_flag` remained stable. This is why the first two bytes are not assigned an unsupported semantic meaning.
+The values once recorded as opaque bases (`0x1E22`, `0x1E23`, `0x1F23`) are consistent with this: 30–31 °C and 34–35 % humidity. The opaque fields remain only as a fallback in `box_protocol.py` when `[box_k2pro]` is not loaded. The legacy 6-byte decoder path and asynchronous `STATUS=0x30` slot-event path remain available.
 
 ## Native Jacobean tests
 
