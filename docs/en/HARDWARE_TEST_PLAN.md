@@ -2,7 +2,7 @@
 
 Tests that must be run **in person, next to the printer**. Each test lists what to prepare, what to do, what must happen and when to stop. A results table to fill in is at the end.
 
-Created on 2026-10-03. The code under test is the `kalico-k2pro` branch `cfs-upstream-071c813` (commit `c1b8613d`), which integrates Jacob10383's firmware sync 071c813. The branch is **not yet merged** into `k2-pro-openhost`: it is merged only after tests T0–T4 pass.
+Created on 2026-10-03. The code under test is the `kalico-k2pro` branch `cfs-upstream-071c813` (commit `c1b8613d`), which integrates Jacob10383's firmware sync 071c813. At the owner's request the branch was **merged into `k2-pro-openhost` on 2026-10-03, before these tests** (merge `b8a69639`; firmware mirror `k2-openhost` `b8dc5af`). The CM5 runs `k2-pro-openhost`, so the tests below now validate the main branch.
 
 ## Before starting
 
@@ -209,7 +209,6 @@ A separate, step-by-step guided session: connection to the CM5, check of `/dev/s
 
 ## After the tests
 
-If T0–T4 passed:
-1. Merge and push `cfs-upstream-071c813`: first `k2-pro-custom-firmware:k2-openhost`, then `kalico-k2pro:k2-pro-openhost`.
-2. Switch the CM5 back to `k2-pro-openhost`.
-3. Update [TEST_STATUS](TEST_STATUS.md) with the results.
+The integration is already merged (2026-10-03). After the tests:
+1. Update [TEST_STATUS](TEST_STATUS.md) with the results.
+2. Fix any failure on `k2-pro-openhost`, mirroring CFS extras into `k2-pro-custom-firmware:k2-openhost` first.
