@@ -2,7 +2,7 @@
 
 Elenco delle prove da fare **di persona, accanto alla stampante**. Ogni prova dice cosa preparare, cosa fare, cosa deve succedere e quando fermarsi. In fondo c'è la tabella dei risultati da compilare.
 
-Creato il 2026-10-03. Il codice da provare è il ramo `cfs-upstream-071c813` di `kalico-k2pro` (commit `c1b8613d`), che integra l'aggiornamento 071c813 di Jacob10383. Il ramo **non è ancora unito** a `k2-pro-openhost`: lo si unisce solo dopo che le prove T0–T4 sono passate.
+Creato il 2026-10-03. Il codice da provare è il ramo `cfs-upstream-071c813` di `kalico-k2pro` (commit `c1b8613d`), che integra l'aggiornamento 071c813 di Jacob10383. Su richiesta del proprietario il ramo è stato **unito a `k2-pro-openhost` il 2026-10-03, prima di queste prove** (merge `b8a69639`; mirror firmware `k2-openhost` `b8dc5af`). Il CM5 usa `k2-pro-openhost`, quindi le prove qui sotto validano ora il ramo principale.
 
 ## Prima di iniziare
 
@@ -209,7 +209,6 @@ Sessione a parte, guidata passo passo: collegamento al CM5, controllo di `/dev/s
 
 ## Dopo le prove
 
-Se T0–T4 sono passate:
-1. Unire e pubblicare `cfs-upstream-071c813`: prima `k2-pro-custom-firmware:k2-openhost`, poi `kalico-k2pro:k2-pro-openhost`.
-2. Riportare il CM5 su `k2-pro-openhost`.
-3. Aggiornare [TEST_STATUS](TEST_STATUS.md) con i risultati.
+L'integrazione è già unita (2026-10-03). Dopo le prove:
+1. Aggiornare [TEST_STATUS](TEST_STATUS.md) con i risultati.
+2. Correggere eventuali errori su `k2-pro-openhost`, replicando prima gli extras CFS in `k2-pro-custom-firmware:k2-openhost`.
