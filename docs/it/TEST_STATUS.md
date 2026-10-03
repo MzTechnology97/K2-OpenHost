@@ -1,12 +1,12 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **1 ottobre 2026**.
+Aggiornato al **2 ottobre 2026**.
 
 ## Sintesi
 
-K2-OpenHost ha superato la sola validazione del trasporto. La K2 Pro reale raggiunge ora una baseline OpenHost funzionante con Main MCU, Nozzle MCU, motor-control RS-485, homing PRTouch, heater e test risonanza gestiti dal CM5/host Kalico esterno.
+K2-OpenHost ha superato la sola validazione del trasporto. La K2 Pro reale raggiunge ora una baseline OpenHost funzionante con Main MCU, Nozzle MCU, motor-control RS-485, homing PRTouch, heater e test risonanza gestiti dal CM5/host Kalico esterno. Lo stack CFS/Box Jacobean gira ora in modalità operativa (`observation_mode: false`) nel servizio Kalico completo.
 
-Il principale elemento hardware ancora da chiudere è Cartographer sulla topologia preferita **USB diretta al CM5**, seguito dalla validazione completa del print path e successivamente dai test CFS mutanti controllati.
+I principali elementi hardware ancora da chiudere sono Cartographer sulla topologia preferita **USB diretta al CM5**, un `BOX_PRINT_START` mappato e controllato con cambi materiale reali e la validazione completa del print path.
 
 ## Verificato
 
@@ -99,6 +99,23 @@ UID e payload RFID privati non vengono pubblicati.
 - `_poll()` interno completato;
 - run di riferimento: **35 TX / 35 RX, tutti i contatori transport error a zero**.
 
+Questo run in observation resta la baseline di sicurezza in sola lettura.
+
+### CFS in modalità operativa
+
+Il servizio Kalico completo sul CM5 esegue ora lo stack Box con `observation_mode: false`. Verificati sulla K2 Pro reale:
+
+- enumeration CFS e stato normalizzato con `driver_ready=true` / `data_ready=true`;
+- percorso di compatibilità `BOX_STATE` K2 Pro a 4 byte e stato load-path nel servizio attivo;
+- temperatura e umidità del CFS;
+- inventario filamenti persistente e import del database materiali Creality/K2-RFID;
+- letture RFID per slot e rilettura RFID forzata per singolo slot;
+- percentuale residua riportata dal CFS e stime residue indipendenti per bobina;
+- ordinamento dei gruppi runout per minore percentuale residua compatibile nota;
+- `BOX_PRINT_INFO` su file Orca realmente sliciati e auto-mapping backend contro l'inventario reale degli slot.
+
+Dettagli: [Validazione CFS](CFS_VALIDATION.md) e [Mappatura CFS delle stampe](CFS_PRINT_MAPPING.md).
+
 ### Plugin Cartographer / bridge sperimentale
 
 Il plugin K2/OpenHost Cartographer è stato installato come pacchetto editable e il relativo adapter Kalico viene caricato correttamente. Durante l'esperimento MUX/DEMUX sul T113:
@@ -125,11 +142,14 @@ Il fork Cartographer contiene anche supporto `register_as_probe: false` per il f
 - validare reset/reconnect automatico Cartographer su USB diretta;
 - validare probing/touch/scan Cartographer standalone sull'host esterno;
 - eventualmente validare mixed mode PRTouch + Cartographer dopo la stabilità standalone;
-- validare sensore filamento reale e loaded-path CFS nel servizio completo;
-- abilitare test CFS mutanti/load/unload solo dopo osservazione stabile;
+- validare sensore filamento reale e transizioni loaded-path durante load/unload supervisionati;
+- validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale inclusi purge matrix e temperature;
+- validare runout/recovery durante un job mappato e la stima residua RFID live su una stampa completa;
+- adottare il flusso pausa/ripresa Box upstream insieme al relativo `box.py`; fino ad allora le macro K2 Pro mantengono il percorso `_BOX_RESUME_CHECK` esistente (le macro K2 Plus importate sono state annullate il 3 ottobre 2026 perché chiamavano comandi assenti nel Box engine attuale);
+- implementare un power-loss recovery sicuro per K2 Pro; il `power_loss_recovery` upstream richiede `[z_align]`, presente solo sulla K2 Plus, ed è disattivato;
 - completare la prima validazione del print path completo: homing, heating, mesh/probing, estrusione e fine stampa;
 - proseguire con lo split UI e il futuro percorso display sul T113.
 
 ## Non ancora production-ready
 
-Il milestone attuale dimostra molto più della sola fattibilità del transport: movimento reale, homing completo PRTouch, heater, emergency shutdown e analisi risonanza funzionano da host esterno. Il progetto resta pre-production fino alla validazione Cartographer direct USB e di un ciclo di stampa completo.
+Il milestone attuale dimostra molto più della sola fattibilità del transport: movimento reale, homing completo PRTouch, heater, emergency shutdown e analisi risonanza funzionano da host esterno. Il progetto resta pre-production fino alla validazione di Cartographer direct USB, della stampa CFS mappata e di un ciclo di stampa completo.

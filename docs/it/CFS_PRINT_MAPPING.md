@@ -168,7 +168,7 @@ observation_mode: True
 
 `BOX_PRINT_INFO` rimane utilizzabile perché legge soltanto il G-code. `BOX_PRINT_START` rifiuta intenzionalmente l'esecuzione perché richiederebbe operazioni CFS mutanti.
 
-Questo è il primo test consigliato sulla K2 Pro reale.
+Questo è stato il primo passo di validazione sulla K2 Pro reale e resta la configurazione di ripiego sicura. La validazione hardware è poi passata alla modalità Box operativa (`observation_mode: false`), in cui `BOX_PRINT_INFO` e auto-mapping risultano verificati (vedi sotto).
 
 ## Stato validazione
 

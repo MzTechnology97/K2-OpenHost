@@ -41,6 +41,7 @@ K2-OpenHost è un progetto di integrazione e validazione hardware. Mantiene volu
 - `MzTechnology97/cartographer3d-plugin-k2openhost` — fork integrazione Cartographer K2/OpenHost;
 - `MzTechnology97/k2-improvements` — fork di riferimento nella linea upstream k2-improvements;
 - `MzTechnology97/mainsail-k2openhost` — fork Mainsail riservato ai lavori UI OpenHost mantenendo l'attribuzione upstream.
+- `MzTechnology97/k2-openhost-firmware-tools` — strumenti in sola lettura per inventario, confronto e probing live dei firmware periferici K2 da OpenHost.
 
 ## Regola di attribuzione risultati
 
