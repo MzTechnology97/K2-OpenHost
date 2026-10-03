@@ -51,6 +51,10 @@ I principali elementi hardware ancora da chiudere sono Cartographer sulla topolo
 
 Durante l'esperimento Cartographer MUX è stata scoperta una condizione di doppio bridge/process contention su GS2. Tornando a una singola istanza bridge diretta RS-485, la comunicazione motor-control è tornata normale. La topologia finale mantiene quindi GS2 dedicato a RS-485/CFS.
 
+### Allineamento Z sul sensore di fondo corsa (`[z_align]`)
+
+Verificato il 3 ottobre 2026: il `G28` integrato porta il piatto sul fotoelettrico di fondo corsa della K2 Pro (`PA15`), risale di 255 mm ed esegue l'homing Z con PRTouch. Tre cicli consecutivi `G28` / `M84` si sono allineati tutti al primo tentativo MCU (delta 0 step). Sono stati necessari le unità di step MCU originali Creality (rapporto di riduzione ignorato), i 16 microstep Z originali (a 64 la routine gestita dal MCU perdeva passi e falliva con errori fotoelettrici) e una discesa più lenta (`quick_speed`/`slow_speed` 6, circa 1,9 mm/s).
+
 ### Homing completo con PRTouch
 
 È stato eseguito con successo un homing completo con **PRTouch** originale attivo e Cartographer disabilitato. Questo valida coordinate e homing macchina indipendentemente da Cartographer.
@@ -146,7 +150,7 @@ Il fork Cartographer contiene anche supporto `register_as_probe: false` per il f
 - validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale inclusi purge matrix e temperature;
 - validare runout/recovery durante un job mappato e la stima residua RFID live su una stampa completa;
 - adottare il flusso pausa/ripresa Box upstream insieme al relativo `box.py`; fino ad allora le macro K2 Pro mantengono il percorso `_BOX_RESUME_CHECK` esistente (le macro K2 Plus importate sono state annullate il 3 ottobre 2026 perché chiamavano comandi assenti nel Box engine attuale);
-- validare `[z_align]` sul sensore di fondo corsa della K2 Pro (`PA15`, come nella configurazione originale Creality) tramite `G28` integrato, poi `PLR_RECOVER` con un'interruzione di corrente supervisionata; sono attivi e coperti da test ma non ancora provati su hardware;
+- validare `PLR_RECOVER` con un'interruzione di corrente supervisionata (il power-loss recovery è attivo e ricava la Z tramite `[z_align]`, già verificato su hardware);
 - validare il cambio bobina automatico a fine filamento su hardware (il bug del profilo sorgente trovato il 3 ottobre 2026 è corretto e coperto da test);
 - completare la prima validazione del print path completo: homing, heating, mesh/probing, estrusione e fine stampa;
 - proseguire con lo split UI e il futuro percorso display sul T113.

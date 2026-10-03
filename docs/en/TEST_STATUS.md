@@ -51,6 +51,10 @@ The remaining major hardware integration items are Cartographer on the preferred
 
 A duplicate GS2 bridge/process-contention condition was discovered during the experimental Cartographer MUX work. After returning GS2 to a single direct RS-485 bridge, motor-control communication returned to normal. The final architecture therefore keeps GS2 dedicated to RS-485/CFS.
 
+### Bottom-switch Z alignment (`[z_align]`)
+
+Verified on 2026-10-03: integrated `G28` drops the bed onto the K2 Pro bottom photoelectric switch (`PA15`), rises 255 mm and homes Z with PRTouch. Three consecutive `G28` / `M84` cycles each aligned on the first MCU attempt (delta 0 steps). This required stock Creality MCU step units (gear ratio ignored), the stock 16 Z microsteps (at 64 the MCU-driven routine lost steps and failed with photoelectric errors) and a slower drop (`quick_speed`/`slow_speed` 6, about 1.9 mm/s).
+
 ### Complete homing with PRTouch
 
 A complete homing cycle has been executed successfully with the original **PRTouch** path active and Cartographer disabled. This validates the machine coordinate/homing baseline independently of Cartographer.
@@ -146,7 +150,7 @@ The Cartographer fork also contains `register_as_probe: false` support for a fut
 - validate a controlled single-tool `BOX_PRINT_START`, then a mapped multimaterial tool change including purge matrix and temperatures;
 - validate runout/recovery during a mapped job and the live RFID remaining estimate over a complete print;
 - adopt the upstream Box pause/resume flow together with its matching `box.py`; until then the K2 Pro macros keep the existing `_BOX_RESUME_CHECK` path (the imported K2 Plus macros were reverted on 2026-10-03 because they called commands missing from the current Box engine);
-- validate `[z_align]` on the K2 Pro bottom switch (`PA15`, as in the Creality stock config) through integrated `G28`, then `PLR_RECOVER` with a supervised power cut; both are enabled and unit-tested but not yet exercised on hardware;
+- validate `PLR_RECOVER` with a supervised power cut (power-loss recovery is enabled and re-references Z through the hardware-validated `[z_align]`);
 - validate automatic runout swap on hardware (the source-profile bug found on 2026-10-03 is fixed and covered by tests);
 - complete first full print-path validation from homing through heating, mesh/probing, extrusion and print completion;
 - continue UI split work, including the eventual T113 screen path.
