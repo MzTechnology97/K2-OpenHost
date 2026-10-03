@@ -142,6 +142,8 @@ Il fork Cartographer contiene anche supporto `register_as_probe: false` per il f
 
 ## Da fare
 
+Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test hardware](HARDWARE_TEST_PLAN.md).
+
 - collegare Cartographer direttamente alla USB host del CM5 e validare il path persistente `/dev/serial/by-id/...`;
 - validare reset/reconnect automatico Cartographer su USB diretta;
 - validare probing/touch/scan Cartographer standalone sull'host esterno;
@@ -149,7 +151,7 @@ Il fork Cartographer contiene anche supporto `register_as_probe: false` per il f
 - validare sensore filamento reale e transizioni loaded-path durante load/unload supervisionati;
 - validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale inclusi purge matrix e temperature;
 - validare runout/recovery durante un job mappato e la stima residua RFID live su una stampa completa;
-- adottare il flusso pausa/ripresa Box upstream insieme al relativo `box.py`; fino ad allora le macro K2 Pro mantengono il percorso `_BOX_RESUME_CHECK` esistente (le macro K2 Plus importate sono state annullate il 3 ottobre 2026 perché chiamavano comandi assenti nel Box engine attuale);
+- validare su hardware l'integrazione dell'aggiornamento upstream 071c813 (associazione utensili nativa, nuovo flusso di pausa `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT`, aggiornamento della mappa al cambio bobina) sul ramo `cfs-upstream-071c813` di `kalico-k2pro`, poi unirlo; i test passano e Klipper parte senza errori sul CM5 con questo ramo (3 ottobre 2026);
 - validare `PLR_RECOVER` con un'interruzione di corrente supervisionata (il power-loss recovery è attivo e ricava la Z tramite `[z_align]`, già verificato su hardware);
 - validare il cambio bobina automatico a fine filamento su hardware (il bug del profilo sorgente trovato il 3 ottobre 2026 è corretto e coperto da test);
 - completare la prima validazione del print path completo: homing, heating, mesh/probing, estrusione e fine stampa;
