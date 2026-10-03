@@ -50,7 +50,14 @@ Do not run the old Cartographer MUX on GS2 at the same time.
 
 ## Role-switch caveat
 
-USB0 is dual-role. In stock operation it participates in the internal USB-host topology, including the chamber-camera path. Switching USB0 into device/gadget mode therefore changes the stock USB topology and can disconnect the camera. Runtime tests are designed to be reboot-reversible.
+USB0 is dual-role. In stock operation it participates in the internal USB-host topology, including the chamber-camera path. Switching USB0 into device/gadget mode therefore changes the stock USB topology. Runtime tests are designed to be reboot-reversible.
+
+Consequences while the gadget is active, expected in the final architecture as well:
+
+- the **nozzle camera** and the **chamber camera** are no longer available to the T113; rewire them to the external Linux host;
+- the printer's **external USB port** stops working completely and cannot be used to print from a USB stick.
+
+See [Disclaimer and hardware limitations](DISCLAIMER.md#hardware-limitations-in-openhost-mode).
 
 Unbinding/rebinding the gadget recreates the `ttyGS*` endpoints. Any bridge processes holding those devices must be restarted after a rebind.
 

@@ -126,3 +126,5 @@ The project moves from least invasive to more invasive tests:
 7. persistent deployment and unattended printing only after the complete print path is proven.
 
 No Main/Nozzle MCU reflashing has been required for the validated OpenHost transport.
+
+Using OpenHost voids the manufacturer's warranty and carries risks of irreparable damage, firmware brick and fire; it is intended for experienced users only. The cameras and the external USB port also change role. See [Disclaimer and hardware limitations](DISCLAIMER.md).

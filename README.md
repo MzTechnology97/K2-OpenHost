@@ -2,6 +2,11 @@
 
 > **Experimental / Work in Progress — Sperimentale / Lavori in corso**
 
+> [!WARNING]
+> **For experienced users only. Use at your own risk.** K2-OpenHost voids the manufacturer's warranty and can damage the printer beyond repair, brick its firmware or, in case of malfunction, cause a fire. The authors accept no liability for damage to property or persons. Read the [disclaimer and hardware limitations](docs/en/DISCLAIMER.md) before using any of these tools.
+>
+> **Solo per utenti esperti. Uso a proprio rischio.** K2-OpenHost invalida la garanzia del produttore e può danneggiare la stampante in modo irreparabile, mandare il firmware in brick o, in caso di malfunzionamento, causare un incendio. Gli autori non sono responsabili di danni a cose o a persone. Leggi l'[esclusione di responsabilità e i limiti hardware](docs/it/DISCLAIMER.md) prima di usare questi strumenti.
+
 K2-OpenHost is a hardware-validation and integration project for running the main **Kalico/Klipper + Moonraker** workload of a **Creality K2 Pro** on an external Linux host while keeping the original printer electronics and using the Allwinner T113 as the display/peripheral bridge.
 
 K2-OpenHost è un progetto di validazione hardware e integrazione per eseguire il carico principale **Kalico/Klipper + Moonraker** di una **Creality K2 Pro** su un host Linux esterno, mantenendo l'elettronica originale e usando il sistema Allwinner T113 come bridge per display e periferiche.
@@ -89,10 +94,25 @@ Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in mod
 
 The OpenHost stack has moved beyond passive transport validation: real homing, heaters, emergency shutdown and resonance testing now work on the external Kalico host. It is still **pre-production** because mapped CFS printing, Cartographer direct-USB validation and a complete print workflow are not yet validated end to end.
 
+## Hardware limitations / Limiti hardware
+
+With the T113 service USB port in gadget mode (required by OpenHost):
+
+- the **nozzle camera** and the **chamber camera** cannot be managed by the T113: rewire their original cable path and connect them **directly to the external Linux host**;
+- the printer's **external USB port** cannot be used to print from a USB stick and **stops working completely** in gadget mode; send files through Mainsail/Moonraker instead.
+
+Con la porta USB di servizio del T113 in modalità gadget (necessaria per OpenHost):
+
+- la **fotocamera dell'ugello** e la **fotocamera della camera** non possono essere gestite dal T113: occorre ricablare il percorso originale e collegarle **direttamente all'host Linux esterno**;
+- la **porta USB esterna** della stampante non può essere usata per stampare da chiavetta e in modalità gadget **smette completamente di funzionare**; i file si inviano da Mainsail/Moonraker.
+
+Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-mode) · [IT](docs/it/DISCLAIMER.md#limiti-hardware-in-modalità-openhost).
+
 ## Documentation / Documentazione
 
 ### English
 
+- [Disclaimer and hardware limitations](docs/en/DISCLAIMER.md)
 - [Architecture](docs/en/ARCHITECTURE.md)
 - [USB gadget transport](docs/en/USB_GADGET.md)
 - [Test status](docs/en/TEST_STATUS.md)
@@ -105,6 +125,7 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 
 ### Italiano
 
+- [Esclusione di responsabilità e limiti hardware](docs/it/DISCLAIMER.md)
 - [Architettura](docs/it/ARCHITECTURE.md)
 - [Trasporto USB gadget](docs/it/USB_GADGET.md)
 - [Stato test](docs/it/TEST_STATUS.md)
@@ -117,9 +138,9 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 
 ## Safety / Sicurezza
 
-All hardware experiments documented as runtime tests are intended to be reversible by reboot unless explicitly stated otherwise. Do not perform USB role switching or MCU bridge tests while printing. Keep a known-good stock boot slot/backup before persistent changes.
+All hardware experiments documented as runtime tests are intended to be reversible by reboot unless explicitly stated otherwise. Do not perform USB role switching or MCU bridge tests while printing. Keep a known-good stock boot slot/backup before persistent changes. Never leave the printer unattended while it is controlled by the external host. See the [disclaimer](docs/en/DISCLAIMER.md).
 
-Tutti gli esperimenti hardware descritti come test runtime sono pensati per essere reversibili con un riavvio, salvo indicazione esplicita. Non effettuare commutazioni USB o bridge MCU durante una stampa e mantenere sempre uno slot/backup stock funzionante.
+Tutti gli esperimenti hardware descritti come test runtime sono pensati per essere reversibili con un riavvio, salvo indicazione esplicita. Non effettuare commutazioni USB o bridge MCU durante una stampa e mantenere sempre uno slot/backup stock funzionante. Non lasciare mai la stampante senza sorveglianza mentre è comandata dall'host esterno. Vedi l'[esclusione di responsabilità](docs/it/DISCLAIMER.md).
 
 ## Credits / Crediti
 
