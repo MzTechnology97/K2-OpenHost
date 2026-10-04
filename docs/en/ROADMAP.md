@@ -29,7 +29,7 @@ Updated: **2026-10-02**.
 - validate `BOX_PRINT_INFO` and backend auto-mapping against the real slot inventory;
 - version the deltas in `k2-pro-custom-firmware:k2-openhost`;
 - assemble `kalico-k2pro:k2-pro-openhost` with the K2 Pro baseline and K2 extras;
-- create `cartographer3d-plugin-k2openhost` with K2/Kalico compatibility, editable install, direct-USB guidance and `register_as_probe` support;
+- ~~create `cartographer3d-plugin-k2openhost`~~ superseded: the official Cartographer plugin now covers K2/Kalico and `register_as_probe` (fork retired 2026-10-04); direct-USB guidance moved to [CARTOGRAPHER.md](CARTOGRAPHER.md);
 - prove Cartographer MCU traffic through an experimental T113 MUX/DEMUX path, then retire that path in favour of direct USB after reset/re-enumeration complexity was observed.
 
 ## Phase 1 — direct Cartographer USB on the CM5

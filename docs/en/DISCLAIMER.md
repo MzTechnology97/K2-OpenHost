@@ -4,7 +4,7 @@ Updated: **2026-10-03**. [Italiano](../it/DISCLAIMER.md)
 
 ## Disclaimer
 
-K2-OpenHost and every repository published with it (kalico-k2pro, k2-pro-custom-firmware, mainsail-k2openhost, cartographer3d-plugin-k2openhost, k2-openhost-installer-helper, k2-openhost-firmware-tools and the related forks) are **experimental** tools shared with the community **for experienced users only**.
+K2-OpenHost and every repository published with it (kalico-k2pro, k2-pro-custom-firmware, mainsail-k2openhost, k2-openhost-installer-helper, k2-openhost-firmware-tools and the related forks) are **experimental** tools shared with the community **for experienced users only**.
 
 By using them you accept that:
 

@@ -15,7 +15,7 @@ K2-OpenHost is an integration and hardware-validation project. It intentionally 
 - **Jacob10383/k2-improvements** — Jacob's fork and K2 work used by the project as a public reference.
 - **Jacob10383/k2-plus-custom-firmware** — source of the Jacobean K2 custom-firmware extras used as the implementation baseline for CFS, motor control and other K2 features. Its current Box implementation is also the source/reference for logical-tool CFS print mapping and Orca G-code metadata parsing.
 - **Jacob10383/fluidd** — Jacob's Fluidd fork and Filament Box workflow, used as the behavioral/UI reference for CFS slot presentation and the pre-print filament-mapping flow.
-- **Jacob10383/cartographer3d-plugin** — K2-oriented Cartographer port and K2-specific adapter/reconnect/touch work used as the direct base for the K2-OpenHost Cartographer fork.
+- **Cartographer3D/cartographer3d-plugin** — the official Cartographer plugin used by K2-OpenHost. Jacob10383's earlier K2 port (adapter/reconnect/touch work) has been merged upstream; his firmware also uses the official plugin.
 - **luketot/kalico-for-K2-Pro** — public K2 Pro `.cfg` adaptation used as a baseline reference for geometry/pin/config differences. Later machine values are validated against the real K2 Pro used by the project.
 
 ## CFS / protocol references
@@ -38,7 +38,7 @@ K2-OpenHost is an integration and hardware-validation project. It intentionally 
 - `MzTechnology97/K2-OpenHost` — canonical documentation and validation.
 - `MzTechnology97/k2-pro-custom-firmware` — forked Jacobean extras and K2 Pro/OpenHost patch history.
 - `MzTechnology97/kalico-k2pro` — Kalico fork integrating the K2 Pro runtime and validated extras.
-- `MzTechnology97/cartographer3d-plugin-k2openhost` — Cartographer K2/OpenHost integration fork.
+- `MzTechnology97/cartographer3d-plugin-k2openhost` — former Cartographer fork, retired on 2026-10-04 in favour of the official plugin.
 - `MzTechnology97/k2-improvements` — preserved/reference fork in the upstream K2-improvements lineage.
 - `MzTechnology97/mainsail-k2openhost` — Mainsail fork reserved for K2-OpenHost UI work while retaining upstream authorship.
 - `MzTechnology97/k2-openhost-firmware-tools` — read-only peripheral firmware inventory, comparison and live probing tools for K2-OpenHost.

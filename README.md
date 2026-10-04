@@ -18,7 +18,7 @@ The project is deliberately split into several repositories so upstream authorsh
 - **[MzTechnology97/K2-OpenHost](https://github.com/MzTechnology97/K2-OpenHost)** — canonical architecture, test results, validation notes and roadmap.
 - **[MzTechnology97/kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro)** — fork of **Jacob10383/kalico**, itself based on the Kalico project. The active integration branch is `k2-pro-openhost`.
 - **[MzTechnology97/k2-pro-custom-firmware](https://github.com/MzTechnology97/k2-pro-custom-firmware)** — fork of **Jacob10383/k2-plus-custom-firmware**. The `k2-openhost` branch remains the versioned source/history for Jacobean K2 extras plus the K2 Pro/OpenHost compatibility patches validated on hardware.
-- **[MzTechnology97/cartographer3d-plugin-k2openhost](https://github.com/MzTechnology97/cartographer3d-plugin-k2openhost)** — Cartographer3D K2/OpenHost integration fork, based on the upstream Cartographer plugin and Jacob10383's K2 port.
+- **[Cartographer3D/cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin)** — the official Cartographer plugin, used unchanged (it supports Kalico and the K2 directly, as in Jacob10383's firmware). The former `cartographer3d-plugin-k2openhost` fork was retired on 2026-10-04. See [Cartographer](docs/en/CARTOGRAPHER.md) / [IT](docs/it/CARTOGRAPHER.md).
 - **[MzTechnology97/k2-improvements](https://github.com/MzTechnology97/k2-improvements)** — attributed reference fork in the `jamincollins -> Jacob10383` lineage.
 - **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork retained for the OpenHost UI track; upstream Mainsail authorship remains unchanged.
 - **[MzTechnology97/k2-openhost-firmware-tools](https://github.com/MzTechnology97/k2-openhost-firmware-tools)** — read-only tooling to inventory, compare and probe K2 peripheral (MCU, motor, CFS) firmware from the OpenHost host; controlled flashing is a later phase.
@@ -74,7 +74,7 @@ As of **2026-10-02**:
 - A per-slot forced RFID reread path is available for marginal/self-programmed tags; startup no longer blocks on a slow invalid RFID cache entry.
 - Runout groups and auto-mapping can prefer the lowest known remaining compatible spool while preserving manual/current source selection.
 - Cartographer3D plugin import, Kalico adapter selection and live sensor streaming were demonstrated through the experimental bridge path. Final Cartographer validation is now being moved to **direct USB on the CM5**.
-- `register_as_probe` support has been updated in the Cartographer fork so standalone Cartographer mode and a future PRTouch + Cartographer mixed mode can be maintained separately.
+- The official Cartographer plugin provides `register_as_probe`, so standalone Cartographer mode and a future PRTouch + Cartographer mixed mode can be maintained separately.
 
 ## Newly implemented, pending hardware validation / Nuovo sviluppo da validare
 
@@ -113,6 +113,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 ### English
 
 - [Disclaimer and hardware limitations](docs/en/DISCLAIMER.md)
+- [Cartographer3D](docs/en/CARTOGRAPHER.md)
 - [Architecture](docs/en/ARCHITECTURE.md)
 - [USB gadget transport](docs/en/USB_GADGET.md)
 - [Test status](docs/en/TEST_STATUS.md)
@@ -126,6 +127,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 ### Italiano
 
 - [Esclusione di responsabilità e limiti hardware](docs/it/DISCLAIMER.md)
+- [Cartographer3D](docs/it/CARTOGRAPHER.md)
 - [Architettura](docs/it/ARCHITECTURE.md)
 - [Trasporto USB gadget](docs/it/USB_GADGET.md)
 - [Stato test](docs/it/TEST_STATUS.md)

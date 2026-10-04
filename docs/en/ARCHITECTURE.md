@@ -57,9 +57,9 @@ Canonical architecture, hardware observations, validation results and roadmap.
 
 Fork of `Jacob10383/k2-plus-custom-firmware`. The `k2-openhost` branch remains the versioned source/history for Jacobean K2 extras and K2 Pro/OpenHost compatibility changes.
 
-### cartographer3d-plugin-k2openhost
+### Cartographer3D plugin (official)
 
-Fork derived from the Cartographer3D plugin and Jacob10383's K2 port. It keeps the K2-specific adapter/reconnect work while adding OpenHost/Kalico compatibility, editable installation, Moonraker update-manager documentation and current `register_as_probe` behaviour.
+The official [cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin) is used unchanged: it detects Kalico, handles non-critical MCU reconnection and provides `register_as_probe`. The former `cartographer3d-plugin-k2openhost` fork was retired on 2026-10-04. See [Cartographer3D](CARTOGRAPHER.md).
 
 ## Verified transport
 
@@ -102,7 +102,7 @@ Observation mode was the first, read-only validation layer. The full Kalico serv
 
 ## Cartographer modes
 
-The Cartographer fork supports two integration roles:
+The official Cartographer plugin supports two integration roles:
 
 - `register_as_probe: true` — Cartographer owns the canonical `probe` object and `probe:z_virtual_endstop`;
 - `register_as_probe: false` — intended mixed mode where PRTouch remains the primary Z-reference probe and Cartographer stays available for scanning/mesh functions under its separate endstop namespace.
