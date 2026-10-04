@@ -14,7 +14,13 @@ K2-OpenHost works with the **official OrcaSlicer**: no modified build is needed.
 3. **Host type:** `Moonraker (Klipper)`. **Hostname, IP or URL:** the external host, for example `k2host.local` or `192.168.1.50`.
 4. Test the connection and save.
 
-If the sync does not respond with OrcaSlicer 2.4.2, enter Moonraker's API key in the connection settings: that release had a bug with Moonraker trusted clients ([OrcaSlicer #13236](https://github.com/OrcaSlicer/OrcaSlicer/issues/13236)).
+**OrcaSlicer 2.4.2: Sync cannot connect.** That release always sends a fixed access key, even with the field empty ([OrcaSlicer #13236](https://github.com/OrcaSlicer/OrcaSlicer/issues/13236)). Moonraker accepts a trusted LAN client without a key, but rejects a wrong one, so `moonraker.log` shows:
+
+```text
+401 GET /server/database/item?namespace=lane_data (<your PC>): Invalid API Key
+```
+
+Fix: open `http://<host>:7125/access/api_key` in a browser on the PC, copy the key from `"result"` (keep it private), paste it into the **API Key / Password** field of the OrcaSlicer connection, save and press Sync again.
 
 ## Sync the filaments
 
