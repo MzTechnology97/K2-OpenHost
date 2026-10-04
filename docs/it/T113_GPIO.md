@@ -1,6 +1,6 @@
 # GPIO di servizio T113 della K2 Pro
 
-Stato: **mappa stock verificata staticamente; controllo remoto CM5 non ancora implementato**.
+Stato: **mappa stock verificata staticamente; alimentazione delle MCU e buzzer comandati dal CM5 tramite `k2oh-ctl`, provati dal vivo il 4 ottobre 2026**.
 
 Questi segnali appartengono all'Allwinner T113 originale della K2 Pro. I numeri `140/162/164/165/209/210` sono la numerazione GPIO Linux del T113 e **non** corrispondono ai GPIO del Raspberry Pi CM5.
 
@@ -134,11 +134,25 @@ Per il firmware updater, `mcu-power cycle` è il controllo di maggiore interesse
 
 Il helper è stato verificato con `sh -n`, dry-run e sysfs finto sul CM5. **Non è stato ancora installato o eseguito sul T113 reale.** Il timing di un eventuale impulso automatico `USB_HUB_RST` non viene inventato: sono esposti solo `assert` `release`, che corrispondono direttamente ai livelli stock verificati.
 
+## Control plane: k2oh-ctl
+
+Il control plane è `k2oh-ctl`, un piccolo servizio HTTP del [bootstrap del T113](T113_BOOTSTRAP.md) (slot B). Passa dalla rete locale, non dal gadget USB, quindi i tre flussi MCU restano intatti. Risponde solo all'indirizzo dell'host esterno, e solo con un token condiviso.
+
+| Segnale | Esposto come | Note |
+| --- | --- | --- |
+| GPIO140 `MCU_PWR_EN` | stato/accensione/spegnimento (dispositivo Moonraker `K2_MCU_Power`), ciclo di alimentazione (`T113_MCU_POWER_CYCLE`), arresto di emergenza | spegnimento e ciclo richiedono uno stato di stampa inattivo noto dal Moonraker dell'host; il ciclo ferma i bridge, tiene la linea spenta 2 s come `mcu_reset.sh` e finisce sempre con la linea accesa |
+| GPIO164 buzzer | `T113_BEEP`, `M300`, bip dell'RFID esterno | fino a 3 s e 5 bip |
+| GPIO162, 165, 209, 210 | non esposti | le telecamere sono ricollegate all'host; alimentazione USB e reset dell'hub non servono a K2-OpenHost |
+
+Vengono scritti solo i valori; le direzioni dei pin impostate all'avvio non vengono mai cambiate. Il lato host è `[k2_t113]` in kalico-k2pro, e l'installer helper collega le due parti (`./helper.sh t113 link`).
+
+Lo script locale `tools/t113-gpio-control.sh` resta uno strumento manuale per lo slot A. Il servizio del bootstrap è la via supportata.
+
 ## Stato attuale
 
 - mappa GPIO stock: **verificata**;
-- buzzer GPIO164: **verificato**;
+- buzzer GPIO164: **verificato**, comandato dal vivo tramite `k2oh-ctl` (4 ottobre 2026);
+- ciclo di alimentazione e arresto di emergenza su GPIO140 tramite `k2oh-ctl`: **provati dal vivo** con la stampante inattiva. Dopo `FIRMWARE_RESTART`, pronto in 9 s, CFS in 16 s, motori in 21 s;
 - polarità: **verificate dagli script stock**;
-- accesso diretto CM5 ai net: **non presente / non provato**;
-- control plane CM5 -> T113: **da implementare**;
-- nessun GPIO è stato commutato durante questa analisi.
+- accesso diretto CM5 ai net: **non presente / non provato**, quindi il control plane è necessario;
+- cosa succede se si perde un collegamento seriale attraverso il T113: vedi [Perdita del collegamento seriale](SERIAL_LINK_LOSS.md).
