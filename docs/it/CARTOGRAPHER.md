@@ -4,7 +4,7 @@ Aggiornato: **4 ottobre 2026**. [English](../en/CARTOGRAPHER.md)
 
 K2-OpenHost usa il [plugin Cartographer3D](https://github.com/Cartographer3D/cartographer3d-plugin) **ufficiale**, lo stesso del firmware K2 di Jacob10383. Il plugin ufficiale supporta direttamente Kalico e la K2: riconoscimento dell'ambiente Kalico e relativi adattatori, riconnessione dell'MCU "non critical", ultima API di homing di Kalico e `register_as_probe`.
 
-Il vecchio fork `cartographer3d-plugin-k2openhost` (base ufficiale di marzo 2026 più il precedente port K2 di Jacob, pensato per k2-improvements) è stato dismesso il 4 ottobre 2026.
+Il vecchio fork `cartographer3d-plugin-k2openhost` (base ufficiale di marzo 2026 più il precedente port K2 di Jacob, pensato per k2-improvements) è stato dismesso e archiviato (sola lettura) il 4 ottobre 2026.
 
 > Cartographer in USB diretta **non è ancora validato su hardware** con K2-OpenHost (test T5 del [piano dei test hardware](HARDWARE_TEST_PLAN.md)). La sonda validata è il **PRTouch** originale. Leggi prima l'[esclusione di responsabilità](DISCLAIMER.md).
 

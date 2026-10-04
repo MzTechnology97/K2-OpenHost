@@ -29,7 +29,7 @@ Aggiornata al **2 ottobre 2026**.
 - `BOX_PRINT_INFO` e auto-mapping backend contro l'inventario reale degli slot;
 - patch versionate in `k2-pro-custom-firmware:k2-openhost` (archiviato il 4 ottobre 2026; gli extra ora stanno solo in `kalico-k2pro`);
 - assemblaggio `kalico-k2pro:k2-pro-openhost` con baseline K2 Pro ed extra K2;
-- ~~creazione `cartographer3d-plugin-k2openhost`~~ superato: il plugin Cartographer ufficiale copre K2/Kalico e `register_as_probe` (fork dismesso il 4 ottobre 2026); la guida USB diretta è in [CARTOGRAPHER.md](CARTOGRAPHER.md);
+- ~~creazione `cartographer3d-plugin-k2openhost`~~ superato: il plugin Cartographer ufficiale copre K2/Kalico e `register_as_probe` (fork archiviato il 4 ottobre 2026); la guida USB diretta è in [CARTOGRAPHER.md](CARTOGRAPHER.md);
 - trasporto reale di dati MCU Cartographer attraverso un MUX/DEMUX T113 sperimentale, poi abbandonato come percorso finale a favore della USB diretta per la complessità di reset/re-enumeration.
 - mappa GPIO di servizio T113 stock recuperata: MCU power, nozzle camera, buzzer, USB hub reset e UDISK power; polarità verificate dagli script Creality;
 

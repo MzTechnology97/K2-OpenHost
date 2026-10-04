@@ -39,7 +39,7 @@ K2-OpenHost è un progetto di integrazione e validazione hardware. Mantiene volu
 - `MzTechnology97/k2-pro-custom-firmware` — fork extra Jacobean e history patch K2 Pro/OpenHost (archiviato il 4 ottobre 2026);
 - `MzTechnology97/k2-openhost-t113-bootstrap` — bootstrap dello slot B del T113;
 - `MzTechnology97/kalico-k2pro` — fork Kalico con runtime K2 Pro ed extra validati;
-- `MzTechnology97/cartographer3d-plugin-k2openhost` — vecchio fork Cartographer, dismesso il 4 ottobre 2026 a favore del plugin ufficiale;
+- `MzTechnology97/cartographer3d-plugin-k2openhost` — vecchio fork Cartographer, archiviato il 4 ottobre 2026 a favore del plugin ufficiale;
 - `MzTechnology97/k2-improvements` — fork di riferimento nella linea upstream k2-improvements;
 - `MzTechnology97/mainsail-k2openhost` — fork Mainsail riservato ai lavori UI OpenHost mantenendo l'attribuzione upstream.
 - `MzTechnology97/k2-openhost-firmware-tools` — strumenti in sola lettura per inventario, confronto e probing live dei firmware periferici K2 da OpenHost.
