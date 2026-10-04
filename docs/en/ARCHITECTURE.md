@@ -55,7 +55,11 @@ Canonical architecture, hardware observations, validation results and roadmap.
 
 ### k2-pro-custom-firmware
 
-Fork of `Jacob10383/k2-plus-custom-firmware`. The `k2-openhost` branch remains the versioned source/history for Jacobean K2 extras and K2 Pro/OpenHost compatibility changes.
+Fork of `Jacob10383/k2-plus-custom-firmware`, **archived on 2026-10-04**. Its `k2-openhost` branch keeps the history of the first K2 Pro/OpenHost changes to Jacobean's K2 extras. The extras are now maintained only in `kalico-k2pro` (no mirror). Upstream changes are reviewed directly against `Jacob10383/k2-plus-custom-firmware` and `Jacob10383/kalico`.
+
+### k2-openhost-t113-bootstrap
+
+The printer side: a K2-OpenHost system for the T113's slot B (USB gadget bridges, HelixScreen, Creality MCU/motor/CFS firmware updates), installed from the installer helper. See [T113 bootstrap](T113_BOOTSTRAP.md).
 
 ### Cartographer3D plugin (official)
 

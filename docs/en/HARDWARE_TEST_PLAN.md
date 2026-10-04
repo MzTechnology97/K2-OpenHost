@@ -211,4 +211,4 @@ A separate, step-by-step guided session: connection to the CM5, check of `/dev/s
 
 The integration is already merged (2026-10-03). After the tests:
 1. Update [TEST_STATUS](TEST_STATUS.md) with the results.
-2. Fix any failure on `k2-pro-openhost`, mirroring CFS extras into `k2-pro-custom-firmware:k2-openhost` first.
+2. Fix any failure on `k2-pro-openhost` (the K2 extras are maintained only there).

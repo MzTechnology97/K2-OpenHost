@@ -134,7 +134,7 @@ The official Cartographer plugin provides `register_as_probe: false` for a futur
 
 ## Repository integration verified
 
-`MzTechnology97/k2-pro-custom-firmware:k2-openhost` contains the versioned K2/Jacobean extra history and OpenHost patches.
+`MzTechnology97/k2-pro-custom-firmware:k2-openhost` contains the early versioned K2/Jacobean extra history and OpenHost patches. It was archived on 2026-10-04; the extras are maintained in `kalico-k2pro:k2-pro-openhost`.
 
 `MzTechnology97/kalico-k2pro:k2-pro-openhost` contains the integrated external-host Kalico tree, including K2-specific motor-control work and tracked loader modules.
 

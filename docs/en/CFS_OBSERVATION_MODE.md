@@ -62,7 +62,7 @@ The standalone test harness does not instantiate a real filament-switch object, 
 
 The validated implementation is versioned in:
 
-- `MzTechnology97/k2-pro-custom-firmware`, branch `k2-openhost`;
-- synchronized into `MzTechnology97/kalico-k2pro`, branch `k2-pro-openhost`.
+- `MzTechnology97/kalico-k2pro`, branch `k2-pro-openhost` (the only maintained copy);
+- first versioned in `MzTechnology97/k2-pro-custom-firmware`, branch `k2-openhost`, now archived.
 
 The original implementation lineage remains credited to Jacob10383/Jacobean; K2-OpenHost changes are limited to the K2 Pro compatibility and observation-safety deltas documented here.
