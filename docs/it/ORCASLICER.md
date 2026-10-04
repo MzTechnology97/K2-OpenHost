@@ -14,7 +14,13 @@ K2-OpenHost funziona con **OrcaSlicer ufficiale**: non serve una versione modifi
 3. **Tipo di host:** `Moonraker (Klipper)`. **Nome host, IP o URL:** l'host esterno, per esempio `k2host.local` o `192.168.1.50`.
 4. Prova la connessione e salva.
 
-Se la sincronizzazione non risponde con OrcaSlicer 2.4.2, inserisci la chiave API di Moonraker nelle impostazioni di connessione: quella versione aveva un bug con i client fidati di Moonraker ([OrcaSlicer #13236](https://github.com/OrcaSlicer/OrcaSlicer/issues/13236)).
+**OrcaSlicer 2.4.2: la sincronizzazione non si collega.** Quella versione invia sempre una chiave di accesso fissa, anche con il campo vuoto ([OrcaSlicer #13236](https://github.com/OrcaSlicer/OrcaSlicer/issues/13236)). Moonraker accetta senza chiave un client fidato della rete locale, ma rifiuta una chiave sbagliata, quindi `moonraker.log` mostra:
+
+```text
+401 GET /server/database/item?namespace=lane_data (<il tuo PC>): Invalid API Key
+```
+
+Soluzione: apri `http://<host>:7125/access/api_key` nel browser del PC, copia la chiave da `"result"` (tienila riservata), incollala nel campo **API Key / Password** della connessione di OrcaSlicer, salva e premi di nuovo Sync.
 
 ## Sincronizzare i filamenti
 
