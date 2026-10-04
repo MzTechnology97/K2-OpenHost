@@ -60,7 +60,7 @@ reader_errors: 0
 
 ## Sorgenti versionate
 
-- `MzTechnology97/k2-pro-custom-firmware`, branch `k2-openhost`;
-- sincronizzate in `MzTechnology97/kalico-k2pro`, branch `k2-pro-openhost`.
+- `MzTechnology97/kalico-k2pro`, branch `k2-pro-openhost` (l'unica copia mantenuta);
+- versionate per la prima volta in `MzTechnology97/k2-pro-custom-firmware`, branch `k2-openhost`, ora archiviato.
 
 L'implementazione originaria rimane attribuita a Jacob10383/Jacobean; le modifiche K2-OpenHost sono limitate ai delta di compatibilità/sicurezza documentati qui.

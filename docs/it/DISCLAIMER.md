@@ -4,7 +4,7 @@ Aggiornato: **3 ottobre 2026**. [English](../en/DISCLAIMER.md)
 
 ## Esclusione di responsabilità
 
-K2-OpenHost e tutti i repository pubblicati con esso (kalico-k2pro, k2-pro-custom-firmware, mainsail-k2openhost, k2-openhost-installer-helper, k2-openhost-firmware-tools e i fork collegati) sono strumenti **sperimentali** condivisi con la comunità e pensati **solo per un pubblico esperto**.
+K2-OpenHost e tutti i repository pubblicati con esso (kalico-k2pro, k2-openhost-t113-bootstrap, mainsail-k2openhost, k2-openhost-installer-helper, k2-openhost-firmware-tools, l'archiviato k2-pro-custom-firmware e i fork collegati) sono strumenti **sperimentali** condivisi con la comunità e pensati **solo per un pubblico esperto**.
 
 Usandoli accetti che:
 

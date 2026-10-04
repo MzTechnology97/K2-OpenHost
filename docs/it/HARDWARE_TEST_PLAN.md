@@ -211,4 +211,4 @@ Sessione a parte, guidata passo passo: collegamento al CM5, controllo di `/dev/s
 
 L'integrazione è già unita (2026-10-03). Dopo le prove:
 1. Aggiornare [TEST_STATUS](TEST_STATUS.md) con i risultati.
-2. Correggere eventuali errori su `k2-pro-openhost`, replicando prima gli extras CFS in `k2-pro-custom-firmware:k2-openhost`.
+2. Correggere eventuali errori su `k2-pro-openhost` (gli extra K2 si mantengono solo lì).

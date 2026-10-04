@@ -27,7 +27,7 @@ Aggiornata al **2 ottobre 2026**.
 - stack Box in modalità operativa nel servizio Kalico completo, inclusi stato load-path, letture RFID per slot e rilettura forzata;
 - inventario filamenti persistente, risoluzione database materiali K2-RFID e tracciamento percentuale residua;
 - `BOX_PRINT_INFO` e auto-mapping backend contro l'inventario reale degli slot;
-- patch versionate in `k2-pro-custom-firmware:k2-openhost`;
+- patch versionate in `k2-pro-custom-firmware:k2-openhost` (archiviato il 4 ottobre 2026; gli extra ora stanno solo in `kalico-k2pro`);
 - assemblaggio `kalico-k2pro:k2-pro-openhost` con baseline K2 Pro ed extra K2;
 - ~~creazione `cartographer3d-plugin-k2openhost`~~ superato: il plugin Cartographer ufficiale copre K2/Kalico e `register_as_probe` (fork dismesso il 4 ottobre 2026); la guida USB diretta è in [CARTOGRAPHER.md](CARTOGRAPHER.md);
 - trasporto reale di dati MCU Cartographer attraverso un MUX/DEMUX T113 sperimentale, poi abbandonato come percorso finale a favore della USB diretta per la complessità di reset/re-enumeration.
