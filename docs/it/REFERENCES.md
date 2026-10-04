@@ -15,7 +15,7 @@ K2-OpenHost è un progetto di integrazione e validazione hardware. Mantiene volu
 - **Jacob10383/k2-improvements** — fork/lavoro K2 di Jacob usato come riferimento pubblico.
 - **Jacob10383/k2-plus-custom-firmware** — sorgente degli extra K2 Jacobean usati come baseline per CFS, motor control e altri componenti. L'implementazione Box corrente è anche il riferimento per la mappatura CFS tra tool logici e slot fisici e per il parsing dei metadata G-code Orca.
 - **Jacob10383/fluidd** — fork Fluidd di Jacob e workflow Filament Box, usati come riferimento comportamentale/UI per la presentazione degli slot CFS e la mappatura filamenti prima della stampa.
-- **Jacob10383/cartographer3d-plugin** — port Cartographer orientato K2 e lavoro specifico K2 su adapter/reconnect/touch usato come base diretta del fork Cartographer K2-OpenHost.
+- **Cartographer3D/cartographer3d-plugin** — il plugin Cartographer ufficiale usato da K2-OpenHost. Il precedente port K2 di Jacob10383 (adapter/reconnect/touch) è stato integrato a monte; anche il suo firmware usa il plugin ufficiale.
 - **luketot/kalico-for-K2-Pro** — adattamento pubblico dei `.cfg` per K2 Pro usato come baseline di riferimento per geometria/pin; i valori macchina successivi vengono validati sulla K2 Pro reale del progetto.
 
 ## CFS / protocollo
@@ -38,7 +38,7 @@ K2-OpenHost è un progetto di integrazione e validazione hardware. Mantiene volu
 - `MzTechnology97/K2-OpenHost` — documentazione e validazione canonica;
 - `MzTechnology97/k2-pro-custom-firmware` — fork extra Jacobean e history patch K2 Pro/OpenHost;
 - `MzTechnology97/kalico-k2pro` — fork Kalico con runtime K2 Pro ed extra validati;
-- `MzTechnology97/cartographer3d-plugin-k2openhost` — fork integrazione Cartographer K2/OpenHost;
+- `MzTechnology97/cartographer3d-plugin-k2openhost` — vecchio fork Cartographer, dismesso il 4 ottobre 2026 a favore del plugin ufficiale;
 - `MzTechnology97/k2-improvements` — fork di riferimento nella linea upstream k2-improvements;
 - `MzTechnology97/mainsail-k2openhost` — fork Mainsail riservato ai lavori UI OpenHost mantenendo l'attribuzione upstream.
 - `MzTechnology97/k2-openhost-firmware-tools` — strumenti in sola lettura per inventario, confronto e probing live dei firmware periferici K2 da OpenHost.

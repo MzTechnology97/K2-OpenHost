@@ -130,7 +130,7 @@ Il plugin K2/OpenHost Cartographer è stato installato come pacchetto editable e
 
 Il bridge sperimentale **non** è il trasporto finale. Reset/re-enumeration Cartographer e lifecycle delle PTY rendono inutile la complessità quando è disponibile USB diretta sul CM5; inoltre un test è stato influenzato da un processo bridge GS2 duplicato. La topologia preferita è quindi Cartographer USB diretto al CM5.
 
-Il fork Cartographer contiene anche supporto `register_as_probe: false` per il futuro mixed mode PRTouch + Cartographer. Il workflow Z automatico mixed non è ancora validato su hardware.
+Il plugin Cartographer ufficiale offre `register_as_probe: false` per il futuro mixed mode PRTouch + Cartographer. Il workflow Z automatico mixed non è ancora validato su hardware.
 
 ## Integrazione repository
 
@@ -138,7 +138,7 @@ Il fork Cartographer contiene anche supporto `register_as_probe: false` per il f
 
 `MzTechnology97/kalico-k2pro:k2-pro-openhost` contiene il tree Kalico integrato per host esterno, incluso motor-control K2 e loader tracciati.
 
-`MzTechnology97/cartographer3d-plugin-k2openhost` contiene plugin Cartographer K2/OpenHost, guida direct-USB, mixed mode e documentazione Moonraker update-manager.
+Cartographer usa il plugin ufficiale `Cartographer3D/cartographer3d-plugin` (1.9.0 installato sul CM5 di riferimento il 4 ottobre 2026; il fork K2-OpenHost è stato dismesso). Guida USB diretta e ruoli della sonda in [CARTOGRAPHER.md](CARTOGRAPHER.md).
 
 ## Da fare
 

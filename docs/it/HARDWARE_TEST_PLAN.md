@@ -191,7 +191,7 @@ Vanno fatte in quest'ordine: ogni prova usa cose verificate da quella prima.
 
 ## T5 — Cartographer collegato direttamente in USB
 
-Sessione a parte, guidata passo passo: collegamento al CM5, controllo di `/dev/serial/by-id/...`, modifica della configurazione, reset e riconnessione automatici, probing, touch e scan. Dettagli nel repo `cartographer3d-plugin-k2openhost`.
+Sessione a parte, guidata passo passo: collegamento al CM5, controllo di `/dev/serial/by-id/...`, modifica della configurazione, reset e riconnessione automatici, probing, touch e scan. Dettagli in [Cartographer3D](CARTOGRAPHER.md).
 
 ---
 
