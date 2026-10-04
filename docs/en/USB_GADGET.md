@@ -85,4 +85,5 @@ Using these three channels, the real K2 Pro has now completed external-host test
 
 - The physical USB topology of every internal connector is not fully mapped for every K2 variant.
 - Persistent boot packaging: the [T113 bootstrap](T113_BOOTSTRAP.md) starts the gadget and bridges at every boot of slot B; built offline, hardware validation pending.
+- The gadget transport was validated on stock firmware 1.1.0.94. On other firmware releases the T113 USB gadget (OTG) mode is not guaranteed.
 - Cartographer direct-USB validation is a separate remaining milestone and is not provided by the three gadget channels.
