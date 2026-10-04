@@ -72,6 +72,13 @@ Si usa il [cartographer3d-plugin](https://github.com/Cartographer3D/cartographer
 
 I tre canali T113 verificati viaggiano sullo stesso gadget USB composito a USB 2.0 High-Speed.
 
+
+## GPIO di servizio del T113
+
+Il T113 non è soltanto un bridge seriale: il firmware stock usa GPIO Linux locali per alcune funzioni motherboard. La mappa verificata include `GRIO140/PE12 = MCU_PWR_EN`, `GPIO162/PF2 = nozzle-camera power`, `GRIO164/PF4 = buzzer`, `GRIO165/PF5 = USB_HUB_RST` `GPIO210/PG18 = UDISK power`.
+
+Questi segnali **non sono GPIO del CM5**. Il CM5 potrà comandarli solo attraverso un control plane sul T113. I tre stream gadget `ttyGS0..2` restano byte-transparent e non devono essere multiplexati con comandi GPIO. Vedi [GPIO T113](T113_GPIO.md).
+
 ## Runtime host esterno
 
 Il target validato è un host Linux AArch64 basato su CM5. Il C helper di Kalico viene ricompilato nativamente come ELF64/AArch64, senza riutilizzare binari della piattaforma T113 a 32 bit.

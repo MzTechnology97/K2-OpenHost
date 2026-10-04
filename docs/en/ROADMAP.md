@@ -32,6 +32,17 @@ Updated: **2026-10-02**.
 - ~~create `cartographer3d-plugin-k2openhost`~~ superseded: the official Cartographer plugin now covers K2/Kalico and `register_as_probe` (fork retired 2026-10-04); direct-USB guidance moved to [CARTOGRAPHER.md](CARTOGRAPHER.md);
 - prove Cartographer MCU traffic through an experimental T113 MUX/DEMUX path, then retire that path in favour of direct USB after reset/re-enumeration complexity was observed.
 
+
+## Parallel track — T113 GPIO control plane
+
+- keep `ttyGS0..2` dedicated and byte-transparent;
+- do not require a fourth `gser.usb3`: UDC binding was not validated;
+- expose logical names rather than raw GPIO numbers;
+- validate `tools/t113-gpio-control.sh` on the T113 first with status/buzzer, then disruptive signals;
+- select a CM5 -> T113 transport that cannot interfere with Main/Nozzle/RS-485;
+- integrate Moonraker preflight (idle + zero heater targets) before `mcu-power cycle`;
+- use hardware power-cycle as a possible gate for future Main/Nozzle/motor/CFS loader probes.
+
 ## Phase 1 — direct Cartographer USB on the CM5
 
 - connect Cartographer directly to the CM5 USB host;

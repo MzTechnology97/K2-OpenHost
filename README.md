@@ -68,6 +68,7 @@ As of **2026-10-02**:
 - Klipper emergency shutdown was tested with all heaters active and correctly removed heater load, with printer consumption dropping back to near-idle.
 - A resonance test using **Klippain-ShakeTune** completed successfully on the OpenHost stack.
 - RS-485/CFS transport remains functional on `/dev/ttyUSB2`; the earlier duplicate-bridge/process-contention issue has been identified and removed.
+- The stock T113 service GPIO map is recovered, including MCU power (`GPIO140`), nozzle-camera power (`162`), buzzer (`164`), USB-hub reset (`165`) and UDISK power (`210`); no CM5-direct wiring for these nets has been proven.
 - The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path, load-path state and per-slot RFID reads.
 - The normalized `box` object exposes persistent filament inventory, RFID material identity, hardware-reported remaining percentage and the OpenHost live remaining-filament estimate (the estimator is implemented and source-tested; its behaviour over a complete supervised print is still pending).
 - K2-RFID/Creality material-database compatibility is validated with custom tags: five-digit database IDs and `1xxxxx` RFID material IDs resolve to one reusable material profile while per-spool color remains slot metadata.
@@ -116,6 +117,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [Cartographer3D](docs/en/CARTOGRAPHER.md)
 - [Architecture](docs/en/ARCHITECTURE.md)
 - [USB gadget transport](docs/en/USB_GADGET.md)
+- [T113 service GPIO map](docs/en/T113_GPIO.md)
 - [Test status](docs/en/TEST_STATUS.md)
 - [Hardware test plan](docs/en/HARDWARE_TEST_PLAN.md)
 - [CFS validation](docs/en/CFS_VALIDATION.md)
@@ -131,6 +133,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [Cartographer3D](docs/it/CARTOGRAPHER.md)
 - [Architettura](docs/it/ARCHITECTURE.md)
 - [Trasporto USB gadget](docs/it/USB_GADGET.md)
+- [GPIO di servizio T113](docs/it/T113_GPIO.md)
 - [Stato test](docs/it/TEST_STATUS.md)
 - [Piano dei test hardware](docs/it/HARDWARE_TEST_PLAN.md)
 - [Validazione CFS](docs/it/CFS_VALIDATION.md)

@@ -128,3 +128,9 @@ The project moves from least invasive to more invasive tests:
 No Main/Nozzle MCU reflashing has been required for the validated OpenHost transport.
 
 Using OpenHost voids the manufacturer's warranty and carries risks of irreparable damage, firmware brick and fire; it is intended for experienced users only. The cameras and the external USB port also change role. See [Disclaimer and hardware limitations](DISCLAIMER.md).
+
+## T113 service GPIOs
+
+The T113 is not only a serial bridge: stock firmware uses local Linux GPIOs for motherboard service functions. The verified map includes `GPIO140/PE12 = MCU_PWR_EN`, `GPIO162/PF2 = nozzle-camera power`, `GPIO164/PF4 = buzzer`, `GPIO165/PF5 = USB_HUB_RST`, and `GPIO210/PG18 = UDISK power`.
+
+These are **not CM5 GPIOs**. The CM5 can only command them through a control plane running on the T113. The three `ttyGS0..2` gadget streams remain byte-transparent and must not be multiplexed with GPIO commands. See [T113 GPIOs](T113_GPIO.md).

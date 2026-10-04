@@ -31,6 +31,18 @@ Aggiornata al **2 ottobre 2026**.
 - assemblaggio `kalico-k2pro:k2-pro-openhost` con baseline K2 Pro ed extra K2;
 - ~~creazione `cartographer3d-plugin-k2openhost`~~ superato: il plugin Cartographer ufficiale copre K2/Kalico e `register_as_probe` (fork dismesso il 4 ottobre 2026); la guida USB diretta è in [CARTOGRAPHER.md](CARTOGRAPHER.md);
 - trasporto reale di dati MCU Cartographer attraverso un MUX/DEMUX T113 sperimentale, poi abbandonato come percorso finale a favore della USB diretta per la complessità di reset/re-enumeration.
+- mappa GPIO di servizio T113 stock recuperata: MCU power, nozzle camera, buzzer, USB hub reset e UDISK power; polarità verificate dagli script Creality;
+
+
+## Linea parallela — control plane GPIO T113
+
+- mantenere `ttyGS0..2` dedicati e byte-transparent;
+- non usare il quarto `gser.usb3` come requisito: il bind UDC non è stato validato;
+- usare nomi logici invece dei numeri GPIO raw;
+- validare sul T113 `tools/t113-gpio-control.sh` prima solo con `status`/buzzer, poi con segnali disruptive;
+- scegliere un trasporto CM5 -> T113 che non interferisca con Main/Nozzle/RS-485;
+- integrare preflight Moonraker (idle + heater target zero) prima di `mcu-power cycle`;
+- usare il power-cycle hardware come possibile gate per i futuri probe loader Main/Nozzle/motori/CFS.
 
 ## Fase 1 — Cartographer USB diretto sul CM5
 
