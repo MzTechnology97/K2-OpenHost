@@ -26,8 +26,8 @@ Osservato inoltre:
    - durante la stampa `link_lost_action` mette in pausa (predefinito), avvisa o va in shutdown; a stampante ferma avvisa;
    - il ritorno del collegamento viene segnalato.
 2. **Comandi di ripristino tramite il T113** (`k2oh-ctl` + `[k2_t113]`):
-   - `T113_BRIDGES_RESTART CONFIRM=1`;
-   - `T113_MCU_POWER_CYCLE CONFIRM=1`, che funziona anche con Klipper in shutdown e poi riavvia il firmware;
+   - `USB_BRIDGES_RESTART CONFIRM=1`;
+   - `MCU_POWER_CYCLE CONFIRM=1`, che funziona anche con Klipper in shutdown e poi riavvia il firmware;
    - il dispositivo Moonraker `K2_MCU_Power`, bloccato durante la stampa.
 3. **Arresto hardware opzionale:** `estop_on_shutdown: m112` toglie l'alimentazione alle MCU con l'arresto di emergenza, così riscaldatori e motori restano senza corrente anche se una MCU ha smesso di rispondere.
 4. **Recupero automatico opzionale:** `auto_power_cycle: True` esegue un ciclo di alimentazione delle MCU e riavvia dopo la perdita del collegamento con una MCU mentre nessuna stampa era in corso, al massimo una volta ogni 10 minuti.

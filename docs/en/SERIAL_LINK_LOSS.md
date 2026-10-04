@@ -26,8 +26,8 @@ Also observed:
    - during a print, `link_lost_action` pauses (the default), warns or shuts down; when idle it warns;
    - when the link comes back, it is reported.
 2. **Recovery controls through the T113** (`k2oh-ctl` + `[k2_t113]`):
-   - `T113_BRIDGES_RESTART CONFIRM=1`;
-   - `T113_MCU_POWER_CYCLE CONFIRM=1`, which also works while Klipper is shut down and restarts the firmware afterwards;
+   - `USB_BRIDGES_RESTART CONFIRM=1`;
+   - `MCU_POWER_CYCLE CONFIRM=1`, which also works while Klipper is shut down and restarts the firmware afterwards;
    - the Moonraker power device `K2_MCU_Power`, locked while printing.
 3. **Optional hardware stop:** `estop_on_shutdown: m112` cuts the MCU power rail on an emergency stop, so heaters and motors lose power even if an MCU stopped answering.
 4. **Optional automatic recovery:** `auto_power_cycle: True` power-cycles the MCUs and restarts after a lost MCU link while no print was running, at most once every 10 minutes.

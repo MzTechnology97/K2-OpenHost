@@ -140,8 +140,8 @@ Il control plane è `k2oh-ctl`, un piccolo servizio HTTP del [bootstrap del T113
 
 | Segnale | Esposto come | Note |
 | --- | --- | --- |
-| GPIO140 `MCU_PWR_EN` | stato/accensione/spegnimento (dispositivo Moonraker `K2_MCU_Power`), ciclo di alimentazione (`T113_MCU_POWER_CYCLE`), arresto di emergenza | spegnimento e ciclo richiedono uno stato di stampa inattivo noto dal Moonraker dell'host; il ciclo ferma i bridge, tiene la linea spenta 2 s come `mcu_reset.sh` e finisce sempre con la linea accesa |
-| GPIO164 buzzer | `T113_BEEP`, `M300`, bip dell'RFID esterno | fino a 3 s e 5 bip |
+| GPIO140 `MCU_PWR_EN` | stato/accensione/spegnimento (dispositivo Moonraker `K2_MCU_Power`), ciclo di alimentazione (`MCU_POWER_CYCLE`), arresto di emergenza | spegnimento e ciclo richiedono uno stato di stampa inattivo noto dal Moonraker dell'host; il ciclo ferma i bridge, tiene la linea spenta 2 s come `mcu_reset.sh` e finisce sempre con la linea accesa |
+| GPIO164 buzzer | `BUZZER`, `M300`, bip dell'RFID esterno | fino a 3 s e 5 bip |
 | GPIO162, 165, 209, 210 | non esposti | le telecamere sono ricollegate all'host; alimentazione USB e reset dell'hub non servono a K2-OpenHost |
 
 Vengono scritti solo i valori; le direzioni dei pin impostate all'avvio non vengono mai cambiate. Il lato host è `[k2_t113]` in kalico-k2pro, e l'installer helper collega le due parti (`./helper.sh t113 link`).
