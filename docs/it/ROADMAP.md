@@ -93,13 +93,16 @@ Stato Box in modalità operativa, letture RFID e auto-mapping sono già validati
 - valutare HelixScreen o altra UI leggera sul T113 con LCD/touch originali;
 - ridurre le responsabilità del T113 a UI e bridge hardware.
 
+Implementato offline nel [bootstrap del T113](T113_BOOTSTRAP.md): lo slot B esegue solo gadget, bridge, Wi-Fi e HelixScreen collegato al Moonraker dell'host esterno. In attesa di validazione su hardware.
+
 ## Fase 6 — deployment persistente
 
 Solo dopo la validazione completa di runtime e print stack:
 
-- startup persistente dei bridge;
-- boot/recovery;
-- conservazione slot stock funzionante;
+- startup persistente dei bridge — [bootstrap del T113](T113_BOOTSTRAP.md), costruito offline;
+- boot/recovery — avvio di prova dello slot B, spegnendo e riaccendendo si torna allo slot A;
+- conservazione slot stock funzionante — lo slot A non viene mai scritto;
+- aggiornamento firmware delle periferiche con gli strumenti Creality — `k2oh-mcu-fw`, CFS compreso, costruito offline;
 - procedura di update/rebase rispetto a Jacob/Kalico/Jacobean/Cartographer;
 - procedura riproducibile di installazione su una seconda K2 Pro.
 

@@ -82,5 +82,5 @@ Con questi tre canali la K2 Pro reale ha già completato da host esterno:
 ## Cosa non viene dichiarato
 
 - La topologia USB fisica di ogni connettore non è completamente mappata per ogni variante K2.
-- Il packaging di boot persistente è ancora in evoluzione.
+- Packaging di boot persistente: il [bootstrap del T113](T113_BOOTSTRAP.md) avvia gadget e bridge a ogni avvio dello slot B; costruito offline, validazione su hardware in attesa.
 - La validazione Cartographer direct-USB è un milestone separato e non passa attraverso i tre canali gadget.
