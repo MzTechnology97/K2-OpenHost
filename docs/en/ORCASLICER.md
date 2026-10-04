@@ -14,13 +14,22 @@ K2-OpenHost works with the **official OrcaSlicer**: no modified build is needed.
 3. **Host type:** `Moonraker (Klipper)`. **Hostname, IP or URL:** the external host, for example `k2host.local` or `192.168.1.50`.
 4. Test the connection and save.
 
-**OrcaSlicer 2.4.2: Sync cannot connect.** That release always sends a fixed access key, even with the field empty ([OrcaSlicer #13236](https://github.com/OrcaSlicer/OrcaSlicer/issues/13236)). Moonraker accepts a trusted LAN client without a key, but rejects a wrong one, so `moonraker.log` shows:
+**OrcaSlicer 2.4.2: Sync cannot connect.** That release sends the placeholder header `X-Api-Key: 88888888` to Moonraker, whatever you type in the API key field ([OrcaSlicer PR #15550](https://github.com/OrcaSlicer/OrcaSlicer/pull/15550), not released yet). Moonraker accepts a trusted LAN client without a key but rejects a wrong one, so `moonraker.log` shows:
 
 ```text
 401 GET /server/database/item?namespace=lane_data (<your PC>): Invalid API Key
 ```
 
-Fix: open `http://<host>:7125/access/api_key` in a browser on the PC, copy the key from `"result"` (keep it private), paste it into the **API Key / Password** field of the OrcaSlicer connection, save and press Sync again.
+Fix on the printer: let nginx drop only that placeholder, so OrcaSlicer is treated like Mainsail and other trusted LAN clients; real keys pass unchanged. The [K2-OpenHost Installer Helper](https://github.com/MzTechnology97/k2-openhost-installer-helper) installs this rule with Mainsail (menu 7 to add it to an existing host). By hand, add to `/etc/nginx/conf.d/k2openhost-orca-api-key.conf`:
+
+```nginx
+map $http_x_api_key $k2oh_api_key {
+    "88888888" "";
+    default    $http_x_api_key;
+}
+```
+
+then add `proxy_set_header X-Api-Key $k2oh_api_key;` after both `proxy_pass http://apiserver...` lines of the Mainsail site, check with `sudo nginx -t` and reload with `sudo systemctl reload nginx`. Verified on the reference machine with OrcaSlicer 2.4.2.
 
 ## Sync the filaments
 
