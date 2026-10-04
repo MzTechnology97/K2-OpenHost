@@ -7,7 +7,7 @@ Stato: **costruito e provato offline; non ancora avviato su una stampante.** Leg
 > [!IMPORTANT]
 > Questo lavoro è stato preparato e provato sul firmware originale della K2 Pro **1.1.0.94**, la versione della stampante di riferimento. Le versioni Creality più recenti sono accettate con un avviso, ma **su firmware diversi dalla 1.1.0.94 il corretto funzionamento del bootstrap e della modalità USB gadget (OTG) del T113 non è garantito.** La build dello slot B rifiuta una versione in cui gli script di avvio che modifica sono diversi da quelli verificati; nella 1.1.7.0 sono identici.
 
-Il bootstrap del T113 prepara la scheda T113 della K2 Pro per K2-OpenHost. È sviluppato in un repository dedicato, **[k2-openhost-t113-bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap)**, che contiene la guida completa passo per passo. Si installa dall'host esterno con il [K2-OpenHost Installer Helper](https://github.com/MzTechnology97/k2-openhost-installer-helper): la voce 23 del menu o `./helper.sh t113 install` clona il repository del bootstrap ed esegue tutto via SSH.
+Il bootstrap del T113 prepara la scheda T113 della K2 Pro per K2-OpenHost. È sviluppato in un repository dedicato, **[k2-openhost-t113-bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap)**, che contiene la guida completa passo per passo. Si installa dall'host esterno con il [K2-OpenHost Installer Helper](https://github.com/MzTechnology97/k2-openhost-installer-helper): la voce 23 del menu (`./helper.sh t113 check`) controlla la stampante in sola lettura, e la voce 24 (`./helper.sh t113 install`) clona il repository del bootstrap ed esegue tutto via SSH.
 
 ## Scelte di progetto
 
@@ -41,7 +41,7 @@ Disattivati:
 
 Gli aggiornamenti sono manuali apposta e usano **gli strumenti Creality** (`mcu_util`, `mcu_util_485`, `/etc/init.d/mcu_update`): la stessa sequenza di un OTA originale, con l'alimentazione delle MCU spenta e riaccesa da `mcu_reset.sh` (GPIO140 `MCU_PWR_EN`, vedi [GPIO di servizio T113](T113_GPIO.md)). Passi:
 
-La via breve è `k2oh-mcu-fw update` (voce 30 dell'installer): scarica l'**ultima** versione Creality, la prepara, mostra cosa cambia e aggiorna solo se confermi. Passo per passo:
+La via breve è `k2oh-mcu-fw update` (voce 31 dell'installer): scarica l'**ultima** versione Creality, la prepara, mostra cosa cambia e aggiorna solo se confermi. Passo per passo:
 
 1. `k2oh-mcu-fw list` legge l'indice firmware pubblico di Creality.
 2. `k2oh-mcu-fw download` scarica una versione dal CDN Creality, controlla il rootfs con l'elenco MD5 contenuto nell'immagine e tiene solo `fw/F012` e `fw/cfs`.
