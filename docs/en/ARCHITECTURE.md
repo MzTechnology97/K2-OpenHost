@@ -63,7 +63,7 @@ The printer side: a K2-OpenHost system for the T113's slot B (USB gadget bridges
 
 ### Cartographer3D plugin (official)
 
-The official [cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin) is used unchanged: it detects Kalico, handles non-critical MCU reconnection and provides `register_as_probe`. The former `cartographer3d-plugin-k2openhost` fork was retired on 2026-10-04. See [Cartographer3D](CARTOGRAPHER.md).
+The official [cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin) is used unchanged: it detects Kalico, handles non-critical MCU reconnection and provides `register_as_probe`. The former `cartographer3d-plugin-k2openhost` fork was archived on 2026-10-04. See [Cartographer3D](CARTOGRAPHER.md).
 
 ## Verified transport
 
