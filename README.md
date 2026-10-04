@@ -119,6 +119,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [Architecture](docs/en/ARCHITECTURE.md)
 - [USB gadget transport](docs/en/USB_GADGET.md)
 - [T113 service GPIO map](docs/en/T113_GPIO.md)
+- [Serial link loss behind the T113](docs/en/SERIAL_LINK_LOSS.md)
 - [T113 bootstrap (slot B)](docs/en/T113_BOOTSTRAP.md)
 - [Test status](docs/en/TEST_STATUS.md)
 - [Hardware test plan](docs/en/HARDWARE_TEST_PLAN.md)

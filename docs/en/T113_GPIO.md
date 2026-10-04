@@ -1,6 +1,6 @@
 # K2 Pro T113 service GPIOs
 
-Status: **stock map statically verified; remote CM5 control not implemented yet**.
+Status: **stock map statically verified; MCU power and buzzer controlled from the CM5 through `k2oh-ctl`, tested live on 2026-10-04**.
 
 These signals belong to the original K2 Pro Allwinner T113. Linux GPIO numbers `140/162/164/165/209/210` are T113 numbering and **do not** map directly to Raspberry Pi CM5 GPIO numbers.
 
@@ -84,11 +84,25 @@ For the firmware updater, `mcu-power cycle` is the key signal because it may all
 
 The helper has been checked with `sh -n`, dry-run and a fake sysfs tree on the CM5. **It has not been installed or executed on the real T113 yet.** No automatic USB-hub reset pulse timing is invented: only `assert` and `release` are exposed because those levels are directly supported by stock evidence.
 
+## Control plane: k2oh-ctl
+
+The control plane is `k2oh-ctl`, a small HTTP service in the [T113 bootstrap](T113_BOOTSTRAP.md) (slot B). It runs over the LAN, not the USB gadget, so the three raw MCU streams stay untouched. It answers only the external host's address, and only with a shared token.
+
+| Signal | Exposed as | Notes |
+| --- | --- | --- |
+| GPIO140 `MCU_PWR_EN` | power status/on/off (Moonraker power device `K2_MCU_Power`), power cycle (`T113_MCU_POWER_CYCLE`), e-stop | off and cycle need a known idle print state from the host's Moonraker; the cycle stops the bridges, holds the rail off 2 s as `mcu_reset.sh` and always ends with the rail on |
+| GPIO164 buzzer | `T113_BEEP`, `M300`, external RFID beep | up to 3 s and 5 beeps |
+| GPIO162, 165, 209, 210 | not exposed | cameras are rewired to the host; USB power and hub reset are not needed by K2-OpenHost |
+
+Only values are written; the pin directions set at boot are never changed. The host side is `[k2_t113]` in kalico-k2pro, and the installer helper links the two (`./helper.sh t113 link`).
+
+The local `tools/t113-gpio-control.sh` stays a manual tool for slot A. The bootstrap service is the supported path.
+
 ## Current state
 
 - stock GPIO map: **verified**;
-- GPIO164 buzzer: **verified**;
+- GPIO164 buzzer: **verified**, driven live through `k2oh-ctl` (2026-10-04);
+- GPIO140 power cycle and e-stop through `k2oh-ctl`: **tested live** with the printer idle. After `FIRMWARE_RESTART`, ready in 9 s, CFS in 16 s, motors in 21 s;
 - polarities: **verified from stock scripts**;
-- direct CM5 access to these nets: **not present / not proven**;
-- CM5 -> T113 control plane: **pending**;
-- no GPIO was toggled during this analysis.
+- direct CM5 access to these nets: **not present / not proven**, so the control plane is required;
+- what happens when a serial link through the T113 is lost: see [Serial link loss](SERIAL_LINK_LOSS.md).
