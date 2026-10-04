@@ -7,7 +7,7 @@ Status: **built and tested offline; not yet booted on a printer.** Read the [dis
 > [!IMPORTANT]
 > This work was prepared and tested on the K2 Pro stock firmware **1.1.0.94**, the version on the reference printer. Newer Creality releases are accepted with a warning, but **on firmware other than 1.1.0.94 the correct operation of the bootstrap and of the T113 USB gadget (OTG) mode is not guaranteed.** The slot B build refuses a release whose boot scripts it changes differ from the reviewed ones; they are identical in 1.1.7.0.
 
-The T113 bootstrap prepares the K2 Pro's own T113 board for K2-OpenHost. It is developed in its own repository, **[k2-openhost-t113-bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap)**, which holds the complete step-by-step guide. It is installed from the external host with the [K2-OpenHost Installer Helper](https://github.com/MzTechnology97/k2-openhost-installer-helper): menu 23 or `./helper.sh t113 install` clones the bootstrap repository and runs everything over SSH.
+The T113 bootstrap prepares the K2 Pro's own T113 board for K2-OpenHost. It is developed in its own repository, **[k2-openhost-t113-bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap)**, which holds the complete step-by-step guide. It is installed from the external host with the [K2-OpenHost Installer Helper](https://github.com/MzTechnology97/k2-openhost-installer-helper): menu 23 (`./helper.sh t113 check`) checks the printer read-only, and menu 24 (`./helper.sh t113 install`) clones the bootstrap repository and runs everything over SSH.
 
 ## Design
 
@@ -41,7 +41,7 @@ Disabled:
 
 Updates are manual on purpose and use **Creality's own tools** (`mcu_util`, `mcu_util_485`, `/etc/init.d/mcu_update`): the same sequence as a stock OTA, with the MCU power rail cycled through `mcu_reset.sh` (GPIO140 `MCU_PWR_EN`, see [T113 service GPIOs](T113_GPIO.md)). Steps:
 
-The short way is `k2oh-mcu-fw update` (installer menu 30). It downloads the **latest** Creality release, stages it, shows the changes and flashes only if you confirm. Step by step:
+The short way is `k2oh-mcu-fw update` (installer menu 31). It downloads the **latest** Creality release, stages it, shows the changes and flashes only if you confirm. Step by step:
 
 1. `k2oh-mcu-fw list` reads Creality's public firmware index.
 2. `k2oh-mcu-fw download` fetches a release from Creality's CDN, checks its rootfs against the image's own MD5 list and keeps only `fw/F012` and `fw/cfs`.
