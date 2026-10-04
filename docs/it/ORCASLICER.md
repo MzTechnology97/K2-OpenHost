@@ -14,13 +14,22 @@ K2-OpenHost funziona con **OrcaSlicer ufficiale**: non serve una versione modifi
 3. **Tipo di host:** `Moonraker (Klipper)`. **Nome host, IP o URL:** l'host esterno, per esempio `k2host.local` o `192.168.1.50`.
 4. Prova la connessione e salva.
 
-**OrcaSlicer 2.4.2: la sincronizzazione non si collega.** Quella versione invia sempre una chiave di accesso fissa, anche con il campo vuoto ([OrcaSlicer #13236](https://github.com/OrcaSlicer/OrcaSlicer/issues/13236)). Moonraker accetta senza chiave un client fidato della rete locale, ma rifiuta una chiave sbagliata, quindi `moonraker.log` mostra:
+**OrcaSlicer 2.4.2: la sincronizzazione non si collega.** Quella versione invia a Moonraker l'intestazione segnaposto `X-Api-Key: 88888888`, qualunque cosa scrivi nel campo della chiave API ([OrcaSlicer PR #15550](https://github.com/OrcaSlicer/OrcaSlicer/pull/15550), non ancora rilasciata). Moonraker accetta senza chiave un client fidato della rete locale, ma rifiuta una chiave sbagliata, quindi `moonraker.log` mostra:
 
 ```text
 401 GET /server/database/item?namespace=lane_data (<il tuo PC>): Invalid API Key
 ```
 
-Soluzione: apri `http://<host>:7125/access/api_key` nel browser del PC, copia la chiave da `"result"` (tienila riservata), incollala nel campo **API Key / Password** della connessione di OrcaSlicer, salva e premi di nuovo Sync.
+Soluzione sulla stampante: far scartare a nginx solo quel segnaposto, così OrcaSlicer viene trattato come Mainsail e gli altri client fidati della rete locale; le chiavi vere passano invariate. Il [K2-OpenHost Installer Helper](https://github.com/MzTechnology97/k2-openhost-installer-helper) installa questa regola insieme a Mainsail (menu 7 per aggiungerla a un host esistente). A mano, crea `/etc/nginx/conf.d/k2openhost-orca-api-key.conf` con:
+
+```nginx
+map $http_x_api_key $k2oh_api_key {
+    "88888888" "";
+    default    $http_x_api_key;
+}
+```
+
+poi aggiungi `proxy_set_header X-Api-Key $k2oh_api_key;` dopo le due righe `proxy_pass http://apiserver...` del sito Mainsail, controlla con `sudo nginx -t` e ricarica con `sudo systemctl reload nginx`. Verificato sulla macchina di riferimento con OrcaSlicer 2.4.2.
 
 ## Sincronizzare i filamenti
 
