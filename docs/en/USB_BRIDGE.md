@@ -213,8 +213,9 @@ Also seen: if Klipper starts while the RS-485 bridge is dead, the CFS is not dis
 Checked on 2026-10-05, read-only on the development CM5 during a print.
 
 **What the CM5 sits on.** The CM5 is on a Waveshare **CM4-IO-BASE-A**. Its FE1.1S hub shows up as `1a40:0101 Terminus Technology Hub`.
-- All of its USB ports are USB 2.0, behind that hub, on the CM5's `dwc2` controller.
-- The T113 gadget and the nozzle camera (`364d:6366`, `uvcvideo`) share it.
+- All of its USB ports are USB 2.0, behind that hub, on the CM5's `dwc2` controller: two Type-A ports, and two on an FFC connector that need an adapter cable.
+- The two Type-A ports hold the T113 gadget and, for now, a spare camera (`364d:6366`, `uvcvideo`, MJPEG 1280×720 at 25 fps).
+- The full setup needs four devices: the T113, the nozzle camera, the chamber camera and Cartographer. On this board all four would share one 480M hub.
 - `dwc2` has taken 267 million interrupts, all on CPU0.
 - The CM5's two RP1 `xhci` controllers (buses 2–5) have nothing attached.
 
@@ -232,14 +233,16 @@ Checked on 2026-10-05, read-only on the development CM5 during a print.
 
 | Option | What it gives | Cost and risk |
 | --- | --- | --- |
-| USB 3.0 controller card in the CM4-IO-BASE-A's **M.2 M-key** slot (empty: the CM5 boots from eMMC) | an `xhci` controller on PCIe; the T113 on it, the camera stays on `dwc2` | one card, no carrier change. Pick a VL805 card, the controller already used on the Pi 4. Not tested here. |
-| A carrier made for the CM5, e.g. Waveshare **CM5-IO-BASE-A** (same bank-card size, 2× USB 3.2 Gen1) or the official CM5 IO Board | the CM5's own RP1 ports | the whole carrier; check the 5 V supply and the case. That its USB 3.2 ports are the RP1 ports is inferred: the CM5 has no other USB 3 source, and Waveshare does not say. |
+| USB 3.0 controller card in the CM4-IO-BASE-A's **M.2 M-key** slot (empty: the CM5 boots from eMMC) | an `xhci` controller on PCIe for the T113 and Cartographer; the cameras on the board's hub, one of them through an FFC adapter | one card, no carrier change. Pick a VL805 card, the controller already used on the Pi 4. Not tested here. |
+| A carrier made for the CM5 with four USB ports, e.g. **Geekworm X1500** (2× USB 3.0, 2× USB 2.0, 2× M.2 NVMe, PWM fan header, RTC battery socket) | T113 and Cartographer each alone on one RP1 `xhci` controller, the two cameras on the USB 2.0 ports | the whole carrier. It is larger (about 87 × 88 mm against 85 × 56 mm) and wants 5.1 V 5 A over USB-C PD. That its USB 3.0 ports are the RP1 ports is inferred: its only PCIe lane feeds the NVMe slots, and Geekworm does not say. Check with `lsusb -t` after the swap. |
+| Waveshare **CM5-IO-BASE-A** (same bank-card size, 2× USB 3.2 Gen1) or the official CM5 IO Board | the CM5's own RP1 ports | the whole carrier; check the 5 V supply and the case. That its USB 3.2 ports are the RP1 ports is inferred: the CM5 has no other USB 3 source, and Waveshare does not say. |
 | CM4-to-Pi4 adapter | VL805, as above | carrier change with undocumented CM5 support; no gain over the M.2 card |
 
 **Is it worth it?**
-- The gain is the ~8 000 `dwc2` interrupts/s on CPU0, and a T113 that no longer shares a hub with the camera.
+- The gain is the ~8 000 `dwc2` interrupts/s on CPU0, and a T113 that no longer shares a hub with the cameras.
+- With two cameras that matters more. A UVC camera reserves periodic bandwidth in every microframe, and bulk traffic such as the T113's only gets what is left on that bus.
 - The measurements above found the round trip limited by UART time, and the tails by scheduling. The CM5 used 0.7% CPU in batch D.
-- A small improvement at most: worth a try only with the M.2 card, measured before and after with the same method.
+- For the bridge alone it is a small improvement at most. Once both cameras and Cartographer are connected, a CM5 carrier with four ports (X1500) keeps the T113 and Cartographer off the cameras' bus without an external hub. Measure before and after with the same method.
 - The gadget runs at 480M on any port, USB 3 or not.
 - The `by-id` names in `printer.cfg` do not depend on the port, so moving the cable needs no configuration change.
 - Never move the cable while printing.
