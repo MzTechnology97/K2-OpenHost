@@ -38,6 +38,8 @@ Entrambe le opzioni sono spente di default.
 
 Un bridge caduto e riavviato da procd entro 1,5 s ha lasciato Klipper `ready`, anche durante il moto. Per riprendersi con `FIRMWARE_RESTART` dopo una riconnessione USB, l'host deve usare `serial: /dev/serial/by-id/...`. Vedi i test di guasto in [Bridge USB](USB_BRIDGE.md#test-di-guasto).
 
+Cosa fare passo per passo: [Procedura di ripristino](RECOVERY.md).
+
 ## Ancora da provare
 
 - La pausa del watchdog durante una stampa vera. Nelle prove in standby Klipper non stampa, quindi è stato eseguito solo il ramo dell'avviso.
