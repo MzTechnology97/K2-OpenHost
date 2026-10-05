@@ -6,9 +6,7 @@ Questa pagina elenca tutti i comandi G-code che K2-OpenHost aggiunge a Kalico, d
 - i moduli K2 di [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), ramo `k2-pro-openhost`;
 - le macro del profilo K2 in `config/k2/` (`macros.cfg`, `start_print.cfg`, `kamp.cfg`).
 
-I comandi standard di Klipper e Kalico (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBRATE`, `SET_FAN_SPEED`…) non sono ripetuti: vedi il [riferimento G-code di Kalico](https://docs.kalico.gg/G-Codes.html). Non sono elencate nemmeno le macro aggiunte da te (ShakeTune, suoni, Telegram…).
-
-L'elenco è stato preso da un Kalico in funzione (`/printer/gcode/help`) e verificato sul codice sorgente.
+I comandi standard di Klipper e Kalico (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBRATE`, `SET_FAN_SPEED`…) non sono ripetuti qui: vedi il [riferimento G-code di Kalico](https://docs.kalico.gg/G-Codes.html).
 
 **Come leggere le tabelle**
 - I parametri tra `[parentesi]` sono facoltativi; il valore dopo `=` è quello predefinito.

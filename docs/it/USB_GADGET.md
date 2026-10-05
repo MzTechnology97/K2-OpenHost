@@ -81,7 +81,7 @@ Con questi tre canali la K2 Pro reale ha già completato da host esterno:
 - test risonanza Klippain-ShakeTune;
 - traffico CFS observation protetto.
 
-## Cosa non viene dichiarato
+## Cosa non è ancora dimostrato
 
 - La topologia USB fisica di ogni connettore non è completamente mappata per ogni variante K2.
 - Packaging di boot persistente: il [bootstrap del T113](T113_BOOTSTRAP.md) avvia gadget e bridge a ogni avvio dello slot B; costruito offline, validazione su hardware in attesa.

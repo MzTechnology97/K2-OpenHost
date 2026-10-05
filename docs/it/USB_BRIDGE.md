@@ -154,7 +154,7 @@ Il blocco C è girato mentre il bug di `link_monitor` caricava il CM5 sempre di 
 | --- | --- | --- |
 | `nice -10` | meno cambi involontari (0,6/s invece di 2,3/s), code non migliori | non predefinito |
 | `SCHED_RR 10` | cambi involontari quasi 0. Una finestra con la coda mcu migliore (B), la successiva (C) non migliore di `orig`. Dentro la variabilità tra corse. | non predefinito, disponibile come `BRIDGE_OPTS="--rr 10"` |
-| `SCHED_FIFO` | non provato, come richiesto | — |
+| `SCHED_FIFO` | non provato | — |
 | IRQ USB 55 su CPU1 | miglior p99.9 del blocco C (mcu 5,7, noz 4,7 ms), da una sola finestra | promettente, non predefinito: una finestra sta dentro la variabilità. La maschera non è persistente e il bootstrap non la imposta. |
 | Affinità CPU dei bridge | non misurata a parte: con gli IRQ su CPU0 e due core, fissare i bridge non ha nulla da guadagnare senza spostare gli IRQ | — |
 
