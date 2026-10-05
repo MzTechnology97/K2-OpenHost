@@ -38,6 +38,8 @@ Both options are off by default.
 
 A crashed bridge restarted by procd within 1.5 s kept Klipper `ready`, also during motion. A USB reconnect needs `serial: /dev/serial/by-id/...` on the host to recover with `FIRMWARE_RESTART`. See the failure tests in [USB bridge](USB_BRIDGE.md#failure-tests).
 
+What to do step by step: [Recovery runbook](RECOVERY.md).
+
 ## Still to test
 
 - The watchdog's pause during a real print. In the standby tests Klipper is not printing, so only the warning path ran.
