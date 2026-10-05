@@ -154,7 +154,7 @@ Batch C ran while the `link_monitor` bug was loading the CM5 more and more (CM5 
 | --- | --- | --- |
 | `nice -10` | fewer involuntary switches (0.6/s instead of 2.3/s), tails not better | not by default |
 | `SCHED_RR 10` | involuntary switches almost 0. One window with the best mcu tail (B), the next one (C) not better than `orig`. Within run-to-run spread. | not by default, available as `BRIDGE_OPTS="--rr 10"` |
-| `SCHED_FIFO` | not tried, as asked | — |
+| `SCHED_FIFO` | not tried | — |
 | USB IRQ 55 on CPU1 | best p99.9 of batch C (mcu 5.7, noz 4.7 ms), from a single window | promising, not by default: one window is within spread. The mask is not persistent and the bootstrap does not set it. |
 | Bridge CPU affinity | not measured separately: with the IRQs on CPU0 and two cores, pinning has nothing to win from without moving the IRQs | — |
 

@@ -83,7 +83,7 @@ Using these three channels, the real K2 Pro has now completed external-host test
 - Klippain-ShakeTune resonance measurement;
 - protected CFS observation traffic.
 
-## What is not claimed
+## Not yet proven
 
 - The physical USB topology of every internal connector is not fully mapped for every K2 variant.
 - Persistent boot packaging: the [T113 bootstrap](T113_BOOTSTRAP.md) starts the gadget and bridges at every boot of slot B; built offline, hardware validation pending.
