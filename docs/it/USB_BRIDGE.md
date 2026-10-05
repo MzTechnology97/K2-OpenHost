@@ -204,9 +204,45 @@ Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene
 2. **Usare `/dev/serial/by-id/usb-Allwinner_Technology_Inc._Gadget_Serial-if0N-port0`** invece di `/dev/ttyUSBn` in `printer.cfg` (if00 Main, if01 Nozzle, if02 RS-485). Il numero di interfaccia non cambia quando il gadget si riconnette, e allora `FIRMWARE_RESTART` ripristina.
    - Fatto in kalico-k2pro [#20](https://github.com/MzTechnology97/kalico-k2pro/pull/20).
    - Fatto sul CM5 di sviluppo, con un backup del vecchio `printer.cfg`.
-3. **Valutare di spostare il cavo del T113 su una porta USB RP1 (`xhci`) del CM5** invece della porta `dwc2` dietro l'hub. Toglie circa 8 000 interrupt/s al CM5. È una modifica fisica, da misurare con lo stesso metodo dopo lo spostamento.
+3. **Spostare il cavo del T113 su una porta `xhci` non è possibile con la scheda base attuale.** Vedi [Le porte USB 3.0 del CM5 e la scheda base](#le-porte-usb-30-del-cm5-e-la-scheda-base). Bassa priorità: il guadagno atteso è piccolo.
 4. **Raffreddamento del CM5.** A riposo il CM5 stava a 70–78 °C ed è andato in throttling a 85 °C con un bug che consumava CPU. Controllare `vcgencmd get_throttled` dopo le stampe lunghe.
 5. **Lasciare `nice`, RR e affinità degli IRQ ai valori predefiniti** finché una misura più lunga non mostra una differenza maggiore della variabilità tra corse identiche.
+
+## Le porte USB 3.0 del CM5 e la scheda base
+
+Verificato il 5 ottobre 2026, in sola lettura sul CM5 di sviluppo durante una stampa.
+
+**Su cosa è montato il CM5.** Il CM5 è su una Waveshare **CM4-IO-BASE-A**. Il suo hub FE1.1S compare come `1a40:0101 Terminus Technology Hub`.
+- Tutte le sue porte USB sono USB 2.0, dietro quell'hub, sul controller `dwc2` del CM5.
+- Il gadget del T113 e la fotocamera dell'ugello (`364d:6366`, `uvcvideo`) lo condividono.
+- `dwc2` ha ricevuto 267 milioni di interrupt, tutti sulla CPU0.
+- I due controller `xhci` RP1 del CM5 (bus 2–5) non hanno nulla collegato.
+
+**Perché le porte RP1 non sono raggiungibili.** Le due porte USB 3.0 del CM5 usano i pin delle porte CAM0 e DSI0 a 2 linee del CM4. Le coppie USB 2.0 di quelle porte sono i pin 134/136 e 163/165 ([Raspberry Pi, *Transitioning from CM4 to CM5*](https://pip-assets.raspberrypi.com/categories/1261-transitioning/documents/RP-008924-WP-1-Transitioning%20from%20Compute%20Module%204%20to%20Compute%20Module%205.pdf)).
+- Una scheda per CM4 porta quei pin a connettori FPC per fotocamera o display.
+- Sulla CM4-IO-BASE-A (due connettori CSI, uno DSI) un connettore CSI porta USB3-0, e il suo connettore DSI può portare USB3-1. Non hanno VBUS né un connettore USB, quindi non si possono usare come porte USB.
+
+**L'adattatore CM4-to-Pi4.** Le sue quattro porte USB 3.0 vengono da un **VL805** su PCIe, come sul Pi 4, non dalle porte RP1 del CM5.
+- Con un CM5 il VL805 sarebbe un terzo controller `xhci` sul PCIe x1 esterno. Quel PCIe è attivo su questo CM5 (`pcie@1000110000` okay) e ora non ha nulla collegato.
+- Waveshare non documenta l'adattatore con il CM5, né da dove arrivi il firmware del VL805.
+- Sostituisce l'intera scheda base e non ha uno slot M.2.
+- Non consigliato per questo scopo.
+
+**Modi per arrivare a una porta `xhci`, dal cambiamento minore al maggiore:**
+
+| Opzione | Cosa dà | Costo e rischio |
+| --- | --- | --- |
+| Scheda controller USB 3.0 nello slot **M.2 M-key** della CM4-IO-BASE-A (vuoto: il CM5 parte dall'eMMC) | un controller `xhci` su PCIe; il T113 su quello, la fotocamera resta su `dwc2` | una scheda, nessun cambio di scheda base. Scegline una con VL805, il controller già usato sul Pi 4. Non provato qui. |
+| Una scheda base fatta per il CM5, per esempio Waveshare **CM5-IO-BASE-A** (stesso formato carta di credito, 2× USB 3.2 Gen1) o la CM5 IO Board ufficiale | le porte RP1 del CM5 | l'intera scheda base; verificare l'alimentazione a 5 V e il case. Che le sue porte USB 3.2 siano quelle RP1 è dedotto: il CM5 non ha altre sorgenti USB 3, e Waveshare non lo dice. |
+| Adattatore CM4-to-Pi4 | VL805, come sopra | cambio di scheda base con supporto CM5 non documentato; nessun vantaggio rispetto alla scheda M.2 |
+
+**Conviene?**
+- Il guadagno sono i ~8 000 interrupt/s di `dwc2` sulla CPU0, e un T113 che non condivide più un hub con la fotocamera.
+- Le misure qui sopra hanno trovato il round trip limitato dal tempo UART, e le code dallo scheduling. Il CM5 usava lo 0,7% di CPU nel gruppo D.
+- Al massimo un piccolo miglioramento: da provare solo con la scheda M.2, misurando prima e dopo con lo stesso metodo.
+- Il gadget va a 480M su qualsiasi porta, USB 3 o no.
+- I nomi `by-id` in `printer.cfg` non dipendono dalla porta, quindi spostare il cavo non richiede modifiche alla configurazione.
+- Non spostare mai il cavo durante una stampa.
 
 ## Modalità di misura per stampe lunghe
 
