@@ -120,6 +120,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [G-code commands added by K2-OpenHost](docs/en/GCODE_COMMANDS.md)
 - [USB gadget transport](docs/en/USB_GADGET.md)
 - [T113 service GPIO map](docs/en/T113_GPIO.md)
+- [Recovery runbook](docs/en/RECOVERY.md)
 - [Serial link loss behind the T113](docs/en/SERIAL_LINK_LOSS.md)
 - [USB bridge between the host and the T113: analysis and measurements](docs/en/USB_BRIDGE.md)
 - [T113 bootstrap (slot B)](docs/en/T113_BOOTSTRAP.md)
