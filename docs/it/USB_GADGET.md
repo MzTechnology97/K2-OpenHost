@@ -48,6 +48,8 @@ un processo: ttyGS2 <-> ttyS5
 
 Non eseguire il vecchio MUX Cartographer su GS2 contemporaneamente.
 
+La stessa regola vale sull'host: Klipper deve essere l'unico processo che apre `/dev/ttyUSB0/1/2`. Il 2026-10-05, dopo un riavvio del CM5, il demux del MUX sull'host (`k2-openhost-demux.service`, avviato a mano) leggeva `/dev/ttyUSB2` insieme a Klipper. Su 90 byte restituiti dal bus, a Klipper ne arrivavano 13: l'RS-485 restava `lost` e CFS e motori non rispondevano. Il demux è stato rimosso. La [PR #8 dell'installer helper](https://github.com/MzTechnology97/k2-openhost-installer-helper/pull/8) fa segnalare al `doctor` altri lettori dei canali e aggiunge `scripts/system.sh retire-demux`.
+
 ## Nota sul cambio ruolo USB
 
 USB0 è dual-role. In modalità stock fa parte della topologia host USB interna, inclusa la camera. Il passaggio a device/gadget modifica quindi la topologia stock. I test runtime sono progettati per essere reversibili con reboot.
