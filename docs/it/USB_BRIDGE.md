@@ -213,8 +213,9 @@ Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene
 Verificato il 5 ottobre 2026, in sola lettura sul CM5 di sviluppo durante una stampa.
 
 **Su cosa è montato il CM5.** Il CM5 è su una Waveshare **CM4-IO-BASE-A**. Il suo hub FE1.1S compare come `1a40:0101 Terminus Technology Hub`.
-- Tutte le sue porte USB sono USB 2.0, dietro quell'hub, sul controller `dwc2` del CM5.
-- Il gadget del T113 e la fotocamera dell'ugello (`364d:6366`, `uvcvideo`) lo condividono.
+- Tutte le sue porte USB sono USB 2.0, dietro quell'hub, sul controller `dwc2` del CM5: due porte Type-A, e due su un connettore FFC che richiedono un cavo adattatore.
+- Le due porte Type-A ospitano il gadget del T113 e, per ora, una fotocamera di scorta (`364d:6366`, `uvcvideo`, MJPEG 1280×720 a 25 fps).
+- La configurazione completa richiede quattro dispositivi: il T113, la fotocamera dell'ugello, quella della camera e Cartographer. Su questa scheda tutti e quattro condividerebbero un unico hub a 480M.
 - `dwc2` ha ricevuto 267 milioni di interrupt, tutti sulla CPU0.
 - I due controller `xhci` RP1 del CM5 (bus 2–5) non hanno nulla collegato.
 
@@ -232,14 +233,16 @@ Verificato il 5 ottobre 2026, in sola lettura sul CM5 di sviluppo durante una st
 
 | Opzione | Cosa dà | Costo e rischio |
 | --- | --- | --- |
-| Scheda controller USB 3.0 nello slot **M.2 M-key** della CM4-IO-BASE-A (vuoto: il CM5 parte dall'eMMC) | un controller `xhci` su PCIe; il T113 su quello, la fotocamera resta su `dwc2` | una scheda, nessun cambio di scheda base. Scegline una con VL805, il controller già usato sul Pi 4. Non provato qui. |
-| Una scheda base fatta per il CM5, per esempio Waveshare **CM5-IO-BASE-A** (stesso formato carta di credito, 2× USB 3.2 Gen1) o la CM5 IO Board ufficiale | le porte RP1 del CM5 | l'intera scheda base; verificare l'alimentazione a 5 V e il case. Che le sue porte USB 3.2 siano quelle RP1 è dedotto: il CM5 non ha altre sorgenti USB 3, e Waveshare non lo dice. |
+| Scheda controller USB 3.0 nello slot **M.2 M-key** della CM4-IO-BASE-A (vuoto: il CM5 parte dall'eMMC) | un controller `xhci` su PCIe per il T113 e Cartographer; le fotocamere sull'hub della scheda, una delle due tramite un adattatore FFC | una scheda, nessun cambio di scheda base. Scegline una con VL805, il controller già usato sul Pi 4. Non provato qui. |
+| Una scheda base fatta per il CM5 con quattro porte USB, per esempio **Geekworm X1500** (2× USB 3.0, 2× USB 2.0, 2× M.2 NVMe, connettore per ventola PWM, zoccolo per la batteria dell'orologio) | T113 e Cartographer ciascuno da solo su un controller `xhci` RP1, le due fotocamere sulle porte USB 2.0 | l'intera scheda base. È più grande (circa 87 × 88 mm contro 85 × 56 mm) e vuole 5,1 V 5 A via USB-C PD. Che le sue porte USB 3.0 siano quelle RP1 è dedotto: la sua unica linea PCIe va agli slot NVMe, e Geekworm non lo dice. Da verificare con `lsusb -t` dopo il cambio. |
+| Waveshare **CM5-IO-BASE-A** (stesso formato carta di credito, 2× USB 3.2 Gen1) o la CM5 IO Board ufficiale | le porte RP1 del CM5 | l'intera scheda base; verificare l'alimentazione a 5 V e il case. Che le sue porte USB 3.2 siano quelle RP1 è dedotto: il CM5 non ha altre sorgenti USB 3, e Waveshare non lo dice. |
 | Adattatore CM4-to-Pi4 | VL805, come sopra | cambio di scheda base con supporto CM5 non documentato; nessun vantaggio rispetto alla scheda M.2 |
 
 **Conviene?**
-- Il guadagno sono i ~8 000 interrupt/s di `dwc2` sulla CPU0, e un T113 che non condivide più un hub con la fotocamera.
+- Il guadagno sono i ~8 000 interrupt/s di `dwc2` sulla CPU0, e un T113 che non condivide più un hub con le fotocamere.
+- Con due fotocamere conta di più. Una fotocamera UVC riserva banda periodica in ogni microframe, e il traffico bulk come quello del T113 riceve solo quello che resta su quel bus.
 - Le misure qui sopra hanno trovato il round trip limitato dal tempo UART, e le code dallo scheduling. Il CM5 usava lo 0,7% di CPU nel gruppo D.
-- Al massimo un piccolo miglioramento: da provare solo con la scheda M.2, misurando prima e dopo con lo stesso metodo.
+- Per il solo bridge è al massimo un piccolo miglioramento. Quando saranno collegate entrambe le fotocamere e Cartographer, una scheda base per CM5 con quattro porte (X1500) tiene il T113 e Cartographer fuori dal bus delle fotocamere, senza hub esterno. Misurare prima e dopo con lo stesso metodo.
 - Il gadget va a 480M su qualsiasi porta, USB 3 o no.
 - I nomi `by-id` in `printer.cfg` non dipendono dalla porta, quindi spostare il cavo non richiede modifiche alla configurazione.
 - Non spostare mai il cavo durante una stampa.
