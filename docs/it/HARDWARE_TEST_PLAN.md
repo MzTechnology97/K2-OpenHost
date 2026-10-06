@@ -12,7 +12,7 @@ Creato il 2026-10-03. Il codice da provare è il ramo `cfs-upstream-071c813` di 
   ```bash
   ssh cm5 'cd ~/klipper && git log --oneline -1'
   ```
-  deve mostrare `c1b8613d feat(cfs): integrate upstream firmware sync 071c813 ...`.
+  deve essere su `k2-pro-openhost` (era `c1b8613d` quando è stato scritto questo piano; `d2a30105` il 6 ottobre 2026).
 - [ ] `macros.cfg` sul CM5 contiene `_BOX_RESUME_PREPARE` (le macro nuove).
 - [ ] Nessun checkpoint di ripresa in sospeso: `PLR_STATUS` deve riportare `recoverable=False`. Altrimenti `PLR_DISCARD`.
 - [ ] CFS (indici slot come in Mainsail, etichette come nei messaggi):
@@ -151,7 +151,7 @@ Vanno fatte in quest'ordine: ogni prova usa cose verificate da quella prima.
    - `Auto runout swap complete: Box 1, slot 3 active`.
 4. Controlla:
    - `box.print_mapping.map` ora punta al nuovo slot (es. `{"0": 2}`);
-   - lo slot di partenza risulta esaurito: il profilo **non** è sparito, era il bug corretto.
+   - lo slot di partenza tiene il suo profilo finché il cambio non è deciso (era il bug corretto), poi lo slot vuoto viene azzerato.
 
 **Fermati se:** la stampa va in pausa invece di cambiare bobina. Annota il motivo mostrato e lo stato di `box.recovery`, poi prova **RESUME**: deve ritentare da solo.
 
@@ -199,10 +199,10 @@ Sessione a parte, guidata passo passo: collegamento al CM5, controllo di `/dev/s
 
 | Prova | Data | Esito | Note (messaggi, ora nel log) |
 |---|---|---|---|
-| T0 homing `z_align` | | | |
-| T1 associazione automatica + pausa/cambio slot | | | |
+| T0 homing `z_align` | 2026-10-05 | superata | 16 homing nella giornata, tutti `MCU z-align attempt 1/5: delta 0.0000mm`, nessun errore fotoelettrico |
+| T1 associazione automatica + pausa/cambio slot | 2026-10-05 | associazione superata; pausa non provata | avvio normale di una stampa PLA da 18 h: `map = {"0": 3}`, T0 caricato da Box 1, slot 4 |
 | T2 `BOX_PRINT_START` due colori + pausa | | | |
-| T3 cambio bobina automatico | | | |
+| T3 cambio bobina automatico | 2026-10-06 | superata | fine naturale della bobina PLA nello slot 4 invece del taglio; cambio allo slot 2 al primo `gap infill`, mappa `{"0": 1}`, la stampa è proseguita |
 | T4A ripresa dopo interruzione, monocolore | | | |
 | T4B ripresa dopo interruzione, due colori | | | |
 | T5 Cartographer USB diretto | | | |

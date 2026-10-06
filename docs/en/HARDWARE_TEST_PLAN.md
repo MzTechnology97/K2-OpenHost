@@ -12,7 +12,7 @@ Created on 2026-10-03. The code under test is the `kalico-k2pro` branch `cfs-ups
   ```bash
   ssh cm5 'cd ~/klipper && git log --oneline -1'
   ```
-  must show `c1b8613d feat(cfs): integrate upstream firmware sync 071c813 ...`.
+  must be on `k2-pro-openhost` (it was `c1b8613d` when this plan was written; `d2a30105` on 2026-10-06).
 - [ ] `macros.cfg` on the CM5 contains `_BOX_RESUME_PREPARE` (the new macros).
 - [ ] No pending recovery checkpoint: `PLR_STATUS` must report `recoverable=False`. Otherwise run `PLR_DISCARD`.
 - [ ] CFS (slot indices as in Mainsail, labels as in the messages):
@@ -151,7 +151,7 @@ Run them in this order: each test relies on what the previous one verified.
    - `Auto runout swap complete: Box 1, slot 3 active`.
 4. Check:
    - `box.print_mapping.map` now points to the new slot (e.g. `{"0": 2}`);
-   - the source slot is marked empty, and its profile has **not** disappeared (that was the bug that was fixed).
+   - the source slot keeps its profile until the swap is decided (that was the bug that was fixed), then the empty bay is cleared.
 
 **Stop if:** the print pauses instead of swapping. Note the reason shown and the `box.recovery` state, then try **RESUME**: it should retry by itself.
 
@@ -199,10 +199,10 @@ A separate, step-by-step guided session: connection to the CM5, check of `/dev/s
 
 | Test | Date | Result | Notes (messages, log time) |
 |---|---|---|---|
-| T0 `z_align` homing | | | |
-| T1 automatic mapping + pause/slot change | | | |
+| T0 `z_align` homing | 2026-10-05 | passed | 16 homings in the day, all `MCU z-align attempt 1/5: delta 0.0000mm`, no photoelectric error |
+| T1 automatic mapping + pause/slot change | 2026-10-05 | mapping passed; pause not run | normal start of an 18 h PLA print: `map = {"0": 3}`, T0 loaded from Box 1, slot 4 |
 | T2 two-colour `BOX_PRINT_START` + pause | | | |
-| T3 automatic runout swap | | | |
+| T3 automatic runout swap | 2026-10-06 | passed | natural end of the PLA spool in slot 4 instead of a cut; swap to slot 2 at the next gap infill, map `{"0": 1}`, print went on |
 | T4A power-loss recovery, single colour | | | |
 | T4B power-loss recovery, two colours | | | |
 | T5 Cartographer direct USB | | | |

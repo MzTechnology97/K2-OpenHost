@@ -189,17 +189,17 @@ Questo è stato il primo passo di validazione sulla K2 Pro reale e resta la conf
 - inventario reale `box.slots` e metadata CFS in modalità Box operativa;
 - auto-map backend contro metadata reali degli slot;
 - comportamento fail-safe unresolved quando manca un inventario fisico compatibile;
-- preferenza per la minore percentuale RFID nota tra candidati altrimenti equivalenti.
+- preferenza per la minore percentuale RFID nota tra candidati altrimenti equivalenti;
+- associazione automatica all'avvio normale di una stampa vera: T0 → Box 1, slot 4 (5 ottobre 2026);
+- cambio bobina automatico durante quella stampa: slot 4 → slot 2, con la mappa aggiornata a `{"0": 1}` (6 ottobre 2026).
 
 Un `cubo.gcode` PETG a due tool è stato analizzato correttamente. Con metadata temporanei PETG nero e ciano sugli slot fisici il backend ha prodotto `{0:1, 1:2}`; dopo la rimozione dei profili temporanei entrambi i tool sono tornati correttamente unresolved invece di selezionare una sorgente incompatibile.
 
 ### Da validare sull'hardware
 
-1. `BOX_PRINT_START` controllato con singolo tool;
-2. mappatura tool logico -> slot fisico differente durante una stampa reale;
-3. tool change multimateriale controllato, inclusi purge matrix e temperature;
-4. interazioni runout/recovery durante job mappato;
-5. stima residua RFID real-time durante una stampa completa;
-6. stampa completa supervisionata.
+1. `BOX_PRINT_START` monocolore avviato dalla finestra di mappatura di Mainsail (l'associazione automatica all'avvio normale è fatta);
+2. cambio utensile multimateriale controllato, con matrice di spurgo e temperature;
+3. pausa e ripresa con cambio slot durante una stampa mappata (il cambio bobina senza pausa è fatto);
+4. stima residua RFID in tempo reale su una stampa completa, e la stampa completa stessa: una stampa monocolore di 18 ore era all'89 % senza errori il 6 ottobre 2026.
 
 Il percorso di stampa CFS mappato non va considerato production-ready finché questi test hardware non sono conclusi.
