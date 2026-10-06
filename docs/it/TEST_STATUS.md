@@ -163,6 +163,10 @@ Il 5 ottobre il CM5 è stato riavviato da Moonraker. È tornato in circa 15 s co
 
 Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: slot B 0.1.1 installato con l'installer helper e confermato come predefinito. Dopo uno spegnimento e una riaccensione completi la stampante è ripartita da sola: `k2oh-mcu` ha avviato le schede, poi i bridge, e Klipper sul CM5 era pronto senza `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connesso, HelixScreen sul pannello). La prima installazione (0.1.0) ha trovato sei problemi, tutti corretti; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
 
+### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
+
+`k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
 ### Plugin Cartographer / bridge sperimentale
 
 Il plugin K2/OpenHost Cartographer è stato installato come pacchetto editable e il relativo adapter Kalico viene caricato correttamente. Durante l'esperimento MUX/DEMUX sul T113:
@@ -193,8 +197,8 @@ Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test
 - `PLR_RECOVER` dopo un'interruzione di corrente controllata, monocolore e a due colori (T4);
 - il watchdog RS-485 che mette in pausa una stampa vera: finora è andato solo il caso a stampante ferma;
 - il rilevamento del CFS quando l'RS-485 è giù all'avvio di Klipper (kalico-k2pro #24, unita, non ancora vista dal vivo);
-- l'aggiornamento del firmware delle MCU dallo slot B (`k2oh-mcu-fw apply`);
-- l'aggiornamento firmware del CFS tramite il bootstrap (`k2oh-mcu-fw apply --cfs`, da 1.1.3 a 1.5.3 sull'unità G32);
+- un `k2oh-mcu-fw apply --cfs` originale con la lista CFS messa da parte del bootstrap 0.1.2, e l'installazione dell'immagine 0.1.2;
+- un'immagine CFS personalizzata rivista (l'immagine diagnostica RFID v2.1 non è partita, vedi sopra);
 - il pressure advance con la cella di carico dell'ugello (kalico-k2pro #29, in bozza): archiviato il 6 ottobre 2026 come da sviluppare, il modulo è disattivato; i risultati sono in `docs/K2_Load_Cell_PA.md` di kalico-k2pro;
 - proseguire con lo split UI e il futuro percorso display sul T113.
 

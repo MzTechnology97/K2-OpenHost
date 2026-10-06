@@ -163,6 +163,10 @@ On 2026-10-05 the CM5 was rebooted from Moonraker. It was back in about 15 s wit
 
 The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.1.1 installed with the installer helper and kept as the default. After a full power cycle the printer came up by itself: `k2oh-mcu` started the boards, then the bridges, and Klipper on the CM5 was ready with no `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connected, HelixScreen on the panel). The first install (0.1.0) found six problems, all fixed; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
 
+### MCU firmware update from slot B (2026-10-06)
+
+`k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
 ### Cartographer plugin / experimental bridge
 
 The K2/OpenHost Cartographer plugin has been installed as an editable package and its Kalico adapter loads correctly. During the experimental T113 MUX/DEMUX test:
@@ -193,8 +197,8 @@ The step-by-step procedures for the physical tests below are in the [hardware te
 - `PLR_RECOVER` after a supervised power cut, single colour and two colours (T4);
 - the RS-485 watchdog pausing a real print: so far only the standby path has run;
 - CFS discovery when RS-485 is down at Klipper start (kalico-k2pro #24, merged, not seen live yet);
-- MCU firmware flashing from slot B (`k2oh-mcu-fw apply`);
-- CFS firmware update through the bootstrap (`k2oh-mcu-fw apply --cfs`, 1.1.3 → 1.5.3 on the G32 unit);
+- a stock `k2oh-mcu-fw apply --cfs` with bootstrap 0.1.2's held CFS list, and installing the 0.1.2 image;
+- a revised custom CFS image (the v2.1 RFID diagnostic image did not start, see above);
 - nozzle load cell pressure advance (kalico-k2pro #29, draft): archived on 2026-10-06 as still to develop, the module is disabled; results in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
 - UI split work, including the eventual T113 screen path.
 
