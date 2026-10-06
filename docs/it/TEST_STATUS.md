@@ -159,6 +159,10 @@ Il 5 ottobre alle 17:40, a stampante ferma, nessun dispositivo RS-485 (CFS, moto
 
 Il 5 ottobre il CM5 è stato riavviato da Moonraker. È tornato in circa 15 s con le porte seriali, Klipper `ready`, RS-485, CFS e motori; i bridge del T113 hanno riaperto le porte da soli (stessi PID). CPU a riposo: klippy 1,3 %, ogni bridge 0,1–0,5 %. Dettagli in [Bridge USB](USB_BRIDGE.md).
 
+### Slot B del T113 (6 ottobre 2026)
+
+Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: slot B 0.1.1 installato con l'installer helper e confermato come predefinito. Dopo uno spegnimento e una riaccensione completi la stampante è ripartita da sola: `k2oh-mcu` ha avviato le schede, poi i bridge, e Klipper sul CM5 era pronto senza `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connesso, HelixScreen sul pannello). La prima installazione (0.1.0) ha trovato sei problemi, tutti corretti; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
 ### Plugin Cartographer / bridge sperimentale
 
 Il plugin K2/OpenHost Cartographer è stato installato come pacchetto editable e il relativo adapter Kalico viene caricato correttamente. Durante l'esperimento MUX/DEMUX sul T113:
@@ -189,9 +193,9 @@ Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test
 - `PLR_RECOVER` dopo un'interruzione di corrente controllata, monocolore e a due colori (T4);
 - il watchdog RS-485 che mette in pausa una stampa vera: finora è andato solo il caso a stampante ferma;
 - il rilevamento del CFS quando l'RS-485 è giù all'avvio di Klipper (kalico-k2pro #24, unita, non ancora vista dal vivo);
-- un riavvio del T113 con i bridge, e lo slot B sull'hardware (costruito offline, mai avviato);
+- l'aggiornamento del firmware delle MCU dallo slot B (`k2oh-mcu-fw apply`);
 - l'aggiornamento firmware del CFS tramite il bootstrap (`k2oh-mcu-fw apply --cfs`, da 1.1.3 a 1.5.3 sull'unità G32);
-- l'acquisizione dalla cella di carico dell'ugello e il pressure advance sperimentale (kalico-k2pro #29, in bozza): la procedura è in `docs/K2_Load_Cell_PA.md` di kalico-k2pro;
+- il pressure advance con la cella di carico dell'ugello (kalico-k2pro #29, in bozza): archiviato il 6 ottobre 2026 come da sviluppare, il modulo è disattivato; i risultati sono in `docs/K2_Load_Cell_PA.md` di kalico-k2pro;
 - proseguire con lo split UI e il futuro percorso display sul T113.
 
 ## Non ancora production-ready

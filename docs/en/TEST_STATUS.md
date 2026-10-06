@@ -159,6 +159,10 @@ On 2026-10-05 at 17:40, with the printer idle, no RS-485 device (CFS, X and Y mo
 
 On 2026-10-05 the CM5 was rebooted from Moonraker. It was back in about 15 s with the serial ports, Klipper `ready`, RS-485, CFS and motors, and the T113 bridges reopened by themselves (same PIDs). Idle CPU: klippy 1.3 %, each bridge 0.1–0.5 %. Details in [USB bridge](USB_BRIDGE.md).
 
+### T113 slot B (2026-10-06)
+
+The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.1.1 installed with the installer helper and kept as the default. After a full power cycle the printer came up by itself: `k2oh-mcu` started the boards, then the bridges, and Klipper on the CM5 was ready with no `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connected, HelixScreen on the panel). The first install (0.1.0) found six problems, all fixed; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
 ### Cartographer plugin / experimental bridge
 
 The K2/OpenHost Cartographer plugin has been installed as an editable package and its Kalico adapter loads correctly. During the experimental T113 MUX/DEMUX test:
@@ -189,9 +193,9 @@ The step-by-step procedures for the physical tests below are in the [hardware te
 - `PLR_RECOVER` after a supervised power cut, single colour and two colours (T4);
 - the RS-485 watchdog pausing a real print: so far only the standby path has run;
 - CFS discovery when RS-485 is down at Klipper start (kalico-k2pro #24, merged, not seen live yet);
-- a T113 reboot with the bridges, and slot B on hardware (built offline, never booted);
+- MCU firmware flashing from slot B (`k2oh-mcu-fw apply`);
 - CFS firmware update through the bootstrap (`k2oh-mcu-fw apply --cfs`, 1.1.3 → 1.5.3 on the G32 unit);
-- nozzle load cell capture and experimental pressure advance (kalico-k2pro #29, draft): procedure in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
+- nozzle load cell pressure advance (kalico-k2pro #29, draft): archived on 2026-10-06 as still to develop, the module is disabled; results in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
 - UI split work, including the eventual T113 screen path.
 
 ## Not production-ready
