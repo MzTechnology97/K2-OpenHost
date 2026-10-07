@@ -180,9 +180,10 @@ procd è stato emulato con un servizio temporaneo creato via `ubus` (solo in RAM
 | Gadget scollegato 10 s, poi ricollegato | Main e Nozzle **muoiono** per EIO e nessuno li riavvia; RS-485 **gira al 104% di CPU** su un descrittore morto e non inoltra più nulla. Klipper non si è ripreso finché i bridge non sono stati riavviati a mano. | Main e Nozzle escono per EIO e procd li riavvia; tutti e tre riaprono la porta all'EOF. L'RS-485 è tornato da solo. |
 | Stesso test, lato CM5, con `serial: /dev/ttyUSBn` | le porte tornano come `ttyUSB2/3/4` perché Klipper tiene ancora le vecchie: `FIRMWARE_RESTART` fallisce (tre tentativi); per ripristinare serve fermare Klipper e far ri-enumerare il gadget | uguale |
 | Stesso test, con `serial: /dev/serial/by-id/...` | — | **`FIRMWARE_RESTART` ripristina** (il primo tentativo incontra il noto "Failed automated reset", il secondo riesce); RS-485 ok, motori X/Y verificati |
-| Riavvio del T113 o del CM5 | non eseguito: il riavvio richiede il tuo via libera | atteso come il test del gadget: un riavvio del CM5 toglie l'host USB (EOF sul gadget, i bridge riaprono); un riavvio del T113 toglie il device (le porte dell'host spariscono, Klipper va in shutdown, `FIRMWARE_RESTART` quando i bridge sono attivi) |
+| Riavvio del CM5 (5 ottobre 2026, da Moonraker) | — | EOF sul gadget, i bridge hanno riaperto le porte con gli stessi PID. Il CM5 è tornato in circa 15 s con porte seriali, Klipper `ready`, RS-485, CFS e motori. |
+| Riavvio del T113 | non eseguito: il riavvio richiede il tuo via libera | atteso: le porte dell'host spariscono, Klipper va in shutdown, `FIRMWARE_RESTART` quando i bridge sono attivi. Oggi i bridge girano dalla RAM sullo slot A, quindi dopo un riavvio del T113 vanno riavviati. |
 
-Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene rilevato e resta così anche quando il collegamento torna; un `RESTART` di Klipper lo risolve.
+Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene rilevato e resta così anche quando il collegamento torna; un `RESTART` di Klipper lo risolve. kalico-k2pro [#24](https://github.com/MzTechnology97/kalico-k2pro/pull/24) rileva di nuovo il CFS quando il collegamento torna; è unita ma non l'ho ancora vista dal vivo.
 
 ## Bridge nativo in C: confronto (non implementato)
 
@@ -205,8 +206,20 @@ Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene
    - Fatto in kalico-k2pro [#20](https://github.com/MzTechnology97/kalico-k2pro/pull/20).
    - Fatto sul CM5 di sviluppo, con un backup del vecchio `printer.cfg`.
 3. **Valutare di spostare il cavo del T113 su una porta USB RP1 (`xhci`) del CM5** invece della porta `dwc2` dietro l'hub. Toglie circa 8 000 interrupt/s al CM5. È una modifica fisica, da misurare con lo stesso metodo dopo lo spostamento.
-4. **Raffreddamento del CM5.** A riposo il CM5 stava a 70–78 °C ed è andato in throttling a 85 °C con un bug che consumava CPU. Controllare `vcgencmd get_throttled` dopo le stampe lunghe.
+4. **Raffreddamento del CM5.** A riposo il CM5 stava a 70–78 °C ed è andato in throttling a 85 °C con un bug che consumava CPU. Controllare `vcgencmd get_throttled` dopo le stampe lunghe. Dopo la stampa lunga del 5-6 ottobre dava `0xe0000`: limitato almeno una volta dall'avvio, non al momento della lettura.
 5. **Lasciare `nice`, RR e affinità degli IRQ ai valori predefiniti** finché una misura più lunga non mostra una differenza maggiore della variabilità tra corse identiche.
+
+## Risultato della stampa lunga (5-6 ottobre 2026)
+
+Una stampa PLA da 18 h 44 min con il servizio `k2oh-bridge` sullo slot A, `serial: /dev/serial/by-id/...` e `[link_monitor]` a `interval: 60`. Su 930 righe da un minuto per canale:
+
+| Canale | p50 | p99 (mediana delle righe) | caso peggiore | Ritrasmissioni / errori |
+| --- | --- | --- | --- | --- |
+| Main MCU | 1,17 ms | 5,25 ms | 18,8 ms | 0 byte |
+| Nozzle MCU | 1,04 ms | 3,01 ms | 16,4 ms | 0 byte |
+| RS-485 | 1,87 ms | 3,36 ms | 4,4 s (una lettura RFID) | 0 timeout, 0 errori CRC |
+
+Sul T113 i bridge hanno perso 0 byte, con 0 errori di scrittura e senza mai accodare (`max_pending` 0). Anche il cambio bobina del CFS durante la stampa è passato da questo canale RS-485.
 
 ## Modalità di misura per stampe lunghe
 

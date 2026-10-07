@@ -38,6 +38,16 @@ Entrambe le opzioni sono spente di default.
 
 Un bridge caduto e riavviato da procd entro 1,5 s ha lasciato Klipper `ready`, anche durante il moto. Per riprendersi con `FIRMWARE_RESTART` dopo una riconnessione USB, l'host deve usare `serial: /dev/serial/by-id/...`. Vedi i test di guasto in [Bridge USB](USB_BRIDGE.md#test-di-guasto).
 
+## Visto dal vivo
+
+Il 5 ottobre 2026 alle 17:40, a stampante ferma, i dispositivi RS-485 (CFS, motori X e Y) hanno smesso di rispondere per circa 30 s:
+
+- `serial_485` ha registrato timeout, 2 errori CRC e un gruppo di frame senza corrispondenza, poi `RS-485 link lost` dopo 10 s senza risposte;
+- circa 30 s dopo ha registrato da solo `RS-485 link restored`. Klipper è rimasto `ready` e la stampa successiva è andata normalmente;
+- il CM5 era scarico e non ha visto disconnessioni USB; i bridge del T113 non hanno perso byte e nessun altro processo aveva la porta aperta.
+
+I tre dispositivi si sono fermati insieme e poi sono arrivati dati sporchi: fa pensare a un disturbo sul bus o sul percorso USB più che al software. Probabilmente è successo mentre collegavo una webcam USB al CM5. Quella webcam sta sullo stesso hub `dwc2` del gadget del T113, quindi conviene collegare dispositivi USB a stampante ferma, oppure su un'altra porta.
+
 Cosa fare passo per passo: [Procedura di ripristino](RECOVERY.md).
 
 ## Ancora da provare
