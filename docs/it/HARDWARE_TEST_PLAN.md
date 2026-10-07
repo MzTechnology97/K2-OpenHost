@@ -13,7 +13,7 @@ Creato il 2026-10-03. Il codice da provare è il ramo `cfs-upstream-071c813` di 
   ssh cm5 'cd ~/klipper && git log --oneline -1'
   ```
   deve essere su `k2-pro-openhost` (era `c1b8613d` quando è stato scritto questo piano; `d2a30105` il 6 ottobre 2026).
-- [ ] `macros.cfg` sul CM5 contiene `_BOX_RESUME_PREPARE` (le macro nuove).
+- [ ] `macros/print.cfg` sul CM5 contiene `_BOX_RESUME_PREPARE` (le macro nuove; prima del riordino del 7 ottobre 2026: `macros.cfg`).
 - [ ] Nessun checkpoint di ripresa in sospeso: `PLR_STATUS` deve riportare `recoverable=False`. Altrimenti `PLR_DISCARD`.
 - [ ] CFS (indici slot come in Mainsail, etichette come nei messaggi):
 

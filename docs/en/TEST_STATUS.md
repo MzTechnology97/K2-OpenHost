@@ -167,6 +167,20 @@ The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.
 
 `k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
 
+### Reference printer, 2026-10-07
+
+After a 9 h 22 min PLA print from slot B (no disconnection; 3 single RS-485 timeouts in 8.4 h, recovered):
+
+- **CFS state on firmware 1.5.3:** command `0x0A` answers with 6 bytes, decoded by the original path. Raw replies: idle `1d 26 00 00 00 00`, slot 1 loaded `1d 26 00 02 01 00` (state PRINT, slot mask `0x01`): the loaded slot comes from the CFS. Details in [CFS validation](CFS_VALIDATION.md).
+- **Load and unload from unhomed axes:** the nozzle heats while X/Y home, the head waits for the temperature over the wastebin, then cuts and unloads (or loads and purges). Before, the wait happened in the endstop corner.
+- **RFID:** a reread of the slot loaded toward the printhead is refused; while a filament is loaded the CFS answers `BUSY` to RFID reads of any slot (also on 1.1.3).
+- **Native fan tachometers:** part fan 8276 RPM at 50 % and 13599 RPM at 100 %, heatbreak fan ~11 900 RPM, chamber heater fan ~7 600 RPM.
+- **Clog detection switch** off and on, kept across Klipper restarts.
+- **Service moves with Z unhomed**, also with a bed mesh loaded: `BOX_GO_TO_WASTEBIN` and `NOZZLE_CLEAN` end exactly at the wastebin (124.000 / 329.000).
+- **Bottom-switch Z drop** at `quick_speed: 30` (~9.4 mm/s instead of ~3.1 mm/s).
+- **Mainsail controls:** Axis Twist Compensation switch and Chamber Exhaust Fans slider (minimum speed of the temperature-controlled fans), Toolhead / Side Part Fan labels.
+- **Config layout:** the printer config moved to `printer.cfg` + `macros/`; the configuration Klipper loads is identical (checked section by section).
+
 ### Cartographer plugin / experimental bridge
 
 The K2/OpenHost Cartographer plugin has been installed as an editable package and its Kalico adapter loads correctly. During the experimental T113 MUX/DEMUX test:

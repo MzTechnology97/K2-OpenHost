@@ -80,7 +80,7 @@ curl -s "http://k2host.local:7125/server/database/item?namespace=lane_data"
 
 ## Turn it off
 
-In `box.cfg`:
+In `macros/box.cfg`:
 
 ```ini
 [box]
