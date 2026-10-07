@@ -1,8 +1,8 @@
 # T113 bootstrap (slot B)
 
-Updated: **2026-10-04**. [Italiano](../it/T113_BOOTSTRAP.md)
+Updated: **2026-10-06**. [Italiano](../it/T113_BOOTSTRAP.md)
 
-Status: **built and tested offline; not yet booted on a printer.** Read the [disclaimer](DISCLAIMER.md) first.
+Status: **running on the reference printer since 2026-10-06** (bootstrap 0.1.1, base 1.1.0.94): slot B kept as the default and checked with a full power cycle. The boards were updated to Creality 1.1.7.0 with `k2oh-mcu-fw update`; the fixes it showed are in bootstrap 0.1.2 (see [Status](#status)). Read the [disclaimer](DISCLAIMER.md) first.
 
 > [!IMPORTANT]
 > This work was prepared and tested on the K2 Pro stock firmware **1.1.0.94**, the version on the reference printer. Newer Creality releases are accepted with a warning, but **on firmware other than 1.1.0.94 the correct operation of the bootstrap and of the T113 USB gadget (OTG) mode is not guaranteed.** The slot B build refuses a release whose boot scripts it changes differ from the reviewed ones; they are identical in 1.1.7.0.
@@ -23,7 +23,8 @@ The T113 bootstrap prepares the K2 Pro's own T113 board for K2-OpenHost. It is d
 
 - **USB gadget:** three Generic Serial functions (`0525:a4a6`).
 - **Bridges:** one bridge per bus (`ttyGS0↔ttyS2` Main MCU, `ttyGS1↔ttyS3` Nozzle MCU, `ttyGS2↔ttyS5` RS-485/CFS/motors), 230400 8N1. It is the bridge validated on the reference printer, restarted by procd.
-- **Stock `mcu_update`:** starts the Main and Nozzle MCU applications at every boot.
+- **`k2oh-mcu`:** at every boot it power-cycles the MCU rail, runs Creality's stock `mcu_update` (it starts the Main and Nozzle MCU applications and reflashes any board whose version differs), and only then starts the bridges. On the first boot `mcu_update` ran in parallel with the bridges, which took its answers: the boards stayed in Creality's loader.
+- **Serial names on the host:** slot B's gadget has other `/dev/serial/by-id` names than slot A's stock gadget. The host uses `/dev/k2-main`, `/dev/k2-nozzle` and `/dev/k2-rs485` (udev, by interface), the same in both slots; the installer helper sets them.
 - **Wi-Fi:** works without Creality's `wifi-server`, using the networks copied from slot A.
 - **HelixScreen:** installed at the first boot and pointed at the external host's Moonraker.
 - **`k2oh-mcu-fw`:** manual MCU, motor and CFS firmware updates (below).
@@ -48,7 +49,7 @@ The short way is `k2oh-mcu-fw update` (installer menu 31). It downloads the **la
 3. `k2oh-mcu-fw stage` puts them in slot B.
 4. `k2oh-mcu-fw apply` flashes them, only while the host Klipper is stopped.
 
-**CFS:** `apply --cfs` adds a second pass through `/tmp/cfs_update.json`. Its format was recovered from `mcu_util_485`:
+**CFS:** `mcu_util_485` flashes a CFS at every run when `fw/cfs/version.json` lists another version for it, with or without the CFS pass. From bootstrap 0.1.2 slot B keeps that list empty (the real one waits in `version.json.k2oh`), so only `apply --cfs` touches the CFS. `apply --cfs` uses the real list and adds a second pass through `/tmp/cfs_update.json`. Its format was recovered from `mcu_util_485`:
 
 ```json
 {"CFSs": [{"uuid": "<12-byte UniID, lowercase hex, space separated>", "fw": "<file>"}]}
@@ -75,6 +76,10 @@ Slot A flashes its own release's files back at its next boot (the stock script r
 | Slot B build (file-by-file vs stock), stock OTA download/MD5, scripts on the printer's own BusyBox/Python 3.9 | verified offline on 1.1.0.94 |
 | Newer release 1.1.7.0 | same boot scripts, services and gadget-capable kernel; slot B builds with the "not tested" warning; not booted |
 | Bridge with pseudo-terminals, firmware extraction vs `unsquashfs`, release download 1.1.7.0, CFS planning, HelixScreen install (chroot) | verified offline |
-| Writing slot B, trial boot, gadget/bridges on slot B, HelixScreen on the panel, `k2oh-mcu-fw apply` | **pending hardware validation** |
+| First install and trial boot, 0.1.0 (2026-10-06) | slot B written and read back, trial boot and return to slot A worked; gadget, bridges, `k2oh-ctl` and HelixScreen worked. Six problems found: the boards did not start, different SSH host key, other by-id names, HelixScreen saw 0 MB free, a 120 s HelixScreen wait; in the helper, `boot-b` never rebooted. Fixed in bootstrap 0.1.1 and the helper ([bootstrap#8](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap/pull/8), [helper#12](https://github.com/MzTechnology97/k2-openhost-installer-helper/pull/12)) |
+| 0.1.1 on the reference printer (2026-10-06) | install, trial boot and `boot-a` with the helper; boards started by `k2oh-mcu` at boot; slot B committed; **full power cycle**: slot B came up by itself and Klipper on the CM5 was ready with no `FIRMWARE_RESTART`, CFS OK, `[k2_t113]` connected, HelixScreen on the panel |
+| `k2oh-mcu-fw update` to 1.1.7.0 (2026-10-06) | motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged, all started; Klipper, CFS and motors OK afterwards. The CFS was flashed too (113 → 153) without `--cfs`: fixed in 0.1.2 |
+| Custom CFS image (`--cfs-image`, 2026-10-06) | flashed, but the CFS loader refused to start it (`start_app NACK`): 0.1.1 named the staged copy after its SHA-256, which `mcu_util_485` wrote as the version. Recovered with the stock 153. Fixed in 0.1.2; the image is being revised |
+| Still to run on hardware | a stock `apply --cfs` with 0.1.2's held CFS list; a revised custom CFS image; installing the 0.1.2 image (its two fixed tools were copied by hand into the running slot B) |
 
 A control plane for the other T113 service GPIOs ([T113 service GPIOs](T113_GPIO.md)) can live in slot B later. It is not part of this release.

@@ -70,7 +70,7 @@ As of **2026-10-02**:
 - A resonance test using **Klippain-ShakeTune** completed successfully on the OpenHost stack.
 - RS-485/CFS transport remains functional on `/dev/ttyUSB2`; the earlier duplicate-bridge/process-contention issue has been identified and removed.
 - The stock T113 service GPIO map is recovered, including MCU power (`GPIO140`), nozzle-camera power (`162`), buzzer (`164`), USB-hub reset (`165`) and UDISK power (`210`); no CM5-direct wiring for these nets has been proven.
-- The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path, load-path state and per-slot RFID reads.
+- The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path (CFS firmware 1.1.3; 1.5.3 answers with the original 6 bytes), load-path state and per-slot RFID reads.
 - The normalized `box` object exposes persistent filament inventory, RFID material identity, hardware-reported remaining percentage and the OpenHost live remaining-filament estimate (the estimator is implemented and source-tested; its behaviour over a complete supervised print is still pending).
 - K2-RFID/Creality material-database compatibility is validated with custom tags: five-digit database IDs and `1xxxxx` RFID material IDs resolve to one reusable material profile while per-spool color remains slot metadata.
 - A per-slot forced RFID reread path is available for marginal/self-programmed tags; startup no longer blocks on a slow invalid RFID cache entry.
