@@ -16,12 +16,13 @@ The project is deliberately split into several repositories so upstream authorsh
 ## Repository ecosystem / Ecosistema repository
 
 - **[MzTechnology97/K2-OpenHost](https://github.com/MzTechnology97/K2-OpenHost)** — canonical architecture, test results, validation notes and roadmap.
-- **[MzTechnology97/kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro)** — fork of **Jacob10383/kalico**, itself based on the Kalico project. The active integration branch is `k2-pro-openhost`.
+- **[MzTechnology97/kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro)** — fork of **Jacob10383/kalico**, itself based on the Kalico project. The active integration branch is `k2-pro-openhost`, the repository's default branch. The K2 profile lives in `config/k2/`: a lean `printer.cfg` and the printer files in `macros/`.
 - **[MzTechnology97/k2-pro-custom-firmware](https://github.com/MzTechnology97/k2-pro-custom-firmware)** — fork of **Jacob10383/k2-plus-custom-firmware**, **archived on 2026-10-04** (read-only history of the first K2 Pro/OpenHost patches to Jacobean's extras). The K2 extras are maintained in `kalico-k2pro`; upstream changes are reviewed directly against Jacob10383's repositories.
 - **[MzTechnology97/k2-openhost-t113-bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap)** — the printer side: K2-OpenHost system for the T113 slot B (USB gadget bridges, HelixScreen, Creality MCU/motor/CFS firmware updates). Prepared and tested on stock firmware 1.1.0.94; not guaranteed on newer releases. See [T113 bootstrap](docs/en/T113_BOOTSTRAP.md) / [IT](docs/it/T113_BOOTSTRAP.md).
 - **[Cartographer3D/cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin)** — the official Cartographer plugin, used unchanged (it supports Kalico and the K2 directly, as in Jacob10383's firmware). The former `cartographer3d-plugin-k2openhost` fork was archived on 2026-10-04. See [Cartographer](docs/en/CARTOGRAPHER.md) / [IT](docs/it/CARTOGRAPHER.md).
 - **[MzTechnology97/k2-improvements](https://github.com/MzTechnology97/k2-improvements)** — attributed reference fork in the `jamincollins -> Jacob10383` lineage.
-- **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork retained for the OpenHost UI track; upstream Mainsail authorship remains unchanged.
+- **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork for the OpenHost UI (branch `develop`): CFS panel with filament mapping, runout order and settings (runout swap, unload after print, RFID reads, clog detection), filament warnings, motor and RS-485 counters, part fan labels; upstream Mainsail authorship remains unchanged.
+- **[pedrolamas/klipper-virtual-pins](https://github.com/pedrolamas/klipper-virtual-pins)** — third-party Klipper module, installed unchanged on the host, used for the Mainsail **Axis Twist Compensation** switch (`config/k2/macros/openhost_controls.cfg`).
 - **[MzTechnology97/k2-openhost-firmware-tools](https://github.com/MzTechnology97/k2-openhost-firmware-tools)** — read-only tooling to inventory, compare and probe K2 peripheral (MCU, motor, CFS) firmware from the OpenHost host; controlled flashing is a later phase.
 - **[MzTechnology97/k2-openhost-installer-helper](https://github.com/MzTechnology97/k2-openhost-installer-helper)** — installer that prepares an external Linux host (Kalico K2-OpenHost, K2 Pro profile, Moonraker, Mainsail fork, udev names and start gate); experimental, pending a fresh-host test. A T113 bootstrap will follow after the hardware tests.
 
@@ -46,15 +47,17 @@ Raspberry Pi CM5 / external Linux host
   - Moonraker
   - mainsail-k2openhost
         |
-        +-- ttyUSB0 -> T113 ttyGS0 -> ttyS2 -> Main MCU
-        +-- ttyUSB1 -> T113 ttyGS1 -> ttyS3 -> Nozzle MCU
-        +-- ttyUSB2 -> T113 ttyGS2 -> ttyS5 -> RS-485 / CFS / closed-loop devices
-        `-- direct USB host -> Cartographer (preferred final topology)
+        +-- /dev/k2-main   -> T113 ttyGS0 -> ttyS2 -> Main MCU
+        +-- /dev/k2-nozzle -> T113 ttyGS1 -> ttyS3 -> Nozzle MCU
+        +-- /dev/k2-rs485  -> T113 ttyGS2 -> ttyS5 -> RS-485 / CFS / closed-loop devices
+        `-- direct USB host -> /dev/k2-cartographer (preferred final topology)
 ```
 
 The earlier Cartographer MUX/DEMUX experiment proved that Cartographer traffic could be carried through the T113 gadget path, but reset/re-enumeration and process-contention behaviour made that path unnecessarily fragile. The preferred architecture now keeps the three gadget serial channels dedicated to the original K2 buses and connects Cartographer directly to the CM5 USB host.
 
 ## Verified on the K2 Pro / Verificato sulla K2 Pro
+
+Since then (details in [test status](docs/en/TEST_STATUS.md) / [stato dei test](docs/it/TEST_STATUS.md)): long CFS prints and a live runout swap with the T113 on slot B, Creality 1.1.7.0 board firmware flashed from slot B, the CFS six-byte state on firmware 1.5.3, unload and slot change from unhomed axes with the heat-up over the wastebin, native fan tachometers, the clog detection switch, a faster bottom-switch Z drop and the printer config reorganised under `macros/` (2026-10-07).
 
 As of **2026-10-02**:
 

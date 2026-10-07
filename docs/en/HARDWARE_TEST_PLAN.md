@@ -13,7 +13,7 @@ Created on 2026-10-03. The code under test is the `kalico-k2pro` branch `cfs-ups
   ssh cm5 'cd ~/klipper && git log --oneline -1'
   ```
   must be on `k2-pro-openhost` (it was `c1b8613d` when this plan was written; `d2a30105` on 2026-10-06).
-- [ ] `macros.cfg` on the CM5 contains `_BOX_RESUME_PREPARE` (the new macros).
+- [ ] `macros/print.cfg` on the CM5 contains `_BOX_RESUME_PREPARE` (the new macros; before the 2026-10-07 reorganisation: `macros.cfg`).
 - [ ] No pending recovery checkpoint: `PLR_STATUS` must report `recoverable=False`. Otherwise run `PLR_DISCARD`.
 - [ ] CFS (slot indices as in Mainsail, labels as in the messages):
 

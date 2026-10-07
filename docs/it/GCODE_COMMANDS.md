@@ -4,7 +4,7 @@ Aggiornato: **5 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
 
 Questa pagina elenca tutti i comandi G-code che K2-OpenHost aggiunge a Kalico, divisi per tipologia. Vengono da due posti:
 - i moduli K2 di [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), ramo `k2-pro-openhost`;
-- le macro del profilo K2 in `config/k2/` (`macros.cfg`, `start_print.cfg`, `kamp.cfg`).
+- le macro del profilo K2 in `config/k2/macros/` (`print.cfg`, `kamp.cfg`, `fans.cfg`, `maintenance.cfg`, `openhost_controls.cfg`).
 
 I comandi standard di Klipper e Kalico (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBRATE`, `SET_FAN_SPEED`…) non sono ripetuti qui: vedi il [riferimento G-code di Kalico](https://docs.kalico.gg/G-Codes.html).
 
@@ -83,6 +83,7 @@ Interruttori del pannello CFS. Restano salvati anche dopo un riavvio.
 | `_BOX_SET_UNLOAD_AFTER_PRINT` | `[ENABLE=0]` | Scarica il filamento in automatico a fine stampa. |
 | `_BOX_SET_RFID_INSERT_READING` | `[ENABLE=0]` | Legge il tag RFID ogni volta che si inserisce una bobina. |
 | `_BOX_SET_RFID_STARTUP_READING` | `[ENABLE=0]` | Legge tutti i tag RFID all'avvio di Klipper. |
+| `_BOX_SET_CLOG_DETECTION` | `[ENABLE=1]` | Rilevamento intasamenti: pausa quando l'estrusore spinge `clog_extruder_length` (80 mm) mentre la CFS non ricarica. Lo salva la CFS; `clog_detection` in `box.cfg` è il valore predefinito. È anche lo switch **Clog detection** nel menu impostazioni della CFS in Mainsail. |
 
 ## 5. CFS: compatibilità con HelixScreen e Creality
 
@@ -126,7 +127,7 @@ I motori X, Y ed E della K2 Pro sono closed-loop, con un proprio controller sul 
 | `MOTOR_CLEAR_ERROR` | — | Legge i guasti attivi dei motori, li cancella e riporta il risultato. |
 | `MOTOR_RETRY_STARTUP` | — | Ripete la sequenza di avvio dei motori (per esempio dopo che il collegamento RS-485 è tornato). |
 | `REQUIRE_EXTRUDER_CLEAR` | — | Interrompe la macro in corso (di solito `RESUME`) se il motore dell'estrusore ha un guasto di protezione bloccato. Prima prova a cancellarlo una volta. |
-| `MOTOR_CFG_OVERRIDE_STATUS` | `[AXIS=XYE]` `[DETAIL=raw]` | Confronta i parametri dei motori impostati in `motor_control.cfg` con i valori che i motori hanno adesso. |
+| `MOTOR_CFG_OVERRIDE_STATUS` | `[AXIS=XYE]` `[DETAIL=raw]` | Confronta i parametri dei motori impostati in `macros/motor_control.cfg` con i valori che i motori hanno adesso. |
 | `MOTOR_READ_PARAM` | `PARAM=<nome>` | Legge un parametro di un motore, per esempio `PARAM=x_param_stall_cur_A`. |
 | `MOTOR_FLASH_PARAM` ⚠ | `PARAM=<nome>` `[VALUE]` `[COMMIT=0]` | Scrive un parametro di un motore e lo verifica. Senza `COMMIT=1` il valore resta solo fino al riavvio del motore; con `COMMIT=1` viene salvato nella flash del motore. Solo per assistenza. |
 | `MOTOR_READ_ALL_PIN_IO` | — | Legge le linee di step, direzione e stallo dei motori. |
@@ -141,7 +142,7 @@ I motori X, Y ed E della K2 Pro sono closed-loop, con un proprio controller sul 
 
 ## 9. Scheda T113 (cicalino, alimentazione MCU, bridge USB, schermo)
 
-Comunicano con `k2oh-ctl` sulla scheda T113 della stampante (`[k2_t113]` in `k2_t113.cfg`).
+Comunicano con `k2oh-ctl` sulla scheda T113 della stampante (`[k2_t113]` in `macros/k2_t113.cfg`).
 
 | Comando | Parametri | A cosa serve |
 | --- | --- | --- |
@@ -169,11 +170,12 @@ Solo lettura: mostrano informazioni e non cambiano niente.
 
 | Comando | Parametri | A cosa serve |
 | --- | --- | --- |
-| `M106` (macro) | `[P=0]` `[S=255]` | Velocità delle ventole: `P0` ventola pezzo, `P2` ventole ausiliarie, `P3` ventole di estrazione/filtro della camera (come velocità minima). |
+| `M106` (macro) | `[P=0]` `[S=255]` | Velocità delle ventole: `P0` ventola delle parti sulla testa, `P2` ventola delle parti laterale (`aux_fans`), `P3` ventole di estrazione/filtro della camera (come velocità minima). Mainsail le chiama **Toolhead Part Fan**, **Side Part Fan** e **Chamber Exhaust Fans**. |
 | `M107` (macro) | `[P=0]` | Spegne la ventola scelta con `P` (stessi numeri di `M106`). |
 | `M141` (macro) | `S=<°C>` | Temperatura della camera: sopra 40 °C usa il riscaldatore della camera, da 1 a 40 °C le ventole di estrazione tengono la camera sotto quel valore, 0 spegne entrambi. |
 | `M191` (macro) | `S=<°C>` | Come `M141`, poi aspetta che la camera arrivi alla temperatura. |
 | `SET_TEMPERATURE_FAN_MANUAL_SPEED` | `TEMPERATURE_FAN=<nome>` `SPEED=<0–1>` | Imposta una velocità minima per una ventola a controllo di temperatura (usato per il filtro della camera). Il controllo automatico può comunque farla girare più veloce. |
+| `SET_FAN_SPEED FAN=chamber_exhaust_fans` | `SPEED=<0–1>` | Lo slider **Chamber Exhaust Fans** di Mainsail: imposta la stessa velocità minima (`generic_fan: True` in `[temperature_fan_manual_floor chamber_exhaust_fans]`); `M106 P3` sposta lo slider. |
 | `LED_IDLE_MANAGER_ON` / `LED_IDLE_MANAGER_OFF` | — | Attiva o disattiva lo spegnimento automatico della luce per questa sessione di Klipper (la luce resta accesa durante la stampa e si spegne dopo un po' senza attività). |
 | `SET_LED_IDLE_MANAGER` | `[ENABLE=1]` | Uguale, con un parametro. |
 | `LED_IDLE_MANAGER_STATUS` | — | Mostra lo stato dello spegnimento automatico della luce. |
@@ -185,7 +187,7 @@ Solo lettura: mostrano informazioni e non cambiano niente.
 
 | Comando | Parametri | A cosa serve |
 | --- | --- | --- |
-| `START_PRINT` ⚠ | `[BED_TEMP=60]` `[EXTRUDER_TEMP=220]` `[CHAMBER_TEMP=0]` `[MIN_CHAMBER_TEMP]` `[MATERIAL]` `[SOAK_TIME]` `[ATC]` | Inizio stampa, chiamato dal G-code iniziale dello slicer: riscalda piatto e camera, attesa di riscaldamento facoltativa, homing, pulizia dell'ugello, mesh adattiva del piatto e compensazione della torsione dell'asse, homing di Z col tocco dell'ugello alla temperatura di stampa, poi riscalda l'ugello. |
+| `START_PRINT` ⚠ | `[BED_TEMP=60]` `[EXTRUDER_TEMP=220]` `[CHAMBER_TEMP=0]` `[MIN_CHAMBER_TEMP]` `[MATERIAL]` `[SOAK_TIME]` `[ATC]` | Inizio stampa, chiamato dal G-code iniziale dello slicer: riscalda piatto e camera, attesa di riscaldamento facoltativa, homing, pulizia dell'ugello a caldo sul cestino e di nuovo alla temperatura del tocco, mesh adattiva del piatto e compensazione della torsione dell'asse, homing di Z col tocco dell'ugello alla temperatura di stampa, poi riscalda l'ugello. |
 | `END_PRINT` ⚠ | — | Fine stampa: ritrae se l'ugello è caldo, spegne riscaldatori e ventole, alza Z e parcheggia al cestino. |
 | `PAUSE` ⚠ | `[SKIP_RETRACT_WIPE=0]` | Pausa: salva la temperatura da usare alla ripresa, abbassa l'ugello a 140 °C, ritrae e pulisce, alza Z, pulisce e parcheggia al cestino, spegne la ventola pezzo. |
 | `RESUME` ⚠ | `[VELOCITY]` | Ripresa: completa le operazioni del CFS interrotte, riscalda e innesca al cestino, ripristina le ventole e torna alla stampa. |
@@ -195,5 +197,10 @@ Solo lettura: mostrano informazioni e non cambiano niente.
 | `LUBRICATE_RAILS` ⚠ | `[ITERATIONS=1]` `[SPEED=500]` | Muove la testina da un angolo all'altro su tutto il piatto per distribuire il lubrificante delle guide. |
 | `LINE_PURGE` ⚠ | — | Linea di spurgo KAMP vicino agli oggetti stampati. |
 | `STATUS_MSG` | `MSG=<testo>` `[TYPE]` `[PREFIX]` `[DISPLAY]` | Mostra un messaggio nella console e sul display. |
+| `START_PRINT_ATC` | `[ENABLE=0\|1]` | Calibrazione della torsione dell'asse a inizio stampa accesa o spenta, salvata tra i riavvii (è anche lo switch **Axis Twist Compensation** in Mainsail); senza `ENABLE` mostra lo stato. Saltata quando la sonda è PRTouch. |
+| `WARMUP` ⚠ | `[LOOPS=3]` `[X_ACCEL_MAX=10000]` `[Y_ACCEL_MAX=10000]` | Prova di stress del movimento: passate in X, Y e diagonale sull'area del piatto (Y fino a 301 mm), poi ripristina i limiti configurati. |
+| `AUTO_WARMUP` ⚠ | `[CYCLES=3]` | Rodaggio lungo: `WARMUP` a tre accelerazioni con pause di 20 minuti, ripetuto `CYCLES` volte. |
+| `TEST_SPEED` ⚠ | `[SPEED]` `[ACCEL]` `[ITERATIONS=5]` `[BOUND=25]` `[SMALLPATTERNSIZE=20]` | Prova dei passi persi: `GET_POSITION` dopo l'homing X/Y, figure veloci sul piatto, poi di nuovo homing e `GET_POSITION`. |
+| `ACCELL_TEST_X` / `ACCELL_TEST_Y` ⚠ | `[STEPS=20]` `[ACCEL_START=10000]` `[ACCEL_STEP=1000]` `[VELOCITY=500]` `[VELOCITY_STEP=0]` | Un solo asse avanti e indietro (X a metà Y, Y a metà X); ogni passata alza accelerazione (e velocità) oltre i limiti configurati e viene scritta nel log; alla fine i limiti tornano quelli configurati. |
 
-Macro interne, usate da quelle sopra: `_START_PRINT_VARS` (impostazioni dell'avvio stampa, in `overrides.cfg`), `_PAUSE_CONTEXT`, `_PAUSE_Z_MOVE`, `_RETRACT_WIPE`, `_END_PRINT_Z_MOVE`, `_RESET_PRINT_STATE`, `_KAMP_Settings`, `_BOX_PAUSE_CAPTURE`, `_BOX_RESUME_PREPARE`, `_BOX_RESUME_COMMIT`.
+Macro interne, usate da quelle sopra: `_START_PRINT_VARS` (impostazioni dell'avvio stampa, in `macros/overrides.cfg`), `_NOZZLE_HOT_CLEAN`, `_MOTION_TEST_RESTORE`, `_PAUSE_CONTEXT`, `_PAUSE_Z_MOVE`, `_RETRACT_WIPE`, `_END_PRINT_Z_MOVE`, `_RESET_PRINT_STATE`, `_KAMP_Settings`, `_BOX_PAUSE_CAPTURE`, `_BOX_RESUME_PREPARE`, `_BOX_RESUME_COMMIT`.
