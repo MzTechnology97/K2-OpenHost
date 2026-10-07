@@ -167,6 +167,20 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
 
+### Stampante di riferimento, 7 ottobre 2026
+
+Dopo una stampa PLA di 9 h 22 min dallo slot B (nessuna disconnessione; 3 timeout RS-485 singoli in 8,4 h, recuperati):
+
+- **Stato della CFS con il firmware 1.5.3:** il comando `0x0A` risponde con 6 byte, decodificati dal percorso originale. Risposte grezze: a vuoto `1d 26 00 00 00 00`, slot 1 caricato `1d 26 00 02 01 00` (stato PRINT, maschera slot `0x01`): lo slot caricato lo indica la CFS. Dettagli in [Validazione CFS](CFS_VALIDATION.md).
+- **Carico e scarico da assi non homati:** l'ugello scalda mentre X/Y fanno l'homing, la testa aspetta la temperatura sul cestino, poi taglia e scarica (o carica e spurga). Prima l'attesa avveniva nell'angolo degli endstop.
+- **RFID:** la rilettura dello slot caricato verso la testa è rifiutata; con un filamento caricato la CFS risponde `BUSY` alla lettura RFID di qualsiasi slot (anche con la 1.1.3).
+- **Tachimetri nativi delle ventole:** ventola delle parti 8276 RPM al 50 % e 13599 RPM al 100 %, heatbreak circa 11 900 RPM, ventola del riscaldatore della camera circa 7 600 RPM.
+- **Switch del rilevamento intasamenti** spento e acceso, mantenuto dopo i riavvii di Klipper.
+- **Movimenti di servizio con Z non homato**, anche con una mesh caricata: `BOX_GO_TO_WASTEBIN` e `NOZZLE_CLEAN` arrivano esattamente al cestino (124,000 / 329,000).
+- **Discesa Z sul finecorsa basso** con `quick_speed: 30` (~9,4 mm/s invece di ~3,1 mm/s).
+- **Controlli in Mainsail:** switch Axis Twist Compensation e slider Chamber Exhaust Fans (velocità minima delle ventole a controllo di temperatura), etichette Toolhead / Side Part Fan.
+- **Organizzazione della configurazione:** la config della stampante è passata a `printer.cfg` + `macros/`; la configurazione caricata da Klipper è identica (verificata sezione per sezione).
+
 ### Plugin Cartographer / bridge sperimentale
 
 Il plugin K2/OpenHost Cartographer è stato installato come pacchetto editable e il relativo adapter Kalico viene caricato correttamente. Durante l'esperimento MUX/DEMUX sul T113:

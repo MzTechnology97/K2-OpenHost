@@ -44,7 +44,7 @@ info_tags:
 
 ## Configure
 
-The K2 Pro profile ships `cartographer.cfg`, not included by default. The installer's udev rule names the device `/dev/k2-cartographer`; `/dev/serial/by-id/...` works too. Never copy a serial identifier from another printer.
+The K2 Pro profile ships `macros/cartographer.cfg`, not included by default. The installer's udev rule names the device `/dev/k2-cartographer`; `/dev/serial/by-id/...` works too. Never copy a serial identifier from another printer.
 
 ```ini
 [mcu cartographer]
@@ -60,7 +60,7 @@ y_offset: -15            # measure on your printer
 register_as_probe: true  # or false for mixed mode, see below
 ```
 
-Enable it with `[include cartographer.cfg]` in `printer.cfg` only for the validation session.
+Enable it with `[include macros/cartographer.cfg]` in `printer.cfg` only for the validation session.
 
 ## Probe roles
 
@@ -76,7 +76,7 @@ In mixed mode `[stepper_z]` keeps the PRTouch endstop; do not point it at `carto
 1. Keep the validated PRTouch-only configuration as the rollback baseline.
 2. Confirm `/dev/ttyUSB0..2` stay stable, then connect Cartographer to the host.
 3. Check the device (`lsusb`, `ls -l /dev/k2-cartographer /dev/serial/by-id/`).
-4. Include `cartographer.cfg`, restart Klipper and confirm Cartographer identifies without reconnect loops:
+4. Include `macros/cartographer.cfg`, restart Klipper and confirm Cartographer identifies without reconnect loops:
 
    ```bash
    grep -Ei 'cartographer|identify_response|Timeout on connect|Unable to connect' ~/printer_data/logs/klippy.log | tail -50

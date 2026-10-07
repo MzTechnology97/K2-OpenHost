@@ -4,7 +4,7 @@ Updated: **2026-10-05**. [Italiano](../it/GCODE_COMMANDS.md)
 
 This page lists every G-code command that K2-OpenHost adds to Kalico, grouped by type. They come from two places:
 - the K2 modules of [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), branch `k2-pro-openhost`;
-- the macros of the K2 profile in `config/k2/` (`macros.cfg`, `start_print.cfg`, `kamp.cfg`).
+- the macros of the K2 profile in `config/k2/macros/` (`print.cfg`, `kamp.cfg`, `fans.cfg`, `maintenance.cfg`, `openhost_controls.cfg`).
 
 The standard Klipper and Kalico commands (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBRATE`, `SET_FAN_SPEED`…) are not repeated here: see the [Kalico G-code reference](https://docs.kalico.gg/G-Codes.html).
 
@@ -83,6 +83,7 @@ Switches of the CFS panel. They are saved and stay set after a restart.
 | `_BOX_SET_UNLOAD_AFTER_PRINT` | `[ENABLE=0]` | Unload the filament automatically when a print ends. |
 | `_BOX_SET_RFID_INSERT_READING` | `[ENABLE=0]` | Read the RFID tag every time a spool is inserted. |
 | `_BOX_SET_RFID_STARTUP_READING` | `[ENABLE=0]` | Read all RFID tags when Klipper starts. |
+| `_BOX_SET_CLOG_DETECTION` | `[ENABLE=1]` | Clog detection: pause when the extruder feeds `clog_extruder_length` (80 mm) while the CFS does not refill. Saved by the CFS; `clog_detection` in `box.cfg` is the default. Also the **Clog detection** switch in Mainsail's CFS settings menu. |
 
 ## 5. CFS: HelixScreen and Creality compatibility
 
@@ -126,7 +127,7 @@ The X, Y and E motors of the K2 Pro are closed-loop motors with their own contro
 | `MOTOR_CLEAR_ERROR` | — | Reads the active motor faults, clears them and reports the result. |
 | `MOTOR_RETRY_STARTUP` | — | Runs the motor startup sequence again (for example after the RS-485 link came back). |
 | `REQUIRE_EXTRUDER_CLEAR` | — | Stops the running macro (normally `RESUME`) if the extruder motor has a latched protection fault. It tries one clear first. |
-| `MOTOR_CFG_OVERRIDE_STATUS` | `[AXIS=XYE]` `[DETAIL=raw]` | Compares the motor parameters set in `motor_control.cfg` with the values the motors hold now. |
+| `MOTOR_CFG_OVERRIDE_STATUS` | `[AXIS=XYE]` `[DETAIL=raw]` | Compares the motor parameters set in `macros/motor_control.cfg` with the values the motors hold now. |
 | `MOTOR_READ_PARAM` | `PARAM=<name>` | Reads one motor parameter, e.g. `PARAM=x_param_stall_cur_A`. |
 | `MOTOR_FLASH_PARAM` ⚠ | `PARAM=<name>` `[VALUE]` `[COMMIT=0]` | Writes one motor parameter and checks it. Without `COMMIT=1` the value is only live until the motor restarts; with `COMMIT=1` it is saved in the motor's flash. Service use only. |
 | `MOTOR_READ_ALL_PIN_IO` | — | Reads the step, direction and stall lines of the motors. |
@@ -141,7 +142,7 @@ The X, Y and E motors of the K2 Pro are closed-loop motors with their own contro
 
 ## 9. T113 board (buzzer, MCU power, USB bridges, screen)
 
-They talk to `k2oh-ctl` on the printer's T113 board (`[k2_t113]` in `k2_t113.cfg`).
+They talk to `k2oh-ctl` on the printer's T113 board (`[k2_t113]` in `macros/k2_t113.cfg`).
 
 | Command | Parameters | What it does |
 | --- | --- | --- |
@@ -169,11 +170,12 @@ Read-only: they print information and change nothing.
 
 | Command | Parameters | What it does |
 | --- | --- | --- |
-| `M106` (macro) | `[P=0]` `[S=255]` | Fan speed: `P0` part fan, `P2` auxiliary fans, `P3` chamber exhaust/filter fans (as a minimum speed). |
+| `M106` (macro) | `[P=0]` `[S=255]` | Fan speed: `P0` toolhead part fan, `P2` side part fan (`aux_fans`), `P3` chamber exhaust/filter fans (as a minimum speed). Mainsail labels them **Toolhead Part Fan**, **Side Part Fan** and **Chamber Exhaust Fans**. |
 | `M107` (macro) | `[P=0]` | Turns off the fan selected with `P` (same numbers as `M106`). |
 | `M141` (macro) | `S=<°C>` | Chamber temperature: above 40 °C it uses the chamber heater, from 1 to 40 °C the exhaust fans keep the chamber below that value, 0 turns both off. |
 | `M191` (macro) | `S=<°C>` | Like `M141`, then waits for the chamber to reach the temperature. |
 | `SET_TEMPERATURE_FAN_MANUAL_SPEED` | `TEMPERATURE_FAN=<name>` `SPEED=<0–1>` | Sets a minimum speed for a temperature-controlled fan (used for the chamber filter). The automatic control can still run it faster. |
+| `SET_FAN_SPEED FAN=chamber_exhaust_fans` | `SPEED=<0–1>` | The **Chamber Exhaust Fans** slider in Mainsail: sets the same minimum speed (`generic_fan: True` on `[temperature_fan_manual_floor chamber_exhaust_fans]`); `M106 P3` moves the slider. |
 | `LED_IDLE_MANAGER_ON` / `LED_IDLE_MANAGER_OFF` | — | Turns the automatic light off on or off for this Klipper session (the light stays on while printing and turns off after a while without activity). |
 | `SET_LED_IDLE_MANAGER` | `[ENABLE=1]` | Same, with a parameter. |
 | `LED_IDLE_MANAGER_STATUS` | — | Shows the state of the automatic light off. |
@@ -185,7 +187,7 @@ Read-only: they print information and change nothing.
 
 | Command | Parameters | What it does |
 | --- | --- | --- |
-| `START_PRINT` ⚠ | `[BED_TEMP=60]` `[EXTRUDER_TEMP=220]` `[CHAMBER_TEMP=0]` `[MIN_CHAMBER_TEMP]` `[MATERIAL]` `[SOAK_TIME]` `[ATC]` | Start of a print, called from the slicer start G-code: heats bed and chamber, optional heat soak, homes, scrubs the nozzle, adaptive bed mesh and axis twist compensation, Z home with the nozzle touch at print temperature, then heats the nozzle. |
+| `START_PRINT` ⚠ | `[BED_TEMP=60]` `[EXTRUDER_TEMP=220]` `[CHAMBER_TEMP=0]` `[MIN_CHAMBER_TEMP]` `[MATERIAL]` `[SOAK_TIME]` `[ATC]` | Start of a print, called from the slicer start G-code: heats bed and chamber, optional heat soak, homes, cleans the nozzle hot over the wastebin and again at the probing temperature, adaptive bed mesh and axis twist compensation, Z home with the nozzle touch at print temperature, then heats the nozzle. |
 | `END_PRINT` ⚠ | — | End of a print: retracts if the nozzle is hot, turns heaters and fans off, raises Z and parks at the wastebin. |
 | `PAUSE` ⚠ | `[SKIP_RETRACT_WIPE=0]` | Pause: saves the temperature to resume at, lowers the nozzle to 140 °C, retracts and wipes, raises Z, cleans and parks at the wastebin, turns the part cooling off. |
 | `RESUME` ⚠ | `[VELOCITY]` | Resume: finishes any interrupted CFS operation, heats and primes at the wastebin, restores the fans and returns to the print. |
@@ -195,5 +197,10 @@ Read-only: they print information and change nothing.
 | `LUBRICATE_RAILS` ⚠ | `[ITERATIONS=1]` `[SPEED=500]` | Moves the head corner to corner over the whole bed to spread the rail lubricant. |
 | `LINE_PURGE` ⚠ | — | KAMP purge line next to the printed objects. |
 | `STATUS_MSG` | `MSG=<text>` `[TYPE]` `[PREFIX]` `[DISPLAY]` | Shows a message in the console and on the display. |
+| `START_PRINT_ATC` | `[ENABLE=0\|1]` | Axis twist calibration at print start on or off, saved across restarts (also the **Axis Twist Compensation** switch in Mainsail); without `ENABLE` it shows the state. Skipped when PRTouch is the probe. |
+| `WARMUP` ⚠ | `[LOOPS=3]` `[X_ACCEL_MAX=10000]` `[Y_ACCEL_MAX=10000]` | Motion stress test: X, Y and diagonal sweeps over the bed area (Y up to 301 mm), then restores the configured limits. |
+| `AUTO_WARMUP` ⚠ | `[CYCLES=3]` | Long burn-in: `WARMUP` at three accelerations with 20 min pauses, `CYCLES` times. |
+| `TEST_SPEED` ⚠ | `[SPEED]` `[ACCEL]` `[ITERATIONS=5]` `[BOUND=25]` `[SMALLPATTERNSIZE=20]` | Skipped-step test: `GET_POSITION` after homing X/Y, fast patterns on the bed, then homing and `GET_POSITION` again. |
+| `ACCELL_TEST_X` / `ACCELL_TEST_Y` ⚠ | `[STEPS=20]` `[ACCEL_START=10000]` `[ACCEL_STEP=1000]` `[VELOCITY=500]` `[VELOCITY_STEP=0]` | One axis back and forth (X at mid Y, Y at mid X); each pass raises acceleration (and velocity) above the configured limits and is logged; the limits are restored at the end. |
 
-Internal macros, used by the ones above: `_START_PRINT_VARS` (start print settings, set in `overrides.cfg`), `_PAUSE_CONTEXT`, `_PAUSE_Z_MOVE`, `_RETRACT_WIPE`, `_END_PRINT_Z_MOVE`, `_RESET_PRINT_STATE`, `_KAMP_Settings`, `_BOX_PAUSE_CAPTURE`, `_BOX_RESUME_PREPARE`, `_BOX_RESUME_COMMIT`.
+Internal macros, used by the ones above: `_START_PRINT_VARS` (start print settings, set in `macros/overrides.cfg`), `_NOZZLE_HOT_CLEAN`, `_MOTION_TEST_RESTORE`, `_PAUSE_CONTEXT`, `_PAUSE_Z_MOVE`, `_RETRACT_WIPE`, `_END_PRINT_Z_MOVE`, `_RESET_PRINT_STATE`, `_KAMP_Settings`, `_BOX_PAUSE_CAPTURE`, `_BOX_RESUME_PREPARE`, `_BOX_RESUME_COMMIT`.
