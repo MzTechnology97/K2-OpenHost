@@ -55,6 +55,12 @@ The first validation patch kept the first two bytes opaque as `firmware_base` an
 
 The values once recorded as opaque bases (`0x1E22`, `0x1E23`, `0x1F23`) are consistent with this: 30–31 °C and 34–35 % humidity. The opaque fields remain only as a fallback in `box_protocol.py` when `[box_k2pro]` is not loaded. The legacy 6-byte decoder path and asynchronous `STATUS=0x30` slot-event path remain available.
 
+### CFS firmware 1.5.3: back to 6 bytes
+
+After the boards were updated to Creality 1.1.7.0 (CFS application `cfs0_000_153`, reported as 1.5.3), the same CFS answers command `0x0A` with the original 6-byte payload. Checked on 2026-10-07 through `boxes[].state_payload_bytes` (kalico-k2pro PR #35), which reports the length of the last reply per unit: `6`, with 29 °C and 38 % humidity.
+
+The 6-byte reply is decoded by the original Jacobean path in `box_protocol.py`: signed temperature, humidity, box state and slot mask. `box_k2pro` handles only 4-byte replies and passes every other length through, so both firmware versions work with the same configuration. The 4-byte path is still needed for a CFS on 1.1.3, for example after booting slot A, which flashes its own 1.1.0.94 firmware files.
+
 ## Native Jacobean tests
 
 ### Serial_485_Wrapper

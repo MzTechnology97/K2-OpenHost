@@ -48,6 +48,12 @@ La prima patch di validazione manteneva i primi due byte opachi come `firmware_b
 
 I valori registrati allora come basi opache (`0x1E22`, `0x1E23`, `0x1F23`) sono coerenti: 30–31 °C e 34–35 % di umidità. I campi opachi restano solo come ripiego in `box_protocol.py` quando `[box_k2pro]` non è caricato. Il percorso 6-byte e gli eventi asincroni `STATUS=0x30` restano compatibili.
 
+### Firmware CFS 1.5.3: di nuovo 6 byte
+
+Dopo l'aggiornamento delle schede a Creality 1.1.7.0 (applicazione CFS `cfs0_000_153`, riportata come 1.5.3), lo stesso CFS risponde al comando `0x0A` con il payload originale a 6 byte. Verificato il 2026-10-07 tramite `boxes[].state_payload_bytes` (kalico-k2pro PR #35), che riporta la lunghezza dell'ultima risposta per unità: `6`, con 29 °C e 38 % di umidità.
+
+La risposta a 6 byte è decodificata dal percorso Jacobean originale in `box_protocol.py`: temperatura con segno, umidità, stato del box e maschera degli slot. `box_k2pro` gestisce solo le risposte a 4 byte e lascia passare le altre lunghezze, quindi entrambe le versioni del firmware funzionano con la stessa configurazione. Il percorso a 4 byte serve ancora per un CFS su 1.1.3, per esempio dopo un avvio dallo slot A, che scrive sulle schede i propri file firmware 1.1.0.94.
+
 ## Test nativi Jacobean
 
 ### Serial_485_Wrapper
