@@ -43,9 +43,10 @@ Allwinner T113 / Tina Linux
         | service Micro-USB / USB 2.0 High-Speed
         v
 Raspberry Pi CM5 / external Linux host
-  - kalico-k2pro:k2-pro-openhost
+  - kalico-k2pro:k2-pro-openhost (+ klipper-virtual-pins)
   - Moonraker
   - mainsail-k2openhost
+  - crowsnest: chamber and nozzle cameras (USB, rewired to the host)
         |
         +-- /dev/k2-main   -> T113 ttyGS0 -> ttyS2 -> Main MCU
         +-- /dev/k2-nozzle -> T113 ttyGS1 -> ttyS3 -> Nozzle MCU
