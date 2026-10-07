@@ -205,10 +205,47 @@ Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene
 2. **Usare `/dev/serial/by-id/usb-Allwinner_Technology_Inc._Gadget_Serial-if0N-port0`** invece di `/dev/ttyUSBn` in `printer.cfg` (if00 Main, if01 Nozzle, if02 RS-485). Il numero di interfaccia non cambia quando il gadget si riconnette, e allora `FIRMWARE_RESTART` ripristina.
    - Fatto in kalico-k2pro [#20](https://github.com/MzTechnology97/kalico-k2pro/pull/20).
    - Fatto sul CM5 di sviluppo, con un backup del vecchio `printer.cfg`.
-3. **Valutare di spostare il cavo del T113 su una porta USB RP1 (`xhci`) del CM5** invece della porta `dwc2` dietro l'hub. Toglie circa 8 000 interrupt/s al CM5. È una modifica fisica, da misurare con lo stesso metodo dopo lo spostamento.
+3. **Spostare il cavo del T113 su una porta `xhci` non è possibile con la scheda base attuale.** Vedi [Le porte USB 3.0 del CM5 e la scheda base](#le-porte-usb-30-del-cm5-e-la-scheda-base). Bassa priorità: il guadagno atteso è piccolo.
 4. **Raffreddamento del CM5.** A riposo il CM5 stava a 70–78 °C ed è andato in throttling a 85 °C con un bug che consumava CPU. Controllare `vcgencmd get_throttled` dopo le stampe lunghe. Dopo la stampa lunga del 5-6 ottobre dava `0xe0000`: limitato almeno una volta dall'avvio, non al momento della lettura.
 5. **Lasciare `nice`, RR e affinità degli IRQ ai valori predefiniti** finché una misura più lunga non mostra una differenza maggiore della variabilità tra corse identiche.
 
+## Le porte USB 3.0 del CM5 e la scheda base
+
+Verificato il 5 ottobre 2026, in sola lettura sul CM5 di sviluppo durante una stampa.
+
+**Su cosa è montato il CM5.** Il CM5 è su una Waveshare **CM4-IO-BASE-A**. Il suo hub FE1.1S compare come `1a40:0101 Terminus Technology Hub`.
+- Tutte le sue porte USB sono USB 2.0, dietro quell'hub, sul controller `dwc2` del CM5: due porte Type-A, e due su un connettore FFC che richiedono un cavo adattatore.
+- Le due porte Type-A ospitano il gadget del T113 e, per ora, una fotocamera di scorta (`364d:6366`, `uvcvideo`, MJPEG 1280×720 a 25 fps).
+- La configurazione completa richiede tre dispositivi: il T113, la fotocamera della camera e Cartographer (la fotocamera dell'ugello è stata eliminata). Con un adattatore FFC per la terza porta, tutti e tre condividono un unico hub a 480M.
+- `dwc2` ha ricevuto 267 milioni di interrupt, tutti sulla CPU0.
+- I due controller `xhci` RP1 del CM5 (bus 2–5) non hanno nulla collegato.
+
+**Perché le porte RP1 non sono raggiungibili.** Le due porte USB 3.0 del CM5 usano i pin delle porte CAM0 e DSI0 a 2 linee del CM4. Le coppie USB 2.0 di quelle porte sono i pin 134/136 e 163/165 ([Raspberry Pi, *Transitioning from CM4 to CM5*](https://pip-assets.raspberrypi.com/categories/1261-transitioning/documents/RP-008924-WP-1-Transitioning%20from%20Compute%20Module%204%20to%20Compute%20Module%205.pdf)).
+- Una scheda per CM4 porta quei pin a connettori FPC per fotocamera o display.
+- Sulla CM4-IO-BASE-A (due connettori CSI, uno DSI) un connettore CSI porta USB3-0, e il suo connettore DSI può portare USB3-1. Non hanno VBUS né un connettore USB, quindi non si possono usare come porte USB.
+
+**L'adattatore CM4-to-Pi4.** Le sue quattro porte USB 3.0 vengono da un **VL805** su PCIe, come sul Pi 4, non dalle porte RP1 del CM5.
+- Con un CM5 il VL805 sarebbe un terzo controller `xhci` sul PCIe x1 esterno. Quel PCIe è attivo su questo CM5 (`pcie@1000110000` okay) e ora non ha nulla collegato.
+- Waveshare non documenta l'adattatore con il CM5, né da dove arrivi il firmware del VL805.
+- Sostituisce l'intera scheda base e non ha uno slot M.2.
+- Non consigliato per questo scopo.
+
+**Modi per arrivare a una porta `xhci`, dal cambiamento minore al maggiore:**
+
+| Opzione | Cosa dà | Costo e rischio |
+| --- | --- | --- |
+| Scheda controller USB 3.0 nello slot **M.2 M-key** della CM4-IO-BASE-A (vuoto: il CM5 parte dall'eMMC) | un controller `xhci` su PCIe per il T113 e Cartographer; la fotocamera resta sull'hub della scheda | una scheda, nessun cambio di scheda base. Scegline una con VL805, il controller già usato sul Pi 4. Non provato qui. |
+| Una scheda base fatta per il CM5 con quattro porte USB, per esempio **Geekworm X1500** (2× USB 3.0, 2× USB 2.0, 2× M.2 NVMe, connettore per ventola PWM, zoccolo per la batteria dell'orologio) | T113 e Cartographer ciascuno da solo su un controller `xhci` RP1, la fotocamera su una porta USB 2.0 | l'intera scheda base. È più grande (circa 87 × 88 mm contro 85 × 56 mm) e vuole 5,1 V 5 A via USB-C PD. Che le sue porte USB 3.0 siano quelle RP1 è dedotto: la sua unica linea PCIe va agli slot NVMe, e Geekworm non lo dice. Da verificare con `lsusb -t` dopo il cambio. |
+| Waveshare **CM5-IO-BASE-A** (stesso formato carta di credito, 2× USB 3.2 Gen1) o la CM5 IO Board ufficiale | le porte RP1 del CM5 | l'intera scheda base; verificare l'alimentazione a 5 V e il case. Che le sue porte USB 3.2 siano quelle RP1 è dedotto: il CM5 non ha altre sorgenti USB 3, e Waveshare non lo dice. |
+| Adattatore CM4-to-Pi4 | VL805, come sopra | cambio di scheda base con supporto CM5 non documentato; nessun vantaggio rispetto alla scheda M.2 |
+
+**Conviene?**
+- Il guadagno sono i ~8 000 interrupt/s di `dwc2` sulla CPU0, e un T113 che non condivide più un hub con la fotocamera. Una fotocamera UVC riserva banda periodica in ogni microframe, e il traffico bulk come quello del T113 riceve solo quello che resta su quel bus.
+- Le misure qui sopra hanno trovato il round trip limitato dal tempo UART, e le code dallo scheduling. Il CM5 usava lo 0,7% di CPU nel gruppo D.
+- Con una sola fotocamera, un adattatore FFC sulla scheda attuale basta per il numero di porte: T113 e fotocamera sulle porte Type-A, Cartographer sulla porta FFC. Misurare il round trip con la fotocamera spenta e in streaming. Spostare il T113 su un controller `xhci` (scheda M.2 o X1500) solo se le code crescono.
+- Il gadget va a 480M su qualsiasi porta, USB 3 o no.
+- I nomi `by-id` in `printer.cfg` non dipendono dalla porta, quindi spostare il cavo non richiede modifiche alla configurazione.
+- Non spostare mai il cavo durante una stampa.
 ## Risultato della stampa lunga (5-6 ottobre 2026)
 
 Una stampa PLA da 18 h 44 min con il servizio `k2oh-bridge` sullo slot A, `serial: /dev/serial/by-id/...` e `[link_monitor]` a `interval: 60`. Su 930 righe da un minuto per canale:
