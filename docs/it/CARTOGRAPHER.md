@@ -44,7 +44,7 @@ info_tags:
 
 ## Configurazione
 
-Il profilo K2 Pro contiene `cartographer.cfg`, non incluso di default. La regola udev dell'installer chiama il dispositivo `/dev/k2-cartographer`; va bene anche `/dev/serial/by-id/...`. Non copiare mai l'identificativo seriale di un'altra stampante.
+Il profilo K2 Pro contiene `macros/cartographer.cfg`, non incluso di default. La regola udev dell'installer chiama il dispositivo `/dev/k2-cartographer`; va bene anche `/dev/serial/by-id/...`. Non copiare mai l'identificativo seriale di un'altra stampante.
 
 ```ini
 [mcu cartographer]
@@ -60,7 +60,7 @@ y_offset: -15            # da misurare sulla tua stampante
 register_as_probe: true  # oppure false per il mixed mode, vedi sotto
 ```
 
-Abilitalo con `[include cartographer.cfg]` in `printer.cfg` solo per la sessione di validazione.
+Abilitalo con `[include macros/cartographer.cfg]` in `printer.cfg` solo per la sessione di validazione.
 
 ## Ruoli della sonda
 
@@ -76,7 +76,7 @@ In mixed mode `[stepper_z]` resta sull'endstop del PRTouch; non puntarlo a `cart
 1. Conserva la configurazione validata solo PRTouch come base di ripristino.
 2. Verifica che `/dev/ttyUSB0..2` restino stabili, poi collega Cartographer all'host.
 3. Controlla il dispositivo (`lsusb`, `ls -l /dev/k2-cartographer /dev/serial/by-id/`).
-4. Includi `cartographer.cfg`, riavvia Klipper e verifica che Cartographer si identifichi senza cicli di riconnessione:
+4. Includi `macros/cartographer.cfg`, riavvia Klipper e verifica che Cartographer si identifichi senza cicli di riconnessione:
 
    ```bash
    grep -Ei 'cartographer|identify_response|Timeout on connect|Unable to connect' ~/printer_data/logs/klippy.log | tail -50
