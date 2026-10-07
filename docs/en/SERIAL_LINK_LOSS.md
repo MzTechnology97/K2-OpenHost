@@ -48,6 +48,8 @@ On 2026-10-05 at 17:40, with the printer idle, the RS-485 devices (CFS, X and Y 
 
 All three devices went quiet together and garbled data followed, which points to a disturbance on the bus or the USB path rather than to software. It probably happened while a USB webcam was being plugged into the CM5. That webcam sits on the same `dwc2` hub as the T113 gadget, so plug USB devices with the printer idle, or into another port.
 
+What to do step by step: [Recovery runbook](RECOVERY.md).
+
 ## Still to test
 
 - The watchdog's pause during a real print. In the standby tests Klipper is not printing, so only the warning path ran.
