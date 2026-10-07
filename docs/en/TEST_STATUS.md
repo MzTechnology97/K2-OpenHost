@@ -1,12 +1,12 @@
 # K2-OpenHost test status
 
-Last updated: **2026-10-02**.
+Last updated: **2026-10-06**.
 
 ## Summary
 
 K2-OpenHost has moved beyond transport-only validation. The real K2 Pro now reaches a working external-Kalico baseline with Main MCU, Nozzle MCU, RS-485 motor control, PRTouch homing, heaters and resonance measurement operating from the CM5/external host. The Jacobean CFS/Box stack now runs in operational mode (`observation_mode: false`) in the full Kalico service.
 
-The remaining major hardware integration items are Cartographer on the preferred **direct USB to CM5** path, a controlled mapped `BOX_PRINT_START` with real tool changes, and full print-path validation.
+The first long print ran on 2026-10-05/06 (PLA, 18 h 44 min estimate), with automatic mapping, CFS loading and an automatic runout swap halfway through. Still to do on hardware: Cartographer on **direct USB to the CM5**, a multi-colour print with tool changes, pause/resume with a slot change, and power-loss recovery.
 
 ## Verified
 
@@ -54,6 +54,8 @@ A duplicate GS2 bridge/process-contention condition was discovered during the ex
 ### Bottom-switch Z alignment (`[z_align]`)
 
 Verified on 2026-10-03: integrated `G28` drops the bed onto the K2 Pro bottom photoelectric switch (`PA15`), rises 255 mm and homes Z with PRTouch. Three consecutive `G28` / `M84` cycles each aligned on the first MCU attempt (delta 0 steps). This required stock Creality MCU step units (gear ratio ignored), the stock 16 Z microsteps (at 64 the MCU-driven routine lost steps and failed with photoelectric errors) and a slower drop (`quick_speed`/`slow_speed` 6, about 1.9 mm/s).
+
+Since then every homing in the logs aligned at the first attempt with delta 0: 16 times on 2026-10-05, including the start of the long print.
 
 ### Complete homing with PRTouch
 
@@ -116,9 +118,54 @@ The complete CM5 Kalico service now runs the Box stack with `observation_mode: f
 - per-slot RFID reads and per-slot forced RFID reread;
 - hardware-reported remaining percentage and independent per-spool remaining estimates;
 - runout-group ordering by lowest known compatible remaining percentage;
-- `BOX_PRINT_INFO` on real Orca-sliced files and backend auto-mapping against the real slot inventory.
+- `BOX_PRINT_INFO` on real Orca-sliced files and backend auto-mapping against the real slot inventory;
+- the live remaining estimate followed the RFID spool during the long print (slot 2: 74 % estimated, while the tag still says 95 %).
 
 Details: [CFS validation](CFS_VALIDATION.md) and [CFS print mapping](CFS_PRINT_MAPPING.md).
+
+### First long print (2026-10-05/06)
+
+`Sodastream-Terra-Lever v5` in PLA, slicer estimate 18 h 44 min, started normally from Mainsail on 2026-10-05 at 17:52. In order:
+
+- X/Y sensorless homing, `z_align` on the bottom switch (first attempt, delta 0), PRTouch Z home with thermal compensation;
+- adaptive 6×6 bed mesh with PRTouch;
+- automatic mapping of T0 to Box 1, slot 4 (`print_mapping.map = {"0": 3}`), CFS load (1.48 m fed), 100 mm purge at the wastebin, T0 ready in 91 s;
+- after about 7 h the spool in slot 4 ran out and the print went on from slot 2 by itself (next section).
+
+At 89 % after 15 h there were no errors. The final result will be added when it ends.
+
+Link figures during the print, from `link_monitor.csv` (930 one-minute rows per channel):
+
+| Channel | p50 | p99 (median of the rows) | worst sample | Retransmits / errors |
+| --- | --- | --- | --- | --- |
+| Main MCU | 1.17 ms | 5.25 ms | 18.8 ms | 0 bytes |
+| Nozzle MCU | 1.04 ms | 3.01 ms | 16.4 ms | 0 bytes |
+| RS-485 | 1.87 ms | 3.36 ms | 4.4 s (an RFID read) | 0 timeouts, 0 CRC errors |
+
+On the T113 the three bridges lost 0 bytes, had 0 write errors and never queued. The CM5 stayed at 73–76 °C. `vcgencmd get_throttled` reports `0xe0000`: since the boot (13:37, before the print) the CPU reached the soft temperature limit and was capped at least once; it was not capped when read.
+
+### Automatic runout swap during a print (2026-10-06)
+
+- The CFS reported the end of the spool in slot 4. About 14.5 minutes later the printhead sensor triggered, once the filament left in the tube had been printed.
+- The swap waited for the next gap infill. Then: Box 1, slot 4 → Box 1, slot 2 (same PLA, RFID tag), 33 mm to clear the gears, CFS load, 63 mm to the hotend, 20 mm prime, back to the part.
+- `print_mapping.map` became `{"0": 1}`. The source slot kept its profile until the swap was decided, then the empty bay was cleared, as designed.
+- No intervention was needed.
+
+### RS-485 link watchdog, live
+
+On 2026-10-05 at 17:40, with the printer idle, no RS-485 device (CFS, X and Y motors) answered for about 30 s, followed by 2 CRC errors and a burst of unmatched frames. The watchdog reported `RS-485 link lost` and then `RS-485 link restored` by itself, and Klipper stayed `ready`. The T113 bridges lost nothing and no other process had the port open on either side. It probably happened while a USB webcam was being plugged into the CM5, on the same hub as the T113. Details in [Serial link loss](SERIAL_LINK_LOSS.md).
+
+### CM5 reboot
+
+On 2026-10-05 the CM5 was rebooted from Moonraker. It was back in about 15 s with the serial ports, Klipper `ready`, RS-485, CFS and motors, and the T113 bridges reopened by themselves (same PIDs). Idle CPU: klippy 1.3 %, each bridge 0.1–0.5 %. Details in [USB bridge](USB_BRIDGE.md).
+
+### T113 slot B (2026-10-06)
+
+The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.1.1 installed with the installer helper and kept as the default. After a full power cycle the printer came up by itself: `k2oh-mcu` started the boards, then the bridges, and Klipper on the CM5 was ready with no `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connected, HelixScreen on the panel). The first install (0.1.0) found six problems, all fixed; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
+### MCU firmware update from slot B (2026-10-06)
+
+`k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
 
 ### Cartographer plugin / experimental bridge
 
@@ -144,19 +191,17 @@ Cartographer uses the official `Cartographer3D/cartographer3d-plugin` (1.9.0 ins
 
 The step-by-step procedures for the physical tests below are in the [hardware test plan](HARDWARE_TEST_PLAN.md).
 
-- connect Cartographer directly to the CM5 USB host and validate persistent `/dev/serial/by-id/...` operation;
-- validate Cartographer automated reset/reconnect on direct USB;
-- validate Cartographer standalone probing/touch/scan on the external host;
-- optionally validate PRTouch + Cartographer mixed mode after standalone Cartographer is stable;
-- validate the real filament sensor and loaded-path transitions during supervised load/unload;
-- validate a controlled single-tool `BOX_PRINT_START`, then a mapped multimaterial tool change including purge matrix and temperatures;
-- validate runout/recovery during a mapped job and the live RFID remaining estimate over a complete print;
-- validate on hardware the upstream 071c813 integration (native print mapping, new `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT` pause flow, runout map update) now merged into `kalico-k2pro:k2-pro-openhost` before the hardware tests at the owner's request (2026-10-03); software tests pass and Klipper starts cleanly on the CM5 with it;
-- validate `PLR_RECOVER` with a supervised power cut (power-loss recovery is enabled and re-references Z through the hardware-validated `[z_align]`);
-- validate automatic runout swap on hardware (the source-profile bug found on 2026-10-03 is fixed and covered by tests);
-- complete first full print-path validation from homing through heating, mesh/probing, extrusion and print completion;
-- continue UI split work, including the eventual T113 screen path.
+- Cartographer on direct USB to the CM5: persistent `/dev/serial/by-id/...`, automatic reset/reconnect, standalone probing/touch/scan, then optionally PRTouch + Cartographer (T5);
+- a multi-colour print started with `BOX_PRINT_START` from the Mainsail dialog: tool change with the file's purge matrix and per-tool temperatures (T2);
+- pause and resume with a slot change during the pause (second half of T1), which also covers the 071c813 pause flow (`_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT`);
+- `PLR_RECOVER` after a supervised power cut, single colour and two colours (T4);
+- the RS-485 watchdog pausing a real print: so far only the standby path has run;
+- CFS discovery when RS-485 is down at Klipper start (kalico-k2pro #24, merged, not seen live yet);
+- a stock `k2oh-mcu-fw apply --cfs` with bootstrap 0.1.2's held CFS list, and installing the 0.1.2 image;
+- a revised custom CFS image (the v2.1 RFID diagnostic image did not start, see above);
+- nozzle load cell pressure advance (kalico-k2pro #29, draft): archived on 2026-10-06 as still to develop, the module is disabled; results in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
+- UI split work, including the eventual T113 screen path.
 
 ## Not production-ready
 
-The current milestone demonstrates substantially more than transport viability: real motion, full PRTouch homing, heaters, emergency shutdown and resonance analysis work from the external host. The project is still pre-production until Cartographer direct USB, mapped CFS printing and a complete print workflow are validated.
+The current milestone demonstrates substantially more than transport viability: real motion, full PRTouch homing, heaters, emergency shutdown and resonance analysis work from the external host. An 18-hour print with automatic mapping and a runout swap also ran. The project is still pre-production until Cartographer on direct USB, multi-colour CFS printing, pause/resume and power-loss recovery are validated.

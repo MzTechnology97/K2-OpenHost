@@ -189,17 +189,17 @@ This was the first validation step on the real K2 Pro and remains the safe fallb
 - real `box.slots` inventory and CFS metadata in operational Box mode;
 - backend auto-map against real slot metadata;
 - fail-safe unresolved behavior when no compatible physical inventory exists;
-- lowest-known-RFID-remaining preference between otherwise equivalent candidates.
+- lowest-known-RFID-remaining preference between otherwise equivalent candidates;
+- automatic mapping on a normal start during a real print: T0 → Box 1, slot 4 (2026-10-05);
+- automatic runout swap during that print: slot 4 → slot 2, with the map updated to `{"0": 1}` (2026-10-06).
 
 A two-tool PETG `cubo.gcode` was inspected successfully. With temporary black and cyan PETG physical-slot metadata, the backend produced `{0:1, 1:2}`; after those temporary profiles were removed, both logical tools correctly returned unresolved instead of silently selecting an incompatible source.
 
 ### Still to validate on hardware
 
-1. controlled single-tool `BOX_PRINT_START`;
-2. controlled logical-tool -> different physical-slot mapping during a real print;
-3. controlled multi-material tool change including purge matrix and temperature handling;
-4. runout/recovery interactions during a mapped job;
-5. real-time RFID remaining estimate over a complete print;
-6. complete supervised print.
+1. single-tool `BOX_PRINT_START` started from the Mainsail mapping dialog (the automatic mapping on a normal start is done);
+2. controlled multi-material tool change including purge matrix and temperature handling;
+3. pause/resume with a slot change during a mapped job (the runout swap without a pause is done);
+4. real-time RFID remaining estimate over a complete print, and the complete print itself: an 18-hour single-colour print was at 89 % with no errors on 2026-10-06.
 
 Do not classify the mapped CFS print path as production-ready until those hardware tests are complete.

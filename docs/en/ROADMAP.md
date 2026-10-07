@@ -92,13 +92,13 @@ Operational-mode Box state, RFID reads and auto-mapping are already validated (s
 - evaluate HelixScreen or another lightweight UI on the T113 using the stock LCD/touch hardware;
 - minimize T113 responsibilities to UI and hardware bridge services.
 
-Implemented offline in the [T113 bootstrap](T113_BOOTSTRAP.md): slot B runs only the gadget, the bridges, Wi-Fi and HelixScreen pointed at the external host's Moonraker. Hardware validation pending.
+Implemented in the [T113 bootstrap](T113_BOOTSTRAP.md): slot B runs only the gadget, the bridges, Wi-Fi and HelixScreen pointed at the external host's Moonraker. Running on the reference printer since 2026-10-06.
 
 ## Phase 6 — persistent deployment
 
 Only after the full runtime and print stack is proven:
 
-- package persistent bridge startup — [T113 bootstrap](T113_BOOTSTRAP.md), built offline;
+- package persistent bridge startup — [T113 bootstrap](T113_BOOTSTRAP.md), running on the reference printer (2026-10-06);
 - define boot/recovery behaviour — slot B trial boot, a power cycle returns to slot A;
 - preserve a known-good stock slot — slot A is never written;
 - peripheral firmware updates with Creality's own tools — `k2oh-mcu-fw`, CFS included, built offline;

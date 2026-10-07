@@ -180,9 +180,10 @@ procd was emulated with a transient service created over `ubus` (RAM only, gone 
 | Gadget unbound 10 s, then bound again | Main and Nozzle **die** on EIO and nothing restarts them; RS-485 **spins at 104% CPU** on a dead descriptor and never forwards again. Klipper could not recover until the bridges were restarted by hand. | Main and Nozzle exit on EIO and procd restarts them; all three reopen on EOF. RS-485 came back by itself. |
 | Same, CM5 side, with `serial: /dev/ttyUSBn` | the ports come back as `ttyUSB2/3/4` because Klipper still holds the old ones: `FIRMWARE_RESTART` fails (three tries); recovery needs Klipper stopped and the gadget re-enumerated | same |
 | Same, with `serial: /dev/serial/by-id/...` | — | **`FIRMWARE_RESTART` recovers** (the first try hits the known "Failed automated reset", the second works); RS-485 ok, X/Y motors verified |
-| T113 or CM5 reboot | not run: rebooting needs your go-ahead | expected like the gadget test: a CM5 reboot drops the USB host (EOF on the gadget, the bridges reopen); a T113 reboot drops the device (host ports disappear, Klipper shuts down, `FIRMWARE_RESTART` after the bridges are up) |
+| CM5 reboot (2026-10-05, from Moonraker) | — | EOF on the gadget, the bridges reopened with the same PIDs. The CM5 was back in about 15 s with the serial ports, Klipper `ready`, RS-485, CFS and motors. |
+| T113 reboot | not run: rebooting needs your go-ahead | expected: the host ports disappear, Klipper shuts down, `FIRMWARE_RESTART` once the bridges are up. Today the bridges run from RAM on slot A, so after a T113 reboot they must be started again. |
 
-Also seen: if Klipper starts while the RS-485 bridge is dead, the CFS is not discovered and stays so after the link returns; a Klipper `RESTART` fixes it.
+Also seen: if Klipper starts while the RS-485 bridge is dead, the CFS is not discovered and stays so after the link returns; a Klipper `RESTART` fixes it. kalico-k2pro [#24](https://github.com/MzTechnology97/kalico-k2pro/pull/24) rediscovers the CFS when the link comes back; it is merged but has not been seen live yet.
 
 ## Native C bridge: comparison (not implemented)
 
@@ -205,8 +206,20 @@ Also seen: if Klipper starts while the RS-485 bridge is dead, the CFS is not dis
    - Done in kalico-k2pro [#20](https://github.com/MzTechnology97/kalico-k2pro/pull/20).
    - Done on the development CM5, with a backup of the old `printer.cfg`.
 3. **Evaluate moving the T113 cable to one of the CM5's RP1 (`xhci`) USB ports** instead of the `dwc2` port behind the hub. It removes about 8 000 interrupts/s from the CM5. It is a physical change, to be measured with the same method after the move.
-4. **CM5 cooling.** The CM5 idled at 70–78 °C and throttled at 85 °C under a CPU-heavy bug. Check `vcgencmd get_throttled` after long prints.
+4. **CM5 cooling.** The CM5 idled at 70–78 °C and throttled at 85 °C under a CPU-heavy bug. Check `vcgencmd get_throttled` after long prints. After the 2026-10-05/06 long print it read `0xe0000`: capped at least once since boot, not at the time of reading.
 5. **Leave `nice`, RR and IRQ affinity at the defaults** until a longer measurement shows a difference larger than the spread between identical runs.
+
+## Long-print result (2026-10-05/06)
+
+An 18 h 44 min PLA print on slot A's `k2oh-bridge` service, with `serial: /dev/serial/by-id/...` and `[link_monitor]` at `interval: 60`. Over 930 one-minute rows per channel:
+
+| Channel | p50 | p99 (median of the rows) | worst sample | Retransmits / errors |
+| --- | --- | --- | --- | --- |
+| Main MCU | 1.17 ms | 5.25 ms | 18.8 ms | 0 bytes |
+| Nozzle MCU | 1.04 ms | 3.01 ms | 16.4 ms | 0 bytes |
+| RS-485 | 1.87 ms | 3.36 ms | 4.4 s (an RFID read) | 0 timeouts, 0 CRC errors |
+
+On the T113 the bridges lost 0 bytes, had 0 write errors and never queued (`max_pending` 0). The CFS runout swap during the print went through the same RS-485 channel.
 
 ## Long-print measurement mode
 

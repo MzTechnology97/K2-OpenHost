@@ -1,12 +1,12 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **2 ottobre 2026**.
+Aggiornato al **6 ottobre 2026**.
 
 ## Sintesi
 
 K2-OpenHost ha superato la sola validazione del trasporto. La K2 Pro reale raggiunge ora una baseline OpenHost funzionante con Main MCU, Nozzle MCU, motor-control RS-485, homing PRTouch, heater e test risonanza gestiti dal CM5/host Kalico esterno. Lo stack CFS/Box Jacobean gira ora in modalità operativa (`observation_mode: false`) nel servizio Kalico completo.
 
-I principali elementi hardware ancora da chiudere sono Cartographer sulla topologia preferita **USB diretta al CM5**, un `BOX_PRINT_START` mappato e controllato con cambi materiale reali e la validazione completa del print path.
+La prima stampa lunga è andata il 5-6 ottobre (PLA, stima 18 h 44 min), con associazione automatica dello slot, caricamento dal CFS e cambio bobina automatico a metà stampa. Restano da provare sull'hardware: Cartographer in **USB diretta al CM5**, una stampa a più colori con cambi utensile, pausa e ripresa con cambio slot, e la ripresa dopo un'interruzione di corrente.
 
 ## Verificato
 
@@ -54,6 +54,8 @@ Durante l'esperimento Cartographer MUX è stata scoperta una condizione di doppi
 ### Allineamento Z sul sensore di fondo corsa (`[z_align]`)
 
 Verificato il 3 ottobre 2026: il `G28` integrato porta il piatto sul fotoelettrico di fondo corsa della K2 Pro (`PA15`), risale di 255 mm ed esegue l'homing Z con PRTouch. Tre cicli consecutivi `G28` / `M84` si sono allineati tutti al primo tentativo MCU (delta 0 step). Sono stati necessari le unità di step MCU originali Creality (rapporto di riduzione ignorato), i 16 microstep Z originali (a 64 la routine gestita dal MCU perdeva passi e falliva con errori fotoelettrici) e una discesa più lenta (`quick_speed`/`slow_speed` 6, circa 1,9 mm/s).
+
+Da allora ogni homing nei log si è allineato al primo tentativo con delta 0: 16 volte il 5 ottobre, compreso l'avvio della stampa lunga.
 
 ### Homing completo con PRTouch
 
@@ -116,9 +118,54 @@ Il servizio Kalico completo sul CM5 esegue ora lo stack Box con `observation_mod
 - letture RFID per slot e rilettura RFID forzata per singolo slot;
 - percentuale residua riportata dal CFS e stime residue indipendenti per bobina;
 - ordinamento dei gruppi runout per minore percentuale residua compatibile nota;
-- `BOX_PRINT_INFO` su file Orca realmente sliciati e auto-mapping backend contro l'inventario reale degli slot.
+- `BOX_PRINT_INFO` su file Orca realmente sliciati e auto-mapping backend contro l'inventario reale degli slot;
+- la stima del residuo ha seguito la bobina RFID durante la stampa lunga (slot 2: 74 % stimato, mentre il tag segna ancora 95 %).
 
 Dettagli: [Validazione CFS](CFS_VALIDATION.md) e [Mappatura CFS delle stampe](CFS_PRINT_MAPPING.md).
+
+### Prima stampa lunga (5-6 ottobre 2026)
+
+`Sodastream-Terra-Lever v5` in PLA, stima dello slicer 18 h 44 min, avviata normalmente da Mainsail il 5 ottobre alle 17:52. Nell'ordine:
+
+- homing X/Y sensorless, `z_align` sul fotoelettrico di fondo (primo tentativo, delta 0), homing Z con PRTouch e compensazione termica;
+- mesh adattiva 6×6 con PRTouch;
+- associazione automatica di T0 a Box 1, slot 4 (`print_mapping.map = {"0": 3}`), caricamento dal CFS (1,48 m), spurgo di 100 mm nel cestino, T0 pronto in 91 s;
+- dopo circa 7 ore la bobina dello slot 4 è finita e la stampa è proseguita da sola con lo slot 2 (sezione successiva).
+
+All'89 %, dopo 15 ore, nessun errore. Il risultato finale lo aggiungo a stampa finita.
+
+Collegamenti durante la stampa, da `link_monitor.csv` (930 righe da un minuto per canale):
+
+| Canale | p50 | p99 (mediana delle righe) | caso peggiore | Ritrasmissioni / errori |
+| --- | --- | --- | --- | --- |
+| Main MCU | 1,17 ms | 5,25 ms | 18,8 ms | 0 byte |
+| Nozzle MCU | 1,04 ms | 3,01 ms | 16,4 ms | 0 byte |
+| RS-485 | 1,87 ms | 3,36 ms | 4,4 s (una lettura RFID) | 0 timeout, 0 errori CRC |
+
+Sul T113 i tre bridge hanno perso 0 byte, con 0 errori di scrittura e senza mai accodare. Il CM5 è rimasto a 73–76 °C. `vcgencmd get_throttled` dà `0xe0000`: dall'avvio (13:37, prima della stampa) la CPU ha toccato il limite termico morbido ed è stata limitata almeno una volta; al momento della lettura non lo era.
+
+### Cambio bobina automatico durante la stampa (6 ottobre 2026)
+
+- Il CFS ha segnalato la fine della bobina nello slot 4. Circa 14 minuti e mezzo dopo è scattato il sensore della testa, dopo aver stampato il filamento rimasto nel tubo.
+- Il cambio ha aspettato il primo tratto di riempimento (`gap infill`). Poi: Box 1, slot 4 → Box 1, slot 2 (stesso PLA, con tag RFID), 33 mm per liberare gli ingranaggi, caricamento dal CFS, 63 mm fino all'hotend, 20 mm di spurgo, ritorno al pezzo.
+- `print_mapping.map` è diventata `{"0": 1}`. Lo slot di partenza ha tenuto il suo profilo finché il cambio non è stato deciso, poi lo slot vuoto è stato azzerato, come previsto.
+- Nessun intervento.
+
+### Watchdog del collegamento RS-485, dal vivo
+
+Il 5 ottobre alle 17:40, a stampante ferma, nessun dispositivo RS-485 (CFS, motori X e Y) ha risposto per circa 30 s; poi sono arrivati 2 errori CRC e un gruppo di frame senza corrispondenza. Il watchdog ha segnalato `RS-485 link lost` e poi `RS-485 link restored` da solo, e Klipper è rimasto `ready`. I bridge del T113 non hanno perso niente e nessun altro processo aveva la porta aperta, né sul CM5 né sul T113. Probabilmente è successo mentre collegavo una webcam USB al CM5, sullo stesso hub del T113. Dettagli in [Perdita del collegamento seriale](SERIAL_LINK_LOSS.md).
+
+### Riavvio del CM5
+
+Il 5 ottobre il CM5 è stato riavviato da Moonraker. È tornato in circa 15 s con le porte seriali, Klipper `ready`, RS-485, CFS e motori; i bridge del T113 hanno riaperto le porte da soli (stessi PID). CPU a riposo: klippy 1,3 %, ogni bridge 0,1–0,5 %. Dettagli in [Bridge USB](USB_BRIDGE.md).
+
+### Slot B del T113 (6 ottobre 2026)
+
+Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: slot B 0.1.1 installato con l'installer helper e confermato come predefinito. Dopo uno spegnimento e una riaccensione completi la stampante è ripartita da sola: `k2oh-mcu` ha avviato le schede, poi i bridge, e Klipper sul CM5 era pronto senza `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connesso, HelixScreen sul pannello). La prima installazione (0.1.0) ha trovato sei problemi, tutti corretti; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
+### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
+
+`k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
 
 ### Plugin Cartographer / bridge sperimentale
 
@@ -144,19 +191,17 @@ Cartographer usa il plugin ufficiale `Cartographer3D/cartographer3d-plugin` (1.9
 
 Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test hardware](HARDWARE_TEST_PLAN.md).
 
-- collegare Cartographer direttamente alla USB host del CM5 e validare il path persistente `/dev/serial/by-id/...`;
-- validare reset/reconnect automatico Cartographer su USB diretta;
-- validare probing/touch/scan Cartographer standalone sull'host esterno;
-- eventualmente validare mixed mode PRTouch + Cartographer dopo la stabilità standalone;
-- validare sensore filamento reale e transizioni loaded-path durante load/unload supervisionati;
-- validare un `BOX_PRINT_START` controllato con singolo tool, poi un cambio materiale mappato multimateriale inclusi purge matrix e temperature;
-- validare runout/recovery durante un job mappato e la stima residua RFID live su una stampa completa;
-- validare su hardware l'integrazione dell'aggiornamento upstream 071c813 (associazione utensili nativa, nuovo flusso di pausa `_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT`, aggiornamento della mappa al cambio bobina) ora unita a `kalico-k2pro:k2-pro-openhost` prima delle prove hardware su richiesta del proprietario (3 ottobre 2026); i test software passano e Klipper parte senza errori sul CM5;
-- validare `PLR_RECOVER` con un'interruzione di corrente supervisionata (il power-loss recovery è attivo e ricava la Z tramite `[z_align]`, già verificato su hardware);
-- validare il cambio bobina automatico a fine filamento su hardware (il bug del profilo sorgente trovato il 3 ottobre 2026 è corretto e coperto da test);
-- completare la prima validazione del print path completo: homing, heating, mesh/probing, estrusione e fine stampa;
+- Cartographer in USB diretta al CM5: `/dev/serial/by-id/...` persistente, reset e riconnessione automatici, probing/touch/scan da solo, poi eventualmente PRTouch + Cartographer insieme (T5);
+- una stampa a più colori avviata con `BOX_PRINT_START` dalla finestra di Mainsail: cambio utensile con la matrice di spurgo del file e le temperature per utensile (T2);
+- pausa e ripresa con cambio slot durante la pausa (seconda metà di T1), che prova anche il flusso di pausa di 071c813 (`_BOX_PAUSE_CAPTURE` / `_BOX_RESUME_PREPARE` / `_BOX_RESUME_COMMIT`);
+- `PLR_RECOVER` dopo un'interruzione di corrente controllata, monocolore e a due colori (T4);
+- il watchdog RS-485 che mette in pausa una stampa vera: finora è andato solo il caso a stampante ferma;
+- il rilevamento del CFS quando l'RS-485 è giù all'avvio di Klipper (kalico-k2pro #24, unita, non ancora vista dal vivo);
+- un `k2oh-mcu-fw apply --cfs` originale con la lista CFS messa da parte del bootstrap 0.1.2, e l'installazione dell'immagine 0.1.2;
+- un'immagine CFS personalizzata rivista (l'immagine diagnostica RFID v2.1 non è partita, vedi sopra);
+- il pressure advance con la cella di carico dell'ugello (kalico-k2pro #29, in bozza): archiviato il 6 ottobre 2026 come da sviluppare, il modulo è disattivato; i risultati sono in `docs/K2_Load_Cell_PA.md` di kalico-k2pro;
 - proseguire con lo split UI e il futuro percorso display sul T113.
 
 ## Non ancora production-ready
 
-Il milestone attuale dimostra molto più della sola fattibilità del transport: movimento reale, homing completo PRTouch, heater, emergency shutdown e analisi risonanza funzionano da host esterno. Il progetto resta pre-production fino alla validazione di Cartographer direct USB, della stampa CFS mappata e di un ciclo di stampa completo.
+Il milestone attuale dimostra molto più della sola fattibilità del transport: movimento reale, homing completo PRTouch, heater, emergency shutdown e analisi risonanza funzionano da host esterno. È andata anche una stampa di 18 ore con associazione automatica e cambio bobina. Il progetto resta pre-production finché non sono provati Cartographer in USB diretta, la stampa CFS a più colori, pausa e ripresa e la ripresa dopo un'interruzione di corrente.

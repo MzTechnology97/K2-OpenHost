@@ -70,7 +70,7 @@ As of **2026-10-02**:
 - A resonance test using **Klippain-ShakeTune** completed successfully on the OpenHost stack.
 - RS-485/CFS transport remains functional on `/dev/ttyUSB2`; the earlier duplicate-bridge/process-contention issue has been identified and removed.
 - The stock T113 service GPIO map is recovered, including MCU power (`GPIO140`), nozzle-camera power (`162`), buzzer (`164`), USB-hub reset (`165`) and UDISK power (`210`); no CM5-direct wiring for these nets has been proven.
-- The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path, load-path state and per-slot RFID reads.
+- The Jacobean CFS/Box stack is now running in operational mode on the real K2 Pro, including the K2 Pro 4-byte `BOX_STATE` compatibility path (CFS firmware 1.1.3; 1.5.3 answers with the original 6 bytes), load-path state and per-slot RFID reads.
 - The normalized `box` object exposes persistent filament inventory, RFID material identity, hardware-reported remaining percentage and the OpenHost live remaining-filament estimate (the estimator is implemented and source-tested; its behaviour over a complete supervised print is still pending).
 - K2-RFID/Creality material-database compatibility is validated with custom tags: five-digit database IDs and `1xxxxx` RFID material IDs resolve to one reusable material profile while per-spool color remains slot metadata.
 - A per-slot forced RFID reread path is available for marginal/self-programmed tags; startup no longer blocks on a slow invalid RFID cache entry.
@@ -88,13 +88,13 @@ The current Jacob/Jacobean CFS print-mapping model has now been integrated addit
 - `mainsail-k2openhost` now hooks the normal Print dialog and presents a CFS filament-mapping step;
 - the compatibility layer translates purge-matrix and nozzle-temperature data from logical tools to the physical-slot indexing used by the currently validated OpenHost Box engine.
 
-`BOX_PRINT_INFO`, real slot inventory and auto-mapping decisions are now hardware-validated in operational Box mode. The remaining milestone is a controlled `BOX_PRINT_START`/tool-change print and then a complete supervised print.
+`BOX_PRINT_INFO`, real slot inventory, automatic mapping on a normal start, CFS loading and the automatic runout swap have now run on the K2 Pro, during an 18-hour print. Still to validate: an explicit `BOX_PRINT_START` with a multi-colour tool change, and pause/resume with a slot change.
 
-Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in modo additivo, inclusa la finestra di mapping in Mainsail. `BOX_PRINT_INFO`, inventario reale degli slot e auto-mapping sono ora verificati sulla K2 Pro in modalità Box operativa; restano da validare la stampa mappata con cambio materiale e una stampa completa supervisionata.
+Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in modo additivo, inclusa la finestra di mapping in Mainsail. `BOX_PRINT_INFO`, inventario reale degli slot, associazione automatica all'avvio, caricamento dal CFS e cambio bobina automatico sono andati sulla K2 Pro durante una stampa di 18 ore. Restano da provare un `BOX_PRINT_START` esplicito con cambio colore e la pausa con cambio slot.
 
 ## Current project boundary / Stato attuale
 
-The OpenHost stack has moved beyond passive transport validation: real homing, heaters, emergency shutdown and resonance testing now work on the external Kalico host. It is still **pre-production** because mapped CFS printing, Cartographer direct-USB validation and a complete print workflow are not yet validated end to end.
+The OpenHost stack has moved beyond passive transport validation: real homing, heaters, emergency shutdown and resonance testing now work on the external Kalico host. An 18-hour print with automatic CFS mapping and a runout swap also ran without errors. It is still **pre-production**: multi-colour CFS printing, pause/resume, power-loss recovery and Cartographer on direct USB are not validated yet.
 
 ## Hardware limitations / Limiti hardware
 

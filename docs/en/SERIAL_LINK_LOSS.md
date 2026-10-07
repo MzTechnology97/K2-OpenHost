@@ -38,6 +38,16 @@ Both options are off by default.
 
 A crashed bridge restarted by procd within 1.5 s kept Klipper `ready`, also during motion. A USB reconnect needs `serial: /dev/serial/by-id/...` on the host to recover with `FIRMWARE_RESTART`. See the failure tests in [USB bridge](USB_BRIDGE.md#failure-tests).
 
+## Seen live
+
+On 2026-10-05 at 17:40, with the printer idle, the RS-485 devices (CFS, X and Y motors) stopped answering for about 30 s:
+
+- `serial_485` logged timeouts, 2 CRC errors and a burst of unmatched frames, then `RS-485 link lost` after 10 s without answers;
+- it logged `RS-485 link restored` by itself about 30 s later. Klipper stayed `ready`, and the next print ran normally;
+- the CM5 was idle and saw no USB disconnect; the T113 bridges lost no bytes and nothing else had the port open.
+
+All three devices went quiet together and garbled data followed, which points to a disturbance on the bus or the USB path rather than to software. It probably happened while a USB webcam was being plugged into the CM5. That webcam sits on the same `dwc2` hub as the T113 gadget, so plug USB devices with the printer idle, or into another port.
+
 What to do step by step: [Recovery runbook](RECOVERY.md).
 
 ## Still to test
