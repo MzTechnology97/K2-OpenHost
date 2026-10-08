@@ -58,7 +58,7 @@ The earlier Cartographer MUX/DEMUX experiment proved that Cartographer traffic c
 
 ## Verified on the K2 Pro / Verificato sulla K2 Pro
 
-Since then (details in [test status](docs/en/TEST_STATUS.md) / [stato dei test](docs/it/TEST_STATUS.md)): long CFS prints and a live runout swap with the T113 on slot B, Creality 1.1.7.0 board firmware flashed from slot B, the CFS six-byte state on firmware 1.5.3, unload and slot change from unhomed axes with the heat-up over the wastebin, native fan tachometers, the clog detection switch, a faster bottom-switch Z drop and the printer config reorganised under `macros/` (2026-10-07).
+Since then (details in [test status](docs/en/TEST_STATUS.md) / [stato dei test](docs/it/TEST_STATUS.md)): long CFS prints and a live runout swap with the T113 on slot B, Creality 1.1.7.0 board firmware flashed from slot B, the CFS six-byte state on firmware 1.5.3, unload and slot change from unhomed axes with the heat-up over the wastebin, native fan tachometers, the clog detection switch, a faster bottom-switch Z drop and the printer config reorganised under `macros/` (2026-10-07); third-party RFID spools (Bambu, QIDI) recognised and tracked like Creality ones, and the CFS slots shown right after a spool swap (2026-10-08).
 
 As of **2026-10-02**:
 
