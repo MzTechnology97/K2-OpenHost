@@ -1,13 +1,13 @@
 {
   "schema": 1,
-  "name": "2026.10.08",
+  "name": "2026.10.08-2",
   "date": "2026-10-08",
-  "summary": "Third-party RFID decoder registry, per-material spool lengths, slot display and external slot fixes, T113 timezone from the host.",
+  "summary": "Box code split out of box.py (estimates, materials, third-party RFID), CFS notifications and humidity warnings, release status/apply in the installer helper.",
   "components": {
     "kalico": {
       "repo": "MzTechnology97/kalico-k2pro",
       "branch": "k2-pro-openhost",
-      "sha": "5fc622cae3be0b4124e1c847240fc917f82283ae"
+      "sha": "769d1e071b1208274eceaaba0ce39c0edb43ced3"
     },
     "mainsail": {
       "repo": "MzTechnology97/mainsail-k2openhost",
@@ -18,7 +18,7 @@
     "helper": {
       "repo": "MzTechnology97/k2-openhost-installer-helper",
       "branch": "main",
-      "sha": "39e1b0511623e34682d56c5b7d2b99e7a5309e2c",
+      "sha": "da8bc89660e90e3aca37f940785def7530a52b6a",
       "version": "0.1.0"
     },
     "t113_bootstrap": {
@@ -31,7 +31,7 @@
   "tested_with": {
     "slot_b_base_firmware": "1.1.0.94",
     "board_firmware": "1.1.7.0",
-    "cfs_application": "cfs0_000_153",
-    "notes": "Third-party RFID tags (Bambu, MIFARE vendors) are decoded from raw tag reads of the CFS: a CFS that does not report them reads Creality tags only."
+    "cfs_application": "custom CFS firmware v3.13 (API7 raw RFID reads, runtime config)",
+    "notes": "Third-party RFID tags (Bambu, MIFARE vendors) are decoded from raw tag reads of the CFS: a CFS that does not report them (stock 153) reads Creality tags only. box_cfs_runtime needs v3.13 or later."
   }
 }
