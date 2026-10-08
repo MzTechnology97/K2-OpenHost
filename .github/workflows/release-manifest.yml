@@ -1,0 +1,21 @@
+name: release-manifest
+on:
+  push:
+    paths:
+      - 'releases/**'
+      - 'tools/check-release-manifest.py'
+      - '.github/workflows/release-manifest.yml'
+  pull_request:
+    paths:
+      - 'releases/**'
+      - 'tools/check-release-manifest.py'
+      - '.github/workflows/release-manifest.yml'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the release manifests
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 tools/check-release-manifest.py --online releases/*.json
