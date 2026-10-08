@@ -178,8 +178,8 @@ Third-party RFID and CFS slot display, with the CFS on the API7 RFID firmware ([
 - **Slot display:** a spool swap faster than the 5 s idle poll kept the previous spool on screen (Mainsail, HelixScreen) for the whole CFS read. Fixed: the insertion clears the bay's RFID profile and Box polls every second while the new tag is read. After an MCU power cycle slot 1 briefly showed the external spool's profile until the CFS answered; fixed too.
 - **HelixScreen** keeps its slot overrides in Moonraker's `lane_data`, the namespace Box also publishes for OrcaSlicer; see [OrcaSlicer](ORCASLICER.md).
 - **Running, not yet exercised:** CFS notifications through `_BOX_NOTIFY` (Mobileraker, moonraker-telegram-bot) and the per-material humidity warning at print start (kalico-k2pro #54-#55, Mainsail #17). The printer runs kalico-k2pro `5fc622ca` (#55): Klipper loads the macro and the slots report `humidity_pct` and `humidity_limit_pct`, but no notification has been delivered yet.
-- **Merged, not yet on the printer:** the `box.py` split into `box_materials`, `box_rfid_estimates` and `box_rfid_vendors` (kalico-k2pro #56-#58, code moved unchanged, 701 unit tests).
-- **Releases:** [`releases/stable.json`](../../releases/stable.json) lists the commits validated together (Kalico `5fc622ca`, Mainsail `v2.19.0-k2oh.18`, helper `39e1b051`, bootstrap 0.1.3); `./helper.sh release status|apply` uses it.
+- **The `box.py` split** into `box_materials`, `box_rfid_estimates` and `box_rfid_vendors` (kalico-k2pro #56-#58, code moved unchanged) runs on the printer since the evening of 2026-10-08, together with the CFS firmware v3.13 and its `box_cfs_runtime` extra: Klipper starts, all CFS commands are registered, the remaining estimates are restored from `filament_box.json`, the third-party decoder registry loads its tag cache, and `_BOX_RFID_REMAINING_DIAG` answers. On v3.13 the CFS reports remaining `255` (unknown) on every slot after the update; Kalico ignores values outside 0-100 and keeps its own estimates.
+- **Releases:** [`releases/stable.json`](../../releases/stable.json) lists the commits validated together (release 2026.10.08-2: Kalico `769d1e07`, Mainsail `v2.19.0-k2oh.18`, helper `da8bc896`, bootstrap 0.1.3); `./helper.sh release status|apply` uses it.
 
 ### Reference printer, 2026-10-07
 
@@ -229,7 +229,6 @@ The step-by-step procedures for the physical tests below are in the [hardware te
 - a revised custom CFS image (the v2.1 RFID diagnostic image did not start, see above);
 - nozzle load cell pressure advance (kalico-k2pro #29, draft): archived on 2026-10-06 as still to develop, the module is disabled; results in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
 - a CFS notification delivered to the phone (runout swap, unknown tag) and the humid CFS warning with a real spool;
-- the `box.py` split (kalico-k2pro #56-#58) running on the printer, then a release with it;
 - UI split work, including the eventual T113 screen path.
 
 ## Not production-ready
