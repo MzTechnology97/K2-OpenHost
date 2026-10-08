@@ -28,6 +28,12 @@ The project is deliberately split into several repositories so upstream authorsh
 
 Original author and upstream project references are intentionally preserved. K2-OpenHost does not claim authorship of code or discoveries originating in those projects.
 
+## Releases / Release
+
+The component branches move with every merge. [`releases/stable.json`](releases/stable.json) lists the commits **validated together on the reference printer** (Kalico, Mainsail build, installer helper, T113 bootstrap) and the firmware they were tested with. On the host, `./helper.sh release status` compares the installation with it and `./helper.sh release apply` brings Kalico and Mainsail to it (fast-forward only, never during a print, Klipper restarted only when confirmed with the heaters off). See [releases/README.md](releases/README.md).
+
+I branch dei componenti avanzano a ogni merge. [`releases/stable.json`](releases/stable.json) elenca i commit **validati insieme sulla stampante di riferimento** (Kalico, build di Mainsail, installer helper, bootstrap T113) e il firmware con cui sono stati provati. Sull'host, `./helper.sh release status` confronta l'installazione con il manifest e `./helper.sh release apply` porta Kalico e Mainsail a quei commit (solo fast-forward, mai durante una stampa, riavvio di Klipper solo se confermato e con i riscaldatori spenti).
+
 ## Current target architecture / Architettura attuale
 
 ```text
