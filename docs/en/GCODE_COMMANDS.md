@@ -87,6 +87,13 @@ Switches of the CFS panel. They are saved and stay set after a restart.
 | `_BOX_SET_RFID_STARTUP_READING` | `[ENABLE=0]` | Read all RFID tags when Klipper starts. |
 | `_BOX_SET_CLOG_DETECTION` | `[ENABLE=1]` | Clog detection: pause when the extruder feeds `clog_extruder_length` (80 mm) while the CFS does not refill. Saved by the CFS; `clog_detection` in `box.cfg` is the default. Also the **Clog detection** switch in Mainsail's CFS settings menu. |
 
+Set in `box.cfg`, not by command:
+
+| Macro or option | Parameters | What it does |
+| --- | --- | --- |
+| `_BOX_NOTIFY` | `EVENT` `TITLE` `MESSAGE` | Called by Box for CFS events (`runout_swap`, `runout`, `clog`, `cfs_error`, `rfid_unknown`, `low_filament`, `humidity`); sends them to Mobileraker (`MR_NOTIFY:`) and moonraker-telegram-bot (`RESPOND PREFIX=tgnotify`). `variable_events`, `variable_mobileraker` and `variable_telegram` choose what goes where; `notify_macro:` in `[box]` names the macro (empty = off). |
+| `humidity_warnings`, `humidity_limits` | `PA:15, PLA:45` | Print-start warning when a mapped spool sits in a CFS more humid than its material tolerates (PLA 55 %, PETG 50 %, TPU 40 %, PC 35 %, PA 25 %, PVA 20 %); `humidity_limits` overrides single materials. |
+
 ## 5. CFS: HelixScreen and Creality compatibility
 
 HelixScreen and Creality's own tools send the stock K2 commands. K2-OpenHost accepts them, so the screen keeps working with the external host. You do not need to type them.
