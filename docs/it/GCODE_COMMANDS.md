@@ -1,6 +1,6 @@
 # Comandi G-code aggiunti da K2-OpenHost
 
-Aggiornato: **5 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
+Aggiornato: **8 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
 
 Questa pagina elenca tutti i comandi G-code che K2-OpenHost aggiunge a Kalico, divisi per tipologia. Vengono da due posti:
 - i moduli K2 di [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), ramo `k2-pro-openhost`;
@@ -59,17 +59,19 @@ Questi comandi li invia il pannello CFS di Mainsail. I dati restano salvati sull
 | Comando | Parametri | A cosa serve |
 | --- | --- | --- |
 | `BOX_RFID_SCAN` | `[ADDR=<box>]` `[NUM=0x0F]` | Rilegge i tag RFID di tutti gli slot occupati (o di un solo box; `NUM` è una maschera degli slot, bit 0 = slot A). |
-| `_BOX_RFID_READ_SLOT` | `SLOT=<n>` | Forza la rilettura RFID di uno slot. |
+| `_BOX_RFID_READ_SLOT` | `SLOT=<n>` | Forza la rilettura RFID di uno slot. Un tag che la CFS lascia sconosciuto passa ai decoder di terze parti (Bambu, QIDI; firmware CFS API7), con al massimo 3 riletture extra; un tag di terze parti già noto va direttamente al suo decoder. |
 | `_BOX_RFID_SPOOL_NEW` | `SLOT=<n>` `[REMAINING=100]` | Dichiara nuova la bobina di uno slot e porta la stima del filamento rimasto a `REMAINING` per cento. Serve per i tag con numero di serie generico: altrimenti una bobina nuova erediterebbe la stima di una usata con stessa marca, materiale, colore e lunghezza. |
 | `_BOX_SLOT_SET` | `SLOT=<n>` `MATERIAL=<tipo>` `COLOR=#RRGGBB` `[TARGET_TEMP]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Salva a mano i dati del filamento di uno slot (per bobine senza RFID). |
 | `_BOX_SLOT_CLEAR` | `SLOT=<n>` | Cancella i dati del filamento di uno slot. |
 | `_BOX_SLOT_ASSIGN` | `SLOT=<n>` `FILAMENT_ID=<id>` `[COLOR=#RRGGBB]` | Assegna a uno slot un profilo della libreria filamenti, eventualmente con un altro colore. Rifiutato se lo slot è gestito da un tag RFID presente. |
-| `_BOX_FILAMENT_SET` | `ID=<id>` `MATERIAL=<tipo>` `[COLOR]` `[TARGET_TEMP]` `[MIN_TEMP]` `[MAX_TEMP]` `[PRESSURE_ADVANCE]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Crea o aggiorna un profilo filamento riutilizzabile nella libreria (`cfs_filaments.json`). |
+| `_BOX_FILAMENT_SET` | `ID=<id>` `MATERIAL=<tipo>` `[COLOR]` `[TARGET_TEMP]` `[MIN_TEMP]` `[MAX_TEMP]` `[PRESSURE_ADVANCE]` `[MAX_FLOW]` `[NOMINAL_LENGTH_M]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Crea o aggiorna un profilo filamento riutilizzabile nella libreria (`cfs_filaments.json`). `NOMINAL_LENGTH_M` è la lunghezza della bobina usata per le bobine RFID di terze parti; vuoto = lunghezza di riferimento del materiale. |
 | `_BOX_FILAMENT_DELETE` | `ID=<id>` | Cancella un profilo filamento personalizzato. |
 | `_BOX_FILAMENT_RELOAD` | — | Ricarica dal disco il file della libreria filamenti e l'importazione K2-RFID, per esempio dopo aver modificato il file. |
 | `_BOX_MATERIAL_SET` | `MATERIAL=<tipo>` `TARGET_TEMP=<170–350>` | Salva la temperatura di stampa predefinita di un tipo di materiale. |
 | `_BOX_RFID_MAP_SET` | `CODE=<codice rfid>` `MATERIAL` `BRAND` `NAME` `[TARGET_TEMP]` | Insegna al sistema un codice RFID sconosciuto: da quel momento quel codice mostra questo materiale, marca e nome. |
 | `_BOX_RFID_MAP_DELETE` | `CODE=<codice rfid>` | Elimina un codice RFID imparato. |
+| `_BOX_RFID_ASSOCIATE` | `SLOT=<n>` `FILAMENT_ID=<id>` | Associa il tag presente in uno slot (Creality o di terze parti) a un profilo esistente della libreria. |
+| `_BOX_RFID_FALLBACK_CACHE` | `[CLEAR=1]` `[UID=<hex>]` | Mostra i decoder di terze parti, i budget di rilettura e la cache per UID; `CLEAR=1` svuota la cache (o un solo UID). |
 | `RFID_READER_READ` | — | Mostra l'ultimo dato letto dal lettore RFID separato della bobina esterna. |
 
 ## 4. CFS: impostazioni

@@ -1,6 +1,6 @@
 # OrcaSlicer and the CFS
 
-Updated: **2026-10-04**. [Italiano](../it/ORCASLICER.md)
+Updated: **2026-10-08**. [Italiano](../it/ORCASLICER.md)
 
 K2-OpenHost works with the **official OrcaSlicer**: no modified build is needed. Two things connect them:
 
@@ -44,6 +44,8 @@ Press **Sync** (the arrows button at the top of the filament list in the Prepare
 Each synced filament gets the slot's **material** and **colour**. Slice as usual: T0 prints from Box 1 slot 1, T1 from slot 2, and so on, and the automatic mapping confirms the match when the print starts.
 
 Sync again after changing spools: the printer updates `lane_data` within a few seconds of any slot change (RFID read, slot editor, Use in slot).
+
+**HelixScreen** keeps its own slot overrides in the same `lane_data` namespace and removes a lane when it clears one, for example after a spool swap. The printer republishes the slot at its next change, and a lane HelixScreen already removed is not an error. If OrcaSlicer misses a slot right after a swap, press **Sync** again once the new spool is read.
 
 ## What is published
 
