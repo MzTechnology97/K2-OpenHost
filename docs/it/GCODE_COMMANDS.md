@@ -87,6 +87,13 @@ Interruttori del pannello CFS. Restano salvati anche dopo un riavvio.
 | `_BOX_SET_RFID_STARTUP_READING` | `[ENABLE=0]` | Legge tutti i tag RFID all'avvio di Klipper. |
 | `_BOX_SET_CLOG_DETECTION` | `[ENABLE=1]` | Rilevamento intasamenti: pausa quando l'estrusore spinge `clog_extruder_length` (80 mm) mentre la CFS non ricarica. Lo salva la CFS; `clog_detection` in `box.cfg` è il valore predefinito. È anche lo switch **Clog detection** nel menu impostazioni della CFS in Mainsail. |
 
+Si impostano in `box.cfg`, non con un comando:
+
+| Macro o opzione | Parametri | Cosa fa |
+| --- | --- | --- |
+| `_BOX_NOTIFY` | `EVENT` `TITLE` `MESSAGE` | La chiama Box per gli eventi della CFS (`runout_swap`, `runout`, `clog`, `cfs_error`, `rfid_unknown`, `low_filament`, `humidity`); li invia a Mobileraker (`MR_NOTIFY:`) e a moonraker-telegram-bot (`RESPOND PREFIX=tgnotify`). `variable_events`, `variable_mobileraker` e `variable_telegram` scelgono cosa inviare e dove; `notify_macro:` in `[box]` indica la macro (vuoto = spento). |
+| `humidity_warnings`, `humidity_limits` | `PA:15, PLA:45` | Avviso all'avvio della stampa quando una bobina associata sta in una CFS più umida di quanto il suo materiale tolleri (PLA 55 %, PETG 50 %, TPU 40 %, PC 35 %, PA 25 %, PVA 20 %); `humidity_limits` cambia i singoli materiali. |
+
 ## 5. CFS: compatibilità con HelixScreen e Creality
 
 HelixScreen e gli strumenti di Creality inviano i comandi originali della K2. K2-OpenHost li accetta, così lo schermo continua a funzionare con l'host esterno. Non serve scriverli a mano.

@@ -177,6 +177,8 @@ RFID di terze parti e visualizzazione degli slot della CFS, con la CFS sul firmw
 - **Una lettura forzata poteva bloccare il task RFID della CFS** (`busy` su uno slot) dopo letture interrotte. Un ciclo di alimentazione delle MCU (`k2oh-ctl /mcu/cycle`) lo sblocca; riavvia anche la CFS.
 - **Visualizzazione degli slot:** uno scambio di bobine più veloce del polling a riposo (5 s) lasciava a schermo la bobina precedente (Mainsail, HelixScreen) per tutta la lettura della CFS. Corretto: l'inserimento svuota il profilo RFID dello slot e Box interroga la CFS ogni secondo mentre legge il nuovo tag. Dopo un ciclo di alimentazione delle MCU lo slot 1 mostrava per qualche secondo il profilo della bobina esterna finché la CFS non rispondeva; corretto anche questo.
 - **HelixScreen** tiene i suoi override degli slot nel `lane_data` di Moonraker, lo stesso namespace che Box pubblica per OrcaSlicer; vedi [OrcaSlicer](ORCASLICER.md).
+- **Unite, non ancora provate sulla stampante:** le notifiche CFS tramite `_BOX_NOTIFY` (Mobileraker, moonraker-telegram-bot) e l'avviso di umidità per materiale all'avvio della stampa (kalico-k2pro #54-#55, Mainsail #17); la divisione di `box.py` in `box_materials`, `box_rfid_estimates` e `box_rfid_vendors` (kalico-k2pro #56-#58, codice spostato senza modifiche, 701 test unitari). Sulla stampante gira ancora kalico-k2pro `5fc622ca`.
+- **Release:** [`releases/stable.json`](../../releases/stable.json) elenca i commit validati insieme (Kalico `5fc622ca`, Mainsail `v2.19.0-k2oh.18`, helper `39e1b051`, bootstrap 0.1.3); lo usa `./helper.sh release status|apply`.
 
 ### Stampante di riferimento, 7 ottobre 2026
 
@@ -225,6 +227,8 @@ Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test
 - un `k2oh-mcu-fw apply --cfs` originale con la lista CFS messa da parte del bootstrap 0.1.2, e l'installazione dell'immagine 0.1.2;
 - un'immagine CFS personalizzata rivista (l'immagine diagnostica RFID v2.1 non è partita, vedi sopra);
 - il pressure advance con la cella di carico dell'ugello (kalico-k2pro #29, in bozza): archiviato il 6 ottobre 2026 come da sviluppare, il modulo è disattivato; i risultati sono in `docs/K2_Load_Cell_PA.md` di kalico-k2pro;
+- una notifica CFS che arriva al telefono (cambio bobina, tag sconosciuto) e l'avviso di CFS umida con una bobina vera;
+- la divisione di `box.py` (kalico-k2pro #56-#58) in funzione sulla stampante, poi una release che la includa;
 - proseguire con lo split UI e il futuro percorso display sul T113.
 
 ## Non ancora production-ready
