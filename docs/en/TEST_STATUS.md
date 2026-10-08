@@ -1,6 +1,6 @@
 # K2-OpenHost test status
 
-Last updated: **2026-10-06**.
+Last updated: **2026-10-08**.
 
 ## Summary
 
@@ -166,6 +166,17 @@ The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.
 ### MCU firmware update from slot B (2026-10-06)
 
 `k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
+### Reference printer, 2026-10-08
+
+Third-party RFID and CFS slot display, with the CFS on the API7 RFID firmware ([kalico-k2pro `docs/CFS_RFID_BAMBU.md`](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-pro-openhost/docs/CFS_RFID_BAMBU.md)):
+
+- **Creality tag:** read by the normal CFS path; the third-party fallback does not run.
+- **New Bambu spool:** recognised with one extra CFS reread. **A known spool**, put back or moved to another slot, is applied from the UID cache with no reread. **A manual reread of a known tag** goes straight to its decoder: 19 s instead of 64 s.
+- **Remaining filament of Bambu spools:** the CFS percentage is read every 30 s and shown in Mainsail. Kalico now gives these spools the reference length of their material (PETG 327 m, PC 345 m, PETG-CF 320 m), decreases the estimate during printing and saves it by tag UID; after a Klipper restart it is restored and the CFS percentage is polled again without a reread.
+- **A forced read could block the CFS RFID task** (`busy` on one slot) after interrupted reads. An MCU power cycle (`k2oh-ctl /mcu/cycle`) recovers it; it also restarts the CFS.
+- **Slot display:** a spool swap faster than the 5 s idle poll kept the previous spool on screen (Mainsail, HelixScreen) for the whole CFS read. Fixed: the insertion clears the bay's RFID profile and Box polls every second while the new tag is read. After an MCU power cycle slot 1 briefly showed the external spool's profile until the CFS answered; fixed too.
+- **HelixScreen** keeps its slot overrides in Moonraker's `lane_data`, the namespace Box also publishes for OrcaSlicer; see [OrcaSlicer](ORCASLICER.md).
 
 ### Reference printer, 2026-10-07
 

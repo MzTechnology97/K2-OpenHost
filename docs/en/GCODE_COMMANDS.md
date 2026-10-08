@@ -1,6 +1,6 @@
 # G-code commands added by K2-OpenHost
 
-Updated: **2026-10-05**. [Italiano](../it/GCODE_COMMANDS.md)
+Updated: **2026-10-08**. [Italiano](../it/GCODE_COMMANDS.md)
 
 This page lists every G-code command that K2-OpenHost adds to Kalico, grouped by type. They come from two places:
 - the K2 modules of [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), branch `k2-pro-openhost`;
@@ -59,17 +59,19 @@ The CFS panel in Mainsail sends these commands. The data is saved on the host an
 | Command | Parameters | What it does |
 | --- | --- | --- |
 | `BOX_RFID_SCAN` | `[ADDR=<box>]` `[NUM=0x0F]` | Rereads the RFID tags of all populated slots (or of one box; `NUM` is a slot mask, bit 0 = slot A). |
-| `_BOX_RFID_READ_SLOT` | `SLOT=<n>` | Forces an RFID reread of one slot. |
+| `_BOX_RFID_READ_SLOT` | `SLOT=<n>` | Forces an RFID reread of one slot. A tag the CFS leaves unknown goes to the third-party decoders (Bambu, QIDI; API7 CFS firmware), up to 3 extra rereads; a known third-party tag goes straight to its decoder. |
 | `_BOX_RFID_SPOOL_NEW` | `SLOT=<n>` `[REMAINING=100]` | Declares the spool in a slot new and resets its remaining-filament estimate to `REMAINING` percent. Needed for tags with the generic serial: a new spool would otherwise inherit the estimate of a used one with the same brand, material, color and length. |
 | `_BOX_SLOT_SET` | `SLOT=<n>` `MATERIAL=<type>` `COLOR=#RRGGBB` `[TARGET_TEMP]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Saves the filament data of a slot by hand (for spools without RFID). |
 | `_BOX_SLOT_CLEAR` | `SLOT=<n>` | Clears the filament data of a slot. |
 | `_BOX_SLOT_ASSIGN` | `SLOT=<n>` `FILAMENT_ID=<id>` `[COLOR=#RRGGBB]` | Assigns a profile from the filament library to a slot, optionally with another color. Refused while a live RFID tag controls the slot. |
-| `_BOX_FILAMENT_SET` | `ID=<id>` `MATERIAL=<type>` `[COLOR]` `[TARGET_TEMP]` `[MIN_TEMP]` `[MAX_TEMP]` `[PRESSURE_ADVANCE]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Creates or updates a reusable filament profile in the library (`cfs_filaments.json`). |
+| `_BOX_FILAMENT_SET` | `ID=<id>` `MATERIAL=<type>` `[COLOR]` `[TARGET_TEMP]` `[MIN_TEMP]` `[MAX_TEMP]` `[PRESSURE_ADVANCE]` `[MAX_FLOW]` `[NOMINAL_LENGTH_M]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Creates or updates a reusable filament profile in the library (`cfs_filaments.json`). `NOMINAL_LENGTH_M` is the spool length used for third-party RFID spools; empty = the material's reference length. |
 | `_BOX_FILAMENT_DELETE` | `ID=<id>` | Deletes a custom filament profile. |
 | `_BOX_FILAMENT_RELOAD` | — | Reloads the filament library file and the K2-RFID import from disk, for example after editing the file. |
 | `_BOX_MATERIAL_SET` | `MATERIAL=<type>` `TARGET_TEMP=<170–350>` | Saves the default print temperature of a material type. |
 | `_BOX_RFID_MAP_SET` | `CODE=<rfid code>` `MATERIAL` `BRAND` `NAME` `[TARGET_TEMP]` | Teaches the system an unknown RFID code: from now on that code shows this material, brand and name. |
 | `_BOX_RFID_MAP_DELETE` | `CODE=<rfid code>` | Removes a learned RFID code. |
+| `_BOX_RFID_ASSOCIATE` | `SLOT=<n>` `FILAMENT_ID=<id>` | Binds the tag currently in a slot (Creality or third-party) to an existing library profile. |
+| `_BOX_RFID_FALLBACK_CACHE` | `[CLEAR=1]` `[UID=<hex>]` | Shows the third-party decoders, reread budgets and UID cache; `CLEAR=1` empties the cache (or one UID). |
 | `RFID_READER_READ` | — | Shows the last record read by the standalone RFID reader of the external spool. |
 
 ## 4. CFS: settings

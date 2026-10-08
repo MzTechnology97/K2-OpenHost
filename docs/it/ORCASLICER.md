@@ -1,6 +1,6 @@
 # OrcaSlicer e il CFS
 
-Aggiornato: **4 ottobre 2026**. [English](../en/ORCASLICER.md)
+Aggiornato: **8 ottobre 2026**. [English](../en/ORCASLICER.md)
 
 K2-OpenHost funziona con **OrcaSlicer ufficiale**: non serve una versione modificata. Due cose li collegano:
 
@@ -44,6 +44,8 @@ Premi **Sync** (il pulsante con le frecce in cima alla lista dei filamenti nella
 Ogni filamento sincronizzato prende **materiale** e **colore** dello slot. Fai lo slicing come sempre: T0 stampa dal Box 1 slot 1, T1 dallo slot 2 e così via, e all'avvio della stampa l'abbinamento automatico conferma la corrispondenza.
 
 Rifai la sincronizzazione dopo aver cambiato bobine: la stampante aggiorna `lane_data` entro pochi secondi da ogni modifica di uno slot (lettura RFID, editor dello slot, Use in slot).
+
+**HelixScreen** tiene i propri override degli slot nello stesso namespace `lane_data` e toglie una corsia quando ne azzera uno, per esempio dopo uno scambio di bobine. La stampante ripubblica lo slot alla sua modifica successiva, e una corsia già tolta da HelixScreen non è un errore. Se OrcaSlicer non vede uno slot subito dopo uno scambio, premi di nuovo **Sync** quando la nuova bobina è stata letta.
 
 ## Cosa viene pubblicato
 

@@ -1,6 +1,6 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **6 ottobre 2026**.
+Aggiornato all'**8 ottobre 2026**.
 
 ## Sintesi
 
@@ -166,6 +166,17 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 ### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
+### Stampante di riferimento, 8 ottobre 2026
+
+RFID di terze parti e visualizzazione degli slot della CFS, con la CFS sul firmware RFID API7 ([kalico-k2pro `docs/CFS_RFID_BAMBU.md`](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-pro-openhost/docs/CFS_RFID_BAMBU.md)):
+
+- **Tag Creality:** letto dal percorso normale della CFS; il ripiego per le terze parti non entra in gioco.
+- **Bobina Bambu nuova:** riconosciuta con una sola rilettura extra della CFS. **Una bobina già vista**, rimessa o spostata in un altro slot, è applicata dalla cache per UID senza riletture. **La rilettura manuale di un tag noto** va direttamente al suo decoder: 19 s invece di 64.
+- **Filamento rimanente delle bobine Bambu:** la percentuale della CFS è letta ogni 30 s e mostrata in Mainsail. Ora Kalico dà a queste bobine la lunghezza di riferimento del loro materiale (PETG 327 m, PC 345 m, PETG-CF 320 m), aggiorna la stima durante la stampa e la salva per UID del tag; dopo un riavvio di Klipper viene ripristinata e la percentuale della CFS torna a essere letta senza riletture.
+- **Una lettura forzata poteva bloccare il task RFID della CFS** (`busy` su uno slot) dopo letture interrotte. Un ciclo di alimentazione delle MCU (`k2oh-ctl /mcu/cycle`) lo sblocca; riavvia anche la CFS.
+- **Visualizzazione degli slot:** uno scambio di bobine più veloce del polling a riposo (5 s) lasciava a schermo la bobina precedente (Mainsail, HelixScreen) per tutta la lettura della CFS. Corretto: l'inserimento svuota il profilo RFID dello slot e Box interroga la CFS ogni secondo mentre legge il nuovo tag. Dopo un ciclo di alimentazione delle MCU lo slot 1 mostrava per qualche secondo il profilo della bobina esterna finché la CFS non rispondeva; corretto anche questo.
+- **HelixScreen** tiene i suoi override degli slot nel `lane_data` di Moonraker, lo stesso namespace che Box pubblica per OrcaSlicer; vedi [OrcaSlicer](ORCASLICER.md).
 
 ### Stampante di riferimento, 7 ottobre 2026
 
