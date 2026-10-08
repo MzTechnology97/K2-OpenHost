@@ -1,0 +1,37 @@
+{
+  "schema": 1,
+  "name": "2026.10.08",
+  "date": "2026-10-08",
+  "summary": "Third-party RFID decoder registry, per-material spool lengths, slot display and external slot fixes, T113 timezone from the host.",
+  "components": {
+    "kalico": {
+      "repo": "MzTechnology97/kalico-k2pro",
+      "branch": "k2-pro-openhost",
+      "sha": "5fc622cae3be0b4124e1c847240fc917f82283ae"
+    },
+    "mainsail": {
+      "repo": "MzTechnology97/mainsail-k2openhost",
+      "branch": "develop",
+      "sha": "f819b50a8791f4d564c269b1c24777f62abef7ef",
+      "tag": "v2.19.0-k2oh.18"
+    },
+    "helper": {
+      "repo": "MzTechnology97/k2-openhost-installer-helper",
+      "branch": "main",
+      "sha": "39e1b0511623e34682d56c5b7d2b99e7a5309e2c",
+      "version": "0.1.0"
+    },
+    "t113_bootstrap": {
+      "repo": "MzTechnology97/k2-openhost-t113-bootstrap",
+      "branch": "main",
+      "sha": "883bdd2df1c70c98f4d7988cb8a535ab01743170",
+      "version": "0.1.3"
+    }
+  },
+  "tested_with": {
+    "slot_b_base_firmware": "1.1.0.94",
+    "board_firmware": "1.1.7.0",
+    "cfs_application": "cfs0_000_153",
+    "notes": "Third-party RFID tags (Bambu, MIFARE vendors) are decoded from raw tag reads of the CFS: a CFS that does not report them reads Creality tags only."
+  }
+}
