@@ -1,6 +1,6 @@
 # OrcaSlicer e il CFS
 
-Aggiornato: **8 ottobre 2026**. [English](../en/ORCASLICER.md)
+Aggiornato: **9 ottobre 2026**. [English](../en/ORCASLICER.md)
 
 K2-OpenHost funziona con **OrcaSlicer ufficiale**: non serve una versione modificata. Due cose li collegano:
 
@@ -62,11 +62,12 @@ Una voce per ogni slot occupato del CFS con un materiale (la bobina esterna non 
   "name": "Bambulab PLA Basic",
   "vendor": "Bambulab",
   "filament_id": "05628",
+  "orca_filament_id": "OFoiVqVM",
   "scan_time": ""
 }
 ```
 
-`lane` è il numero dello strumento (slot fisico, da 0). OrcaSlicer oggi legge `lane`, `material`, `color`, `nozzle_temp` e `bed_temp`; `name`, `vendor`, `filament_id` e `spool_id` servono per l'abbinamento ai preset di marca, che OrcaSlicer non fa ancora per le stampanti Moonraker ([#13006](https://github.com/OrcaSlicer/OrcaSlicer/issues/13006)).
+`lane` è il numero dello strumento (slot fisico, da 0). OrcaSlicer oggi legge `lane`, `material`, `color`, `nozzle_temp` e `bed_temp`. `filament_id` è l'ID del filamento CFS (libreria) e `orca_filament_id` l'ID del preset OrcaSlicer (sotto); con `name`, `vendor` e `spool_id` servono per l'abbinamento ai preset di marca, che OrcaSlicer non fa ancora per le stampanti Moonraker ([#13006](https://github.com/OrcaSlicer/OrcaSlicer/issues/13006)).
 
 Puoi verificare cosa pubblica la stampante con la stessa richiesta che fa OrcaSlicer:
 
@@ -74,9 +75,29 @@ Puoi verificare cosa pubblica la stampante con la stessa richiesta che fa OrcaSl
 curl -s "http://k2host.local:7125/server/database/item?namespace=lane_data"
 ```
 
+## Preset OrcaSlicer di ogni filamento
+
+Ogni filamento della CFS ha il `filament_id` del suo preset OrcaSlicer, l'ID con cui OrcaSlicer abbina i preset. Non cambia mai l'ID, il nome, la marca o i codici RFID del filamento.
+
+- **Predefinito** (Kalico, generato dai profili di OrcaSlicer): il preset K2 Pro di un filamento Creality o Generic del catalogo (`Hyper PLA` → "Hyper PLA @K2 Pro-all"), il prodotto della libreria filamenti di OrcaSlicer per un tag Bambu (`Bambulab PETG HF` → "Bambu PETG HF @System"), oppure un preset con lo stesso nome del profilo.
+- **Scelto da te**: nella libreria filamenti di Mainsail, menu della scheda → **OrcaSlicer preset…** (anche per i profili di sistema), oppure la sezione OrcaSlicer del modulo di modifica; `_BOX_FILAMENT_ORCA_ID` dalla console.
+- **Un tuo preset OrcaSlicer**: crealo da zero (Filamento → **+** → *Crea filamento*), poi copia `"filament_id"` (`P…`) da `%APPDATA%\OrcaSlicer\user\<account>\filament\base\<nome>.json`. Un preset salvato da un altro ("Salva come") non ha un ID suo: usa quello del genitore, e OrcaSlicer selezionerebbe il genitore.
+
+OrcaSlicer rilasciato (2.4.2) non legge ancora l'ID: la sincronizzazione sceglie ancora il preset generico per materiale. La [PR #16208 di OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer/pull/16208) legge il `filament_id` di una lane; gli ID che assegna Kalico seguono i profili attuali di OrcaSlicer (`OF…`), che hanno sostituito quelli della 2.4.2 (Bambu PLA Basic: `OGFA00` nella 2.4.2, `OFoiVqVM` ora).
+
+## Abbinamento degli slot all'invio
+
+OrcaSlicer ufficiale mostra la finestra filamento → slot all'invio solo per il tipo di host **CrealityPrint** (firmware originale). Il [fork di OrcaSlicer di Jacob10383](https://github.com/Jacob10383/OrcaSlicer) la aggiunge per le stampanti Moonraker che pubblicano `box.print_mapping_version: 1`, come fa K2-OpenHost: ogni filamento del progetto ha una scelta **Load from: Box 1, slot n**, e la stampa parte con `BOX_PRINT_START` e quell'abbinamento, come la finestra di stampa di Mainsail. La sua sincronizzazione legge direttamente l'oggetto `box` e sceglie i preset per nome. Le build sono nella sua release `Nightly-Rolling` (lo zip portable per Windows gira accanto a un OrcaSlicer installato). I campi sono stati verificati sulla stampante di riferimento; non è ancora stato usato per una stampa.
+
+Senza il fork, fai slicing e caricamento come sempre: l'abbinamento automatico assegna gli strumenti agli slot all'avvio della stampa.
+
+## accel_to_decel
+
+Kalico non ha `ACCEL_TO_DECEL`: il suo `SET_VELOCITY_LIMIT` scarta il parametro senza errori e usa `minimum_cruise_ratio` di `printer.cfg` (0.5 nel profilo K2, il vecchio 50 %). Con l'opzione **accel_to_decel** di OrcaSlicer attiva, ogni cambio di accelerazione aggiunge un `ACCEL_TO_DECEL=` che non fa nulla. Disattiva l'opzione nei preset di processo della stampante Kalico; per cambiare il rapporto imposta `minimum_cruise_ratio` in `printer.cfg` o aggiungi `SET_VELOCITY_LIMIT MINIMUM_CRUISE_RATIO=<0..0.99>` al G-code iniziale.
+
 ## Limiti
 
-- OrcaSlicer sceglie un **preset generico per materiale** ("Generic PLA" per uno slot PLA) con il colore dello slot, non il preset della marca. Se ti servono le sue impostazioni scegli dopo il tuo preset; l'abbinamento CFS funziona lo stesso.
+- OrcaSlicer sceglie un **preset generico per materiale** ("Generic PLA" per uno slot PLA) con il colore dello slot, non il preset della marca, finché non legge l'ID del preset descritto sopra. Se ti servono le sue impostazioni scegli dopo il tuo preset; l'abbinamento CFS funziona lo stesso.
 - I profili filamento non hanno la temperatura del piano, quindi `bed_temp` è vuoto e OrcaSlicer usa quella del preset.
 - La bobina esterna non fa parte della sincronizzazione; assegnala nella finestra di stampa di Mainsail quando serve.
 
