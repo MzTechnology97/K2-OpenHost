@@ -102,6 +102,10 @@ The current Jacob/Jacobean CFS print-mapping model has now been integrated addit
 
 Il modello di mappatura CFS corrente di Jacob/Jacobean è stato integrato in modo additivo, inclusa la finestra di mapping in Mainsail. `BOX_PRINT_INFO`, inventario reale degli slot, associazione automatica all'avvio, caricamento dal CFS e cambio bobina automatico sono andati sulla K2 Pro durante una stampa di 18 ore. Restano da provare un `BOX_PRINT_START` esplicito con cambio colore e la pausa con cambio slot.
 
+Latest on the reference printer (2026-10-09): CFS notifications reach the phone (Mobileraker, Telegram); every CFS filament carries its OrcaSlicer preset ID, published for the slicer and editable in Mainsail; with CFS firmware v3.13+ the CFS runtime speeds are set from `box.cfg` (`box_cfs_runtime`). Details in [TEST_STATUS](docs/en/TEST_STATUS.md) and [OrcaSlicer](docs/en/ORCASLICER.md).
+
+Ultime novità sulla stampante di riferimento (9 ottobre 2026): le notifiche CFS arrivano al telefono (Mobileraker, Telegram); ogni filamento CFS ha l'ID del suo preset OrcaSlicer, pubblicato per lo slicer e modificabile in Mainsail; con il firmware CFS v3.13+ le velocità runtime della CFS si impostano da `box.cfg` (`box_cfs_runtime`). Dettagli in [TEST_STATUS](docs/it/TEST_STATUS.md) e [OrcaSlicer](docs/it/ORCASLICER.md).
+
 ## Current project boundary / Stato attuale
 
 The OpenHost stack has moved beyond passive transport validation: real homing, heaters, emergency shutdown and resonance testing now work on the external Kalico host. An 18-hour print with automatic CFS mapping and a runout swap also ran without errors. It is still **pre-production**: multi-colour CFS printing, pause/resume, power-loss recovery and Cartographer on direct USB are not validated yet.
