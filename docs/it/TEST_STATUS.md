@@ -1,6 +1,6 @@
 # Stato test K2-OpenHost
 
-Aggiornato all'**8 ottobre 2026**.
+Aggiornato al **9 ottobre 2026**.
 
 ## Sintesi
 
@@ -167,6 +167,16 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
 
+### Stampante di riferimento, 9 ottobre 2026
+
+- **Le notifiche CFS arrivano al telefono:** un evento di prova tramite `_BOX_NOTIFY` è arrivato su Mobileraker (tre dispositivi) e sul bot Telegram. Il bot registra `Conflict: terminated by other getUpdates request` ogni pochi secondi: un'altra istanza usa lo stesso token, quindi i comandi verso il bot non arrivano; l'invio non ne risente.
+- **Residuo della CFS dopo un suo riavvio:** la CFS conosce la percentuale residua di uno slot solo dopo averne letto il tag, e fino ad allora risponde `255` (sconosciuto). Lo faceva anche con il firmware precedente (dopo i riavvii dell'8 ottobre). Dopo l'aggiornamento del firmware una rilettura l'ha riportata (slot 2: 34 %; slot 1, 3 e 4 dopo `BOX_INFO_REFRESH`: 12, 69 e 3 %). Nel frattempo Kalico ignora i valori fuori da 0-100 e mantiene le sue stime.
+- **Configurazione runtime della CFS** (`box_cfs_runtime`, kalico-k2pro #60 e #62, scritto sulla stampante e portato su GitHub): con il firmware CFS v3.13 applica le sei velocità di feeder e hub (valori originali) quando il collegamento RS-485 è pronto, riprovando finché la CFS non risponde; `BOX_CFS_CONFIG_INFO` risponde.
+- **ID del preset OrcaSlicer per filamento** (kalico-k2pro #63, Mainsail #19): ogni filamento ha il `filament_id` del suo preset OrcaSlicer, modificabile in Mainsail per ogni profilo, anche quelli di sistema. Sulla stampante le quattro bobine Bambu hanno ricevuto i preset della libreria filamenti di OrcaSlicer (PETG HF, PLA Basic, PC, PETG-CF) e `lane_data` li pubblica come `orca_filament_id`. OrcaSlicer rilasciato non lo legge ancora; vedi [OrcaSlicer](ORCASLICER.md).
+- **`ACCEL_TO_DECEL`:** il `SET_VELOCITY_LIMIT` di Kalico non ha questo parametro e lo scarta senza errori. La macro `BED_MESH_CALIBRATE` ora imposta `MINIMUM_CRUISE_RATIO=0.375`, lo stesso limite (kalico-k2pro #64); in OrcaSlicer l'opzione è disattivata (vedi [OrcaSlicer](ORCASLICER.md#accel_to_decel)).
+- **CI di Kalico:** l'immagine upstream `klipper-build:latest` ha cambiato un comando MCU INDX e faceva fallire ogni pull request; il workflow è fissato all'ultima immagine compatibile (kalico-k2pro #61).
+- **Release 2026.10.09** in [`releases/stable.json`](../../releases/stable.json): Kalico `9fdd6d69`, Mainsail `v2.19.0-k2oh.19`, installer helper e bootstrap T113 0.1.3.
+
 ### Stampante di riferimento, 8 ottobre 2026
 
 RFID di terze parti e visualizzazione degli slot della CFS, con la CFS sul firmware RFID API7 ([kalico-k2pro `docs/CFS_RFID_BAMBU.md`](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-pro-openhost/docs/CFS_RFID_BAMBU.md)):
@@ -178,7 +188,7 @@ RFID di terze parti e visualizzazione degli slot della CFS, con la CFS sul firmw
 - **Visualizzazione degli slot:** uno scambio di bobine più veloce del polling a riposo (5 s) lasciava a schermo la bobina precedente (Mainsail, HelixScreen) per tutta la lettura della CFS. Corretto: l'inserimento svuota il profilo RFID dello slot e Box interroga la CFS ogni secondo mentre legge il nuovo tag. Dopo un ciclo di alimentazione delle MCU lo slot 1 mostrava per qualche secondo il profilo della bobina esterna finché la CFS non rispondeva; corretto anche questo.
 - **HelixScreen** tiene i suoi override degli slot nel `lane_data` di Moonraker, lo stesso namespace che Box pubblica per OrcaSlicer; vedi [OrcaSlicer](ORCASLICER.md).
 - **In funzione, non ancora provate:** le notifiche CFS tramite `_BOX_NOTIFY` (Mobileraker, moonraker-telegram-bot) e l'avviso di umidità per materiale all'avvio della stampa (kalico-k2pro #54-#55, Mainsail #17). Sulla stampante gira kalico-k2pro `5fc622ca` (#55): Klipper carica la macro e gli slot riportano `humidity_pct` e `humidity_limit_pct`, ma nessuna notifica è ancora stata recapitata.
-- **La divisione di `box.py`** in `box_materials`, `box_rfid_estimates` e `box_rfid_vendors` (kalico-k2pro #56-#58, codice spostato senza modifiche) gira sulla stampante dalla sera del 2026-10-08, insieme al firmware CFS v3.13 e al suo extra `box_cfs_runtime`: Klipper parte, tutti i comandi CFS sono registrati, le stime del residuo vengono ripristinate da `filament_box.json`, il registro dei decoder di terze parti carica la sua cache dei tag e `_BOX_RFID_REMAINING_DIAG` risponde. Con la v3.13 la CFS riporta un residuo `255` (sconosciuto) su tutti gli slot dopo l'aggiornamento; Kalico ignora i valori fuori da 0-100 e mantiene le sue stime.
+- **La divisione di `box.py`** in `box_materials`, `box_rfid_estimates` e `box_rfid_vendors` (kalico-k2pro #56-#58, codice spostato senza modifiche) gira sulla stampante dalla sera del 2026-10-08, insieme al firmware CFS v3.13 e al suo extra `box_cfs_runtime`: Klipper parte, tutti i comandi CFS sono registrati, le stime del residuo vengono ripristinate da `filament_box.json`, il registro dei decoder di terze parti carica la sua cache dei tag e `_BOX_RFID_REMAINING_DIAG` risponde. Dopo l'aggiornamento del firmware la CFS ha riportato un residuo `255` (sconosciuto) su tutti gli slot finché non ha riletto i tag (vedi 9 ottobre); Kalico ignora i valori fuori da 0-100 e mantiene le sue stime.
 - **Release:** [`releases/stable.json`](../../releases/stable.json) elenca i commit validati insieme (release 2026.10.08-2: Kalico `769d1e07`, Mainsail `v2.19.0-k2oh.18`, helper `da8bc896`, bootstrap 0.1.3); lo usa `./helper.sh release status|apply`.
 
 ### Stampante di riferimento, 7 ottobre 2026
@@ -228,7 +238,8 @@ Le procedure passo passo per le prove fisiche qui sotto sono nel [piano dei test
 - un `k2oh-mcu-fw apply --cfs` originale con la lista CFS messa da parte del bootstrap 0.1.2, e l'installazione dell'immagine 0.1.2;
 - un'immagine CFS personalizzata rivista (l'immagine diagnostica RFID v2.1 non è partita, vedi sopra);
 - il pressure advance con la cella di carico dell'ugello (kalico-k2pro #29, in bozza): archiviato il 6 ottobre 2026 come da sviluppare, il modulo è disattivato; i risultati sono in `docs/K2_Load_Cell_PA.md` di kalico-k2pro;
-- una notifica CFS che arriva al telefono (cambio bobina, tag sconosciuto) e l'avviso di CFS umida con una bobina vera;
+- l'avviso di CFS umida con una bobina vera, e un cambio rapido di bobina visto dal vivo su HelixScreen;
+- l'abbinamento degli slot all'invio da OrcaSlicer con il fork di OrcaSlicer di Jacob10383 (i suoi campi corrispondono allo stato del Box; non ancora provato con una stampa);
 - proseguire con lo split UI e il futuro percorso display sul T113.
 
 ## Non ancora production-ready
