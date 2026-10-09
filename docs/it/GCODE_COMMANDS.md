@@ -1,6 +1,6 @@
 # Comandi G-code aggiunti da K2-OpenHost
 
-Aggiornato: **8 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
+Aggiornato: **9 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
 
 Questa pagina elenca tutti i comandi G-code che K2-OpenHost aggiunge a Kalico, divisi per tipologia. Vengono da due posti:
 - i moduli K2 di [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), ramo `k2-pro-openhost`;
@@ -66,6 +66,7 @@ Questi comandi li invia il pannello CFS di Mainsail. I dati restano salvati sull
 | `_BOX_SLOT_ASSIGN` | `SLOT=<n>` `FILAMENT_ID=<id>` `[COLOR=#RRGGBB]` | Assegna a uno slot un profilo della libreria filamenti, eventualmente con un altro colore. Rifiutato se lo slot è gestito da un tag RFID presente. |
 | `_BOX_FILAMENT_SET` | `ID=<id>` `MATERIAL=<tipo>` `[COLOR]` `[TARGET_TEMP]` `[MIN_TEMP]` `[MAX_TEMP]` `[PRESSURE_ADVANCE]` `[MAX_FLOW]` `[NOMINAL_LENGTH_M]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Crea o aggiorna un profilo filamento riutilizzabile nella libreria (`cfs_filaments.json`). `NOMINAL_LENGTH_M` è la lunghezza della bobina usata per le bobine RFID di terze parti; vuoto = lunghezza di riferimento del materiale. |
 | `_BOX_FILAMENT_DELETE` | `ID=<id>` | Cancella un profilo filamento personalizzato. |
+| `_BOX_FILAMENT_ORCA_ID` | `ID=<id>` `[ORCA_ID=<id>]` `[RESET=1]` | ID del preset OrcaSlicer (`filament_id`) di un filamento, anche di un profilo di sistema in sola lettura; è salvato a parte dal profilo. Senza parametri mostra il valore attuale e quello predefinito; `RESET=1` torna al predefinito. È anche **OrcaSlicer preset…** nella libreria filamenti di Mainsail. |
 | `_BOX_FILAMENT_RELOAD` | — | Ricarica dal disco il file della libreria filamenti e l'importazione K2-RFID, per esempio dopo aver modificato il file. |
 | `_BOX_MATERIAL_SET` | `MATERIAL=<tipo>` `TARGET_TEMP=<170–350>` | Salva la temperatura di stampa predefinita di un tipo di materiale. |
 | `_BOX_RFID_MAP_SET` | `CODE=<codice rfid>` `MATERIAL` `BRAND` `NAME` `[TARGET_TEMP]` | Insegna al sistema un codice RFID sconosciuto: da quel momento quel codice mostra questo materiale, marca e nome. |
@@ -93,6 +94,15 @@ Si impostano in `box.cfg`, non con un comando:
 | --- | --- | --- |
 | `_BOX_NOTIFY` | `EVENT` `TITLE` `MESSAGE` | La chiama Box per gli eventi della CFS (`runout_swap`, `runout`, `clog`, `cfs_error`, `rfid_unknown`, `low_filament`, `humidity`); li invia a Mobileraker (`MR_NOTIFY:`) e a moonraker-telegram-bot (`RESPOND PREFIX=tgnotify`). `variable_events`, `variable_mobileraker` e `variable_telegram` scelgono cosa inviare e dove; `notify_macro:` in `[box]` indica la macro (vuoto = spento). |
 | `humidity_warnings`, `humidity_limits` | `PA:15, PLA:45` | Avviso all'avvio della stampa quando una bobina associata sta in una CFS più umida di quanto il suo materiale tolleri (PLA 55 %, PETG 50 %, TPU 40 %, PC 35 %, PA 25 %, PVA 20 %); `humidity_limits` cambia i singoli materiali. |
+
+Configurazione runtime della CFS (`[box_cfs_runtime]`), solo con un firmware CFS che ha l'API di configurazione runtime (v3.13 e successivi). I valori stanno nella RAM della CFS: si perdono quando la CFS si riavvia e `auto_apply` rimanda quelli configurati. Nulla viene scritto nella EEPROM della CFS o nei tag, e una modifica è rifiutata mentre la CFS legge un tag.
+
+| Comando | Parametri | Cosa fa |
+| --- | --- | --- |
+| `BOX_CFS_CONFIG_INFO` | — | Valori attuali, con quelli diversi dall'originale segnati. |
+| `BOX_CFS_CONFIG_SET` | `PARAM=<nome>` `VALUE=<n>` | Imposta un parametro (nomi come in `box.cfg`, es. `hub_forward_speed`); la CFS controlla l'intervallo. |
+| `BOX_CFS_CONFIG_RESET` | `[PARAM=ALL]` | Torna al valore originale per un parametro o per tutti. |
+| `BOX_CFS_CONFIG_APPLY` | — | Rimanda i valori configurati in `box.cfg`. |
 
 ## 5. CFS: compatibilità con HelixScreen e Creality
 

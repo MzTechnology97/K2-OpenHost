@@ -1,24 +1,24 @@
 {
   "schema": 1,
-  "name": "2026.10.08-2",
-  "date": "2026-10-08",
-  "summary": "Box code split out of box.py (estimates, materials, third-party RFID), CFS notifications and humidity warnings, release status/apply in the installer helper.",
+  "name": "2026.10.09",
+  "date": "2026-10-09",
+  "summary": "OrcaSlicer preset ID per CFS filament, CFS runtime configuration (box_cfs_runtime, CFS firmware v3.13+), BED_MESH_CALIBRATE without ACCEL_TO_DECEL, CFS notifications checked on the phone.",
   "components": {
     "kalico": {
       "repo": "MzTechnology97/kalico-k2pro",
       "branch": "k2-pro-openhost",
-      "sha": "769d1e071b1208274eceaaba0ce39c0edb43ced3"
+      "sha": "9fdd6d6972458d4b160167e487dd1821e0144b53"
     },
     "mainsail": {
       "repo": "MzTechnology97/mainsail-k2openhost",
       "branch": "develop",
-      "sha": "f819b50a8791f4d564c269b1c24777f62abef7ef",
-      "tag": "v2.19.0-k2oh.18"
+      "sha": "6ef8dcc6e42c70155c9f917a31bb8a2306f9ac83",
+      "tag": "v2.19.0-k2oh.19"
     },
     "helper": {
       "repo": "MzTechnology97/k2-openhost-installer-helper",
       "branch": "main",
-      "sha": "da8bc89660e90e3aca37f940785def7530a52b6a",
+      "sha": "3dc29ba19dacb6df3f07b8aa3eddbde195dd00f9",
       "version": "0.1.0"
     },
     "t113_bootstrap": {
