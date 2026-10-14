@@ -176,7 +176,7 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 
 ### Fotocamera della camera, 14 ottobre 2026
 
-- La **Creality CAM** (USB `1d6c:0103`) dà sul CM5 l'immagine luminosa del firmware di serie con il solo crowsnest: `max_fps: 25` e i controlli di serie in `v4l2ctl` (`auto_exposure=3`). Con il LED della camera al 100 %, la media è 189/255 e resta stabile tra un riavvio e l'altro. A 30 fps, il valore impostato prima su questa stampante, la sua esposizione automatica si assesta sul nero (media 19/255).
+- La **Creality CAM** (USB `1d6c:0103`; la fotocamera 1080p del K2 Plus, montata al posto della fotocamera 720p di serie del K2 Pro) dà sul CM5 l'immagine luminosa del firmware di serie con il solo crowsnest: `max_fps: 25` e i controlli di serie in `v4l2ctl` (`auto_exposure=3`). Con il LED della camera al 100 %, la media è 189/255 e resta stabile tra un riavvio e l'altro. A 30 fps, il valore impostato prima su questa stampante, la sua esposizione automatica si assesta sul nero (media 19/255).
 - Escluse, ognuna con una prova al riavvio: l'hub USB, l'autosospensione USB, i tempi dei controlli e le differenze di `uvcvideo` 6.12 rispetto al 5.4 (il probe della frequenza di rete, nessun `CLEAR_HALT` prima del primo stream bulk). Un modulo modificato correggeva entrambe le differenze, ma a 30 fps l'immagine restava nera. Resta il driver di serie.
 - L'installer helper scrive queste impostazioni quando installa crowsnest con la fotocamera collegata. La soluzione provvisoria precedente, uno script di avvio che alzava la luminosità dopo l'avvio dello stream, è stata rimossa. Dettagli in [Fotocamera della camera](CAMERA.md).
 

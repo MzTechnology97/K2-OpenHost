@@ -22,7 +22,7 @@ As seen with `lsusb -t` on 2026-10-14:
 | Bus | Controller | Device |
 |---|---|---|
 | 2 | RP1 `xhci` 0, USB 2.0 | T113 gadget (`0525:a4a6`), alone on the controller |
-| 4 | RP1 `xhci` 1, USB 2.0 | hub `1a86:8091` (QinHeng), then hub `1a40:0101` (Terminus FE1.1S): Cartographer (`1d50:614e`) and the chamber camera (`1d6c:0103`) |
+| 4 | RP1 `xhci` 1, USB 2.0 | hub `1a86:8091` (QinHeng), then hub `1a40:0101` (Terminus FE1.1S): Cartographer (`1d50:614e`) and the chamber camera (K2 Plus 1080p, `1d6c:0103`) |
 | 3, 5 | RP1 `xhci` 0 and 1, USB 3.0 | none |
 | 1 | `dwc2` (`dtoverlay=dwc2,dr_mode=host`) | none |
 
