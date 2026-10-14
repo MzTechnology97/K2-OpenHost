@@ -145,6 +145,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [CFS print mapping](docs/en/CFS_PRINT_MAPPING.md)
 - [OrcaSlicer and the CFS](docs/en/ORCASLICER.md)
 - [Chamber camera (Creality CAM)](docs/en/CAMERA.md)
+- [Host hardware: CM5 on CM5-IO-BASE-A, USB, CPU fan from Klipper](docs/en/HOST.md)
 - [Roadmap](docs/en/ROADMAP.md)
 - [Credits and references](docs/en/REFERENCES.md)
 
@@ -167,6 +168,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [Mappatura CFS delle stampe](docs/it/CFS_PRINT_MAPPING.md)
 - [OrcaSlicer e il CFS](docs/it/ORCASLICER.md)
 - [Fotocamera della camera (Creality CAM)](docs/it/CAMERA.md)
+- [Hardware host: CM5 su CM5-IO-BASE-A, USB, ventola della CPU da Klipper](docs/it/HOST.md)
 - [Roadmap](docs/it/ROADMAP.md)
 - [Crediti e riferimenti](docs/it/REFERENCES.md)
 

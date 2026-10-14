@@ -167,6 +167,13 @@ The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.
 
 `k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
 
+### Host fan, 2026-10-14
+
+- The reference host is now a **CM5 on a Waveshare CM5-IO-BASE-A**. Its fan header is the CM5's `FAN_PWM`/`FAN_TACH`, driven by the kernel's `pwm-fan` (see [Host hardware](HOST.md)).
+- Kalico's `[host_fan]` (kalico-k2pro #74) drives it from Klipper, and the installer helper's `install host-fan` (helper #26) sets up the permissions, the crash hand-back and the config. Unit tests cover both.
+- On the CM5's real sysfs, read-only during a print, the module found the fan and read 55.7 °C, 29 %, 2600 RPM. Without the udev rule it fell back to monitoring.
+- **Pending:** driving the fan from Klipper on the printer, after the next Klipper restart at idle.
+
 ### Chamber camera, 2026-10-14
 
 - The **Creality CAM** (USB `1d6c:0103`) gives the stock firmware's bright image on the CM5 with plain crowsnest: `max_fps: 25` and the stock controls in `v4l2ctl` (`auto_exposure=3`). With the chamber LED at 100 %, the mean is 189/255 and stable across reboots. At 30 fps, the value this printer used before, its auto exposure settles on black (mean 19/255).
