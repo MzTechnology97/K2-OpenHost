@@ -167,6 +167,13 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
 
+### Ventola dell'host, 14 ottobre 2026
+
+- L'host di riferimento ora è un **CM5 su Waveshare CM5-IO-BASE-A**. Il suo connettore ventola è il `FAN_PWM`/`FAN_TACH` del CM5, comandato dal `pwm-fan` del kernel (vedi [Hardware host](HOST.md)).
+- Il `[host_fan]` di Kalico (kalico-k2pro #74) la comanda da Klipper, e `install host-fan` dell'installer helper (helper #26) prepara i permessi, la restituzione al kernel in caso di crash e la configurazione. I test unitari coprono entrambi.
+- Sul sysfs reale del CM5, in sola lettura durante una stampa, il modulo ha trovato la ventola e letto 55,7 °C, 29 %, 2600 giri al minuto. Senza la regola udev è passato al solo monitoraggio.
+- **Da fare:** comandare la ventola da Klipper sulla stampante, dopo il prossimo riavvio di Klipper a stampante ferma.
+
 ### Fotocamera della camera, 14 ottobre 2026
 
 - La **Creality CAM** (USB `1d6c:0103`) dà sul CM5 l'immagine luminosa del firmware di serie con il solo crowsnest: `max_fps: 25` e i controlli di serie in `v4l2ctl` (`auto_exposure=3`). Con il LED della camera al 100 %, la media è 189/255 e resta stabile tra un riavvio e l'altro. A 30 fps, il valore impostato prima su questa stampante, la sua esposizione automatica si assesta sul nero (media 19/255).

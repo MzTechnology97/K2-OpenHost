@@ -206,12 +206,16 @@ Also seen: if Klipper starts while the RS-485 bridge is dead, the CFS is not dis
    - Done in kalico-k2pro [#20](https://github.com/MzTechnology97/kalico-k2pro/pull/20).
    - Done on the development CM5, with a backup of the old `printer.cfg`.
 3. **Moving the T113 cable to an `xhci` port is not possible on the current carrier.** See [The CM5's USB 3.0 ports and the carrier board](#the-cm5s-usb-30-ports-and-the-carrier-board). Low priority: the expected gain is small.
+   - **Done (2026-10-14):** the CM5 now sits on a Waveshare CM5-IO-BASE-A, and the T113 has an RP1 `xhci` controller to itself. See [Host hardware](HOST.md#usb).
 4. **CM5 cooling.** The CM5 idled at 70–78 °C and throttled at 85 °C under a CPU-heavy bug. Check `vcgencmd get_throttled` after long prints. After the 2026-10-05/06 long print it read `0xe0000`: capped at least once since boot, not at the time of reading.
+   - On the CM5-IO-BASE-A the CPU fan can be driven from Klipper (`[host_fan]`). See [Host hardware](HOST.md#cpu-fan).
 5. **Leave `nice`, RR and IRQ affinity at the defaults** until a longer measurement shows a difference larger than the spread between identical runs.
 
 ## The CM5's USB 3.0 ports and the carrier board
 
 Checked on 2026-10-05, read-only on the development CM5 during a print.
+
+> **Update 2026-10-14.** The CM5 has since moved to a Waveshare **CM5-IO-BASE-A**, the third option in the table below. `lsusb -t` confirms that its USB 3 ports are the CM5's own RP1 ports. The T113 is alone on one RP1 `xhci` controller, Cartographer and the camera are behind a hub on the other, and `dwc2` carries nothing. Current setup: [Host hardware](HOST.md). The rest of this section describes the CM4-IO-BASE-A as checked on 2026-10-05.
 
 **What the CM5 sits on.** The CM5 is on a Waveshare **CM4-IO-BASE-A**. Its FE1.1S hub shows up as `1a40:0101 Terminus Technology Hub`.
 - All of its USB ports are USB 2.0, behind that hub, on the CM5's `dwc2` controller: two Type-A ports, and two on an FFC connector that need an adapter cable.
