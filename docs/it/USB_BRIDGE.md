@@ -206,12 +206,16 @@ Visto anche: se Klipper parte mentre il bridge RS-485 è fermo, il CFS non viene
    - Fatto in kalico-k2pro [#20](https://github.com/MzTechnology97/kalico-k2pro/pull/20).
    - Fatto sul CM5 di sviluppo, con un backup del vecchio `printer.cfg`.
 3. **Spostare il cavo del T113 su una porta `xhci` non è possibile con la scheda base attuale.** Vedi [Le porte USB 3.0 del CM5 e la scheda base](#le-porte-usb-30-del-cm5-e-la-scheda-base). Bassa priorità: il guadagno atteso è piccolo.
+   - **Fatto (14 ottobre 2026):** il CM5 ora è su una Waveshare CM5-IO-BASE-A, e il T113 ha un controller `xhci` dell'RP1 tutto per sé. Vedi [Hardware host](HOST.md#usb).
 4. **Raffreddamento del CM5.** A riposo il CM5 stava a 70–78 °C ed è andato in throttling a 85 °C con un bug che consumava CPU. Controllare `vcgencmd get_throttled` dopo le stampe lunghe. Dopo la stampa lunga del 5-6 ottobre dava `0xe0000`: limitato almeno una volta dall'avvio, non al momento della lettura.
+   - Sulla CM5-IO-BASE-A la ventola della CPU si può comandare da Klipper (`[host_fan]`). Vedi [Hardware host](HOST.md#ventola-della-cpu).
 5. **Lasciare `nice`, RR e affinità degli IRQ ai valori predefiniti** finché una misura più lunga non mostra una differenza maggiore della variabilità tra corse identiche.
 
 ## Le porte USB 3.0 del CM5 e la scheda base
 
 Verificato il 5 ottobre 2026, in sola lettura sul CM5 di sviluppo durante una stampa.
+
+> **Aggiornamento 14 ottobre 2026.** Il CM5 è poi passato a una Waveshare **CM5-IO-BASE-A**, la terza opzione della tabella qui sotto. `lsusb -t` conferma che le sue porte USB 3 sono le porte RP1 del CM5 stesso. Il T113 è da solo su un controller `xhci` dell'RP1, Cartographer e la fotocamera sono dietro un hub sull'altro, e `dwc2` non porta nulla. Configurazione attuale: [Hardware host](HOST.md). Il resto di questa sezione descrive la CM4-IO-BASE-A come verificata il 5 ottobre 2026.
 
 **Su cosa è montato il CM5.** Il CM5 è su una Waveshare **CM4-IO-BASE-A**. Il suo hub FE1.1S compare come `1a40:0101 Terminus Technology Hub`.
 - Tutte le sue porte USB sono USB 2.0, dietro quell'hub, sul controller `dwc2` del CM5: due porte Type-A, e due su un connettore FFC che richiedono un cavo adattatore.
