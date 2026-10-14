@@ -1,8 +1,10 @@
-# Fotocamera della camera (Creality CAM)
+# Fotocamera della camera (Creality CAM 1080p del K2 Plus)
 
 Aggiornato al **14 ottobre 2026**. [English](../en/CAMERA.md)
 
-La fotocamera della camera del K2 Pro funziona sull'host esterno con crowsnest e il driver `uvcvideo` di serie. Servono due impostazioni, senza le quali l'immagine diventa nera.
+> **Importante:** sul K2 Pro di riferimento la fotocamera della camera di serie da **720p** è stata sostituita con la **fotocamera da 1080p della serie K2 Plus**. Tutta questa guida si riferisce a quella fotocamera (USB `1d6c:0103`). La fotocamera 720p di serie del K2 Pro non è stata provata sull'host esterno: il suo ID USB e il suo comportamento possono essere diversi, e il passaggio `creality-cam` dell'installer helper agisce solo su `1d6c:0103`.
+
+Questa fotocamera funziona sull'host esterno con crowsnest e il driver `uvcvideo` di serie. Servono due impostazioni, senza le quali l'immagine diventa nera.
 
 ## Configurazione
 
@@ -42,6 +44,7 @@ Usa il percorso `/dev/v4l/by-id/...` invece di `/dev/video0`, così la sezione r
 
 | | |
 |---|---|
+| Origine | fotocamera della camera della serie K2 Plus, montata sul K2 Pro di riferimento al posto della sua fotocamera 720p di serie |
 | USB | `1d6c:0103` "CREALITY CAM", Fullhan FH8636, firmware `STD-9613V2` |
 | Classe | UVC 1.00, video su endpoint **bulk** (`0x83`) |
 | Formati | MJPEG, YUYV, H.264; da 640x360 a 1920x1080; da 5 a 30 fps |
