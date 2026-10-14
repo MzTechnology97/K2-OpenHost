@@ -1,8 +1,10 @@
-# Chamber camera (Creality CAM)
+# Chamber camera (K2 Plus 1080p Creality CAM)
 
 Updated: **2026-10-14**. [Italiano](../it/CAMERA.md)
 
-The K2 Pro chamber camera works on the external host with plain crowsnest and the stock `uvcvideo` driver. It needs two settings, without which the image turns black.
+> **Important:** on the reference K2 Pro the stock **720p** chamber camera has been replaced with the **1080p camera of the K2 Plus series**. Everything in this guide refers to that camera (USB `1d6c:0103`). The stock K2 Pro 720p camera has not been tested on the external host: its USB ID and its behaviour may differ, and the installer helper's `creality-cam` step only acts on `1d6c:0103`.
+
+This camera works on the external host with plain crowsnest and the stock `uvcvideo` driver. It needs two settings, without which the image turns black.
 
 ## Setup
 
@@ -42,6 +44,7 @@ Use the `/dev/v4l/by-id/...` path rather than `/dev/video0`, so the section stil
 
 | | |
 |---|---|
+| Origin | chamber camera of the K2 Plus series, fitted on the reference K2 Pro in place of its stock 720p camera |
 | USB | `1d6c:0103` "CREALITY CAM", Fullhan FH8636, firmware `STD-9613V2` |
 | Class | UVC 1.00, video on a **bulk** endpoint (`0x83`) |
 | Formats | MJPEG, YUYV, H.264; 640x360 to 1920x1080; 5 to 30 fps |
