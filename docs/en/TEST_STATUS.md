@@ -1,6 +1,6 @@
 # K2-OpenHost test status
 
-Last updated: **2026-10-09**.
+Last updated: **2026-10-14**.
 
 ## Summary
 
@@ -166,6 +166,12 @@ The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.
 ### MCU firmware update from slot B (2026-10-06)
 
 `k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
+### Chamber camera, 2026-10-14
+
+- The **Creality CAM** (USB `1d6c:0103`) gives the stock firmware's bright image on the CM5 with plain crowsnest: `max_fps: 25` and the stock controls in `v4l2ctl` (`auto_exposure=3`). With the chamber LED at 100 %, the mean is 189/255 and stable across reboots. At 30 fps, the value this printer used before, its auto exposure settles on black (mean 19/255).
+- Ruled out, each with a reboot test: the USB hub, USB autosuspend, the timing of the controls, and the `uvcvideo` 6.12 differences from 5.4 (the power-line-frequency probe, no `CLEAR_HALT` before the first bulk stream). A patched module fixed both differences, but the image was still black at 30 fps. The stock driver is kept.
+- The installer helper writes these settings when it installs crowsnest with the camera connected. The earlier workaround, a boot script that raised brightness after the stream started, was removed. Details in [Chamber camera](CAMERA.md).
 
 ### Reference printer, 2026-10-09
 
