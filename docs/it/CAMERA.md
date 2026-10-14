@@ -26,9 +26,17 @@ L'[installer helper](https://github.com/MzTechnology97/k2-openhost-installer-hel
 
 Usa il percorso `/dev/v4l/by-id/...` invece di `/dev/video0`, così la sezione resta legata a questa fotocamera anche se colleghi altre fotocamere.
 
+**Prima**, con crowsnest a 30 fps:
+
+![Fotocamera della camera sul CM5 a 30 fps, prima della correzione](../images/creality-cam-cm5-before-30fps.jpg)
+
+*14 ottobre 2026, crowsnest a 30 fps. A sinistra ("ATTUALE"): i controlli usati fino ad allora (brightness 120, contrast 130, saturation 110, `auto_exposure=0`), media 62/255 con il 20 % di pixel neri. A destra ("VALORI T113"): i valori di serie (128) impostati dopo l'avvio dello stream, la modalità normale più scura, media 72,5/255. Con i controlli di serie inviati prima dello stream, come fa il firmware di serie, l'immagine diventava nera (media 19/255); di quella non è stata conservata un'istantanea.*
+
+**Dopo**, con le impostazioni qui sopra:
+
 ![Fotocamera della camera sul CM5: crowsnest a 25 fps con i controlli di serie](../images/creality-cam-cm5-25fps.jpg)
 
-*La fotocamera della camera sulla stampante di riferimento con queste impostazioni, 14 ottobre 2026, durante una stampa in PETG-CF: driver `uvcvideo` di serie, crowsnest/ustreamer a 1920x1080 e 25 fps, i controlli qui sopra.*
+*La stessa fotocamera, 14 ottobre 2026, durante una stampa in PETG-CF: driver `uvcvideo` di serie, crowsnest/ustreamer a 1920x1080 e 25 fps, i controlli qui sopra. Misurata con il LED della camera al 100 %: media 189/255, nessun pixel nero.*
 
 ## La fotocamera
 

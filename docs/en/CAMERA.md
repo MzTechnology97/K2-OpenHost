@@ -26,9 +26,17 @@ The [installer helper](https://github.com/MzTechnology97/k2-openhost-installer-h
 
 Use the `/dev/v4l/by-id/...` path rather than `/dev/video0`, so the section still points at this camera when other cameras are connected.
 
+**Before**, with crowsnest at 30 fps:
+
+![Chamber camera on the CM5 at 30 fps, before the fix](../images/creality-cam-cm5-before-30fps.jpg)
+
+*2026-10-14, crowsnest at 30 fps. Left ("ATTUALE"): the controls used until then (brightness 120, contrast 130, saturation 110, `auto_exposure=0`), mean 62/255 with 20 % black pixels. Right ("VALORI T113"): the stock values (128) set after the stream started, the darker normal mode, mean 72.5/255. With the stock controls sent before the stream, as the stock firmware does, the image went black (mean 19/255); no snapshot of that was kept.*
+
+**After**, with the settings above:
+
 ![Chamber camera on the CM5: crowsnest at 25 fps with the stock controls](../images/creality-cam-cm5-25fps.jpg)
 
-*The chamber camera on the reference printer with these settings, 2026-10-14, during a PETG-CF print: stock `uvcvideo` driver, crowsnest/ustreamer at 1920x1080 and 25 fps, the controls above.*
+*The same camera, 2026-10-14, during a PETG-CF print: stock `uvcvideo` driver, crowsnest/ustreamer at 1920x1080 and 25 fps, the controls above. Measured with the chamber LED at 100 %: mean 189/255, no black pixels.*
 
 ## The camera
 
