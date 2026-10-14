@@ -144,6 +144,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [CFS observation mode](docs/en/CFS_OBSERVATION_MODE.md)
 - [CFS print mapping](docs/en/CFS_PRINT_MAPPING.md)
 - [OrcaSlicer and the CFS](docs/en/ORCASLICER.md)
+- [Chamber camera (Creality CAM)](docs/en/CAMERA.md)
 - [Roadmap](docs/en/ROADMAP.md)
 - [Credits and references](docs/en/REFERENCES.md)
 
@@ -165,6 +166,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [CFS observation mode](docs/it/CFS_OBSERVATION_MODE.md)
 - [Mappatura CFS delle stampe](docs/it/CFS_PRINT_MAPPING.md)
 - [OrcaSlicer e il CFS](docs/it/ORCASLICER.md)
+- [Fotocamera della camera (Creality CAM)](docs/it/CAMERA.md)
 - [Roadmap](docs/it/ROADMAP.md)
 - [Crediti e riferimenti](docs/it/REFERENCES.md)
 
