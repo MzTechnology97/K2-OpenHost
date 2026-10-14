@@ -26,6 +26,10 @@ L'[installer helper](https://github.com/MzTechnology97/k2-openhost-installer-hel
 
 Usa il percorso `/dev/v4l/by-id/...` invece di `/dev/video0`, così la sezione resta legata a questa fotocamera anche se colleghi altre fotocamere.
 
+![Fotocamera della camera sul CM5: crowsnest a 25 fps con i controlli di serie](../images/creality-cam-cm5-25fps.jpg)
+
+*La fotocamera della camera sulla stampante di riferimento con queste impostazioni, 14 ottobre 2026, durante una stampa in PETG-CF: driver `uvcvideo` di serie, crowsnest/ustreamer a 1920x1080 e 25 fps, i controlli qui sopra.*
+
 ## La fotocamera
 
 | | |

@@ -26,6 +26,10 @@ The [installer helper](https://github.com/MzTechnology97/k2-openhost-installer-h
 
 Use the `/dev/v4l/by-id/...` path rather than `/dev/video0`, so the section still points at this camera when other cameras are connected.
 
+![Chamber camera on the CM5: crowsnest at 25 fps with the stock controls](../images/creality-cam-cm5-25fps.jpg)
+
+*The chamber camera on the reference printer with these settings, 2026-10-14, during a PETG-CF print: stock `uvcvideo` driver, crowsnest/ustreamer at 1920x1080 and 25 fps, the controls above.*
+
 ## The camera
 
 | | |
