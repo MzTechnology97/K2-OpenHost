@@ -22,7 +22,7 @@ Come risulta da `lsusb -t` il 14 ottobre 2026:
 | Bus | Controller | Dispositivo |
 |---|---|---|
 | 2 | `xhci` 0 dell'RP1, USB 2.0 | gadget del T113 (`0525:a4a6`), da solo sul controller |
-| 4 | `xhci` 1 dell'RP1, USB 2.0 | hub `1a86:8091` (QinHeng), poi hub `1a40:0101` (Terminus FE1.1S): Cartographer (`1d50:614e`) e la fotocamera della camera (`1d6c:0103`) |
+| 4 | `xhci` 1 dell'RP1, USB 2.0 | hub `1a86:8091` (QinHeng), poi hub `1a40:0101` (Terminus FE1.1S): Cartographer (`1d50:614e`) e la fotocamera della camera (1080p del K2 Plus, `1d6c:0103`) |
 | 3, 5 | `xhci` 0 e 1 dell'RP1, USB 3.0 | nessuno |
 | 1 | `dwc2` (`dtoverlay=dwc2,dr_mode=host`) | nessuno |
 
