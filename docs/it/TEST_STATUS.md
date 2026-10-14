@@ -1,6 +1,6 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **9 ottobre 2026**.
+Aggiornato al **14 ottobre 2026**.
 
 ## Sintesi
 
@@ -166,6 +166,12 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 ### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
+### Fotocamera della camera, 14 ottobre 2026
+
+- La **Creality CAM** (USB `1d6c:0103`) dà sul CM5 l'immagine luminosa del firmware di serie con il solo crowsnest: `max_fps: 25` e i controlli di serie in `v4l2ctl` (`auto_exposure=3`). Con il LED della camera al 100 %, la media è 189/255 e resta stabile tra un riavvio e l'altro. A 30 fps, il valore impostato prima su questa stampante, la sua esposizione automatica si assesta sul nero (media 19/255).
+- Escluse, ognuna con una prova al riavvio: l'hub USB, l'autosospensione USB, i tempi dei controlli e le differenze di `uvcvideo` 6.12 rispetto al 5.4 (il probe della frequenza di rete, nessun `CLEAR_HALT` prima del primo stream bulk). Un modulo modificato correggeva entrambe le differenze, ma a 30 fps l'immagine restava nera. Resta il driver di serie.
+- L'installer helper scrive queste impostazioni quando installa crowsnest con la fotocamera collegata. La soluzione provvisoria precedente, uno script di avvio che alzava la luminosità dopo l'avvio dello stream, è stata rimossa. Dettagli in [Fotocamera della camera](CAMERA.md).
 
 ### Stampante di riferimento, 9 ottobre 2026
 
