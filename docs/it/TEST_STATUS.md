@@ -184,13 +184,23 @@ Sequenza da `klippy.log`, in ora locale del CM5:
 - **Tempi:** il cambio è durato circa 43 s. La stampa è proseguita dallo slot 4 ed era al 77 % la mattina dopo, senza errori nel log dopo il cambio.
 - **Kalico:** `1c910fab` più modifiche locali, non committate, al runtime CFS sul CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). Gestiscono i byte delle funzioni v3.20-v3.22 (`0x97`, `0xB7`, `0xD7`) e un blocco lato host tra le scritture runtime e le operazioni della CFS. Portate senza modifiche sul branch il 15 ottobre 2026 (kalico-k2pro #75, `c00ab4a2`).
 - Primo cambio bobina automatico: 6 ottobre 2026, firmware CFS di serie (vedi sotto).
+- **Stampa completata** il 15 ottobre 2026 alle 19:20: 30 h 12 min, 166,9 m di filamento, nessun errore né avviso dopo il cambio.
+  - RS-485 su tutta la stampa: 369 681 richieste, 369 681 risposte, 0 timeout, 0 errori CRC, 0 risposte senza richiesta, collegamento mai perso.
+  - Ritrasmissioni MCU: 3615 byte sull'MCU principale e 192 sull'MCU dell'ugello, nessun byte non valido.
+  - CM5: al massimo 59 °C, mai in throttling (`0x0`), con la ventola ancora gestita dal kernel.
 
-### Ventola dell'host, 14 ottobre 2026
+### Ventola dell'host, 14-15 ottobre 2026
 
 - L'host di riferimento ora è un **CM5 su Waveshare CM5-IO-BASE-A**. Il suo connettore ventola è il `FAN_PWM`/`FAN_TACH` del CM5, comandato dal `pwm-fan` del kernel (vedi [Hardware host](HOST.md)).
 - Il `[host_fan]` di Kalico (kalico-k2pro #74) la comanda da Klipper, e `install host-fan` dell'installer helper (helper #26) prepara i permessi, la restituzione al kernel in caso di crash e la configurazione. I test unitari coprono entrambi.
 - Sul sysfs reale del CM5, in sola lettura durante una stampa, il modulo ha trovato la ventola e letto 55,7 °C, 29 %, 2600 giri al minuto. Senza la regola udev è passato al solo monitoraggio.
-- **Da fare:** comandare la ventola da Klipper sulla stampante, dopo il prossimo riavvio di Klipper a stampante ferma.
+- **Verificato sulla stampante (15 ottobre 2026, stampante ferma, dopo un riavvio del CM5):**
+  - **Presa del controllo:** la regola udev si è applicata all'avvio, e `[host_fan]` ha preso la ventola quando Klipper è stato pronto (zona `disabled`).
+  - **Modalità target:** con le impostazioni dell'utente (`target_temp: 50`, `full_speed_temp: 70`) girava al 41 % (PWM 104, ~3800 giri) a 52,4 °C, come dà la curva.
+  - **`SET_HOST_FAN`:** `SPEED=0.6` ha dato PWM 153 (5340 giri). `MODE=kernel` ha messo la zona `enabled` e il PWM 75 del kernel. `SPEED=0` ha fermato la ventola (0 giri). `SPEED=0.25` è ripartita con lo spunto e si è assestata a PWM 64 (2072 giri). `TARGET=50` ha riportato il PWM a 104.
+  - **Restituzione al kernel:** con un `RESTART` di Klipper la zona è tornata `enabled` ed è stata ripresa quando Klipper è stato pronto. Dopo un `kill -9` del processo di Klipper, il drop-in `ExecStopPost` dell'helper ha messo la zona `enabled`. Klipper, ripartito, ha ripreso la ventola in pochi secondi.
+  - **Correzione:** le risposte di `SET_HOST_FAN` mostravano lo stato prima del cambio; kalico-k2pro #76 applica il comando subito.
+- Il CM5 ora gira su Kalico `0174f4b6`, senza modifiche locali.
 
 ### Fotocamera della camera, 14 ottobre 2026
 
