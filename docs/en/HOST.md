@@ -59,6 +59,8 @@ Kalico's [`[host_fan]`](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-p
 - **Stall check:** while Klipper drives the fan, 10 s without tachometer pulses print a `!!` warning in the console.
 - **Throttling:** while the zone is disabled, its 110 °C critical trip is disabled too. The firmware still throttles the CPU at 85 °C, and the fan is at full speed from 75 °C.
 
+Verified on the reference printer on 2026-10-15: target, manual and kernel modes, kick start, and the hand-back on a Klipper restart and after a killed Klipper process (see [TEST_STATUS](TEST_STATUS.md)).
+
 **Setup:**
 1. Update Kalico to a version with `host_fan` (kalico-k2pro #74).
 2. Run `./helper.sh install host-fan` (menu 36 of the [installer helper](https://github.com/MzTechnology97/k2-openhost-installer-helper)). It installs:

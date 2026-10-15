@@ -184,13 +184,23 @@ Sequence from `klippy.log`, in CM5 local time:
 - **Timing:** the swap took about 43 s. The print went on from slot 4 and was at 77 % the next morning, with no errors in the log after the swap.
 - **Kalico:** `1c910fab` plus local, uncommitted CFS runtime changes on the CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). These handle the v3.20-v3.22 feature bytes (`0x97`, `0xB7`, `0xD7`) and a host interlock between runtime writes and CFS operations. Moved unchanged to the branch on 2026-10-15 (kalico-k2pro #75, `c00ab4a2`).
 - First automatic runout swap: 2026-10-06, stock CFS firmware (see below).
+- **Print completed** on 2026-10-15 at 19:20: 30 h 12 min, 166.9 m of filament, no errors or warnings after the swap.
+  - RS-485 over the whole print: 369 681 requests, 369 681 answers, 0 timeouts, 0 CRC errors, 0 unmatched, link never lost.
+  - MCU retransmissions: 3615 bytes on the main MCU and 192 on the nozzle MCU, no invalid bytes.
+  - CM5: at most 59 °C, never throttled (`0x0`), with the fan still under the kernel's control.
 
-### Host fan, 2026-10-14
+### Host fan, 2026-10-14/15
 
 - The reference host is now a **CM5 on a Waveshare CM5-IO-BASE-A**. Its fan header is the CM5's `FAN_PWM`/`FAN_TACH`, driven by the kernel's `pwm-fan` (see [Host hardware](HOST.md)).
 - Kalico's `[host_fan]` (kalico-k2pro #74) drives it from Klipper, and the installer helper's `install host-fan` (helper #26) sets up the permissions, the crash hand-back and the config. Unit tests cover both.
 - On the CM5's real sysfs, read-only during a print, the module found the fan and read 55.7 °C, 29 %, 2600 RPM. Without the udev rule it fell back to monitoring.
-- **Pending:** driving the fan from Klipper on the printer, after the next Klipper restart at idle.
+- **Verified on the printer (2026-10-15, idle, after a CM5 reboot):**
+  - **Take-over:** the udev rule applied at boot, and `[host_fan]` took the fan at Klipper ready (zone `disabled`).
+  - **Target mode:** with the user's settings (`target_temp: 50`, `full_speed_temp: 70`) it ran at 41 % (PWM 104, ~3800 RPM) at 52.4 °C, as the curve gives.
+  - **`SET_HOST_FAN`:** `SPEED=0.6` gave PWM 153 (5340 RPM). `MODE=kernel` set the zone `enabled` and the kernel's PWM 75. `SPEED=0` stopped the fan (0 RPM). `SPEED=0.25` kick-started from a stop and settled at PWM 64 (2072 RPM). `TARGET=50` brought back PWM 104.
+  - **Hand-back:** on a Klipper `RESTART` the zone went back to `enabled` and was taken again at ready. After a `kill -9` of the Klipper process, the helper's `ExecStopPost` drop-in set the zone `enabled`. The restarted Klipper took the fan again within seconds.
+  - **Fix:** the replies of `SET_HOST_FAN` showed the state before the change; kalico-k2pro #76 applies the command at once.
+- The CM5 now runs Kalico `0174f4b6` with no local changes.
 
 ### Chamber camera, 2026-10-14
 
