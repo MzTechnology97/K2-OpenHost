@@ -1,6 +1,6 @@
 # K2-OpenHost test status
 
-Last updated: **2026-10-14**.
+Last updated: **2026-10-15**.
 
 ## Summary
 
@@ -166,6 +166,24 @@ The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.
 ### MCU firmware update from slot B (2026-10-06)
 
 `k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
+### Runout swap with the experimental CFS firmware, 2026-10-15
+
+On the long PETG-CF print started on 2026-10-14 (`K2-Pro-IEMAI-PETG-CF_Yamaha_MT03_PETG-CF`, 34 h 8 min estimate), the automatic runout swap ran with the CFS on the **experimental CFS firmware**: runtime API v2, 28 parameters, feature byte `0xD7`, which the local CFS runtime code on the CM5 names the v3.22 diagnostic build. Kalico's `docs/CFS_RUNTIME_V319.md` still asks not to move filament or print with the experimental builds until their remaining tests pass. This is the first print with one of them recorded in this repository.
+
+Sequence from `klippy.log`, in CM5 local time:
+
+| Time | Event |
+|---|---|
+| 01:11:52 | the CFS reports `CFS box 1 spool runout (RUNOUT): the spool ran out` for slot 3 |
+| 01:30:35 | the printhead filament sensor sees the tail; `watching for infill` waits for infill, then `Auto runout swap: Box 1, slot 3 -> Box 1, slot 4` |
+| 01:30:35-01:31:18 | 33 mm feed to clear the extruder gears, load of slot 4 (`CFS fed 1.50 m`), 63 mm from the gears to the hotend, 20 mm prime |
+| 01:31:18 | `Auto runout swap complete: Box 1, slot 4 active`; the `runout_swap` notification is sent (`MR_NOTIFY:CFS runout swap`) |
+
+- **Slots:** slot 3 and slot 4 hold the same material and colour (IEMAI PETG-CF, black), so they form one runout group.
+- **Timing:** the swap took about 43 s. The print went on from slot 4 and was at 77 % the next morning, with no errors in the log after the swap.
+- **Kalico:** `1c910fab` plus local, uncommitted CFS runtime changes on the CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). These handle the v3.20-v3.22 feature bytes (`0x97`, `0xB7`, `0xD7`) and a host interlock between runtime writes and CFS operations. Not on GitHub yet.
+- First automatic runout swap: 2026-10-06, stock CFS firmware (see below).
 
 ### Host fan, 2026-10-14
 

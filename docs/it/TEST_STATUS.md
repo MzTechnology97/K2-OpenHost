@@ -1,6 +1,6 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **14 ottobre 2026**.
+Aggiornato al **15 ottobre 2026**.
 
 ## Sintesi
 
@@ -166,6 +166,24 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 ### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
+### Cambio bobina a fine filamento con il firmware CFS sperimentale, 15 ottobre 2026
+
+Nella lunga stampa in PETG-CF avviata il 14 ottobre (`K2-Pro-IEMAI-PETG-CF_Yamaha_MT03_PETG-CF`, stima 34 h 8 min), il cambio bobina automatico è avvenuto con la CFS sul **firmware CFS sperimentale**: API runtime v2, 28 parametri, byte delle funzioni `0xD7`, che il codice runtime CFS locale sul CM5 chiama build diagnostica v3.22. Il `docs/CFS_RUNTIME_V319.md` di Kalico chiede ancora di non muovere filamento né stampare con le build sperimentali finché non passano i test rimanenti. Questa è la prima stampa con una di esse registrata in questo repository.
+
+Sequenza da `klippy.log`, in ora locale del CM5:
+
+| Ora | Evento |
+|---|---|
+| 01:11:52 | la CFS segnala `CFS box 1 spool runout (RUNOUT): the spool ran out` per lo slot 3 |
+| 01:30:35 | il sensore filamento della testina vede la coda; `watching for infill` aspetta il riempimento, poi `Auto runout swap: Box 1, slot 3 -> Box 1, slot 4` |
+| 01:30:35-01:31:18 | 33 mm per liberare gli ingranaggi dell'estrusore, caricamento dello slot 4 (`CFS fed 1.50 m`), 63 mm dagli ingranaggi all'hotend, spurgo di 20 mm |
+| 01:31:18 | `Auto runout swap complete: Box 1, slot 4 active`; parte la notifica `runout_swap` (`MR_NOTIFY:CFS runout swap`) |
+
+- **Slot:** gli slot 3 e 4 hanno lo stesso materiale e colore (IEMAI PETG-CF, nero), quindi formano un gruppo di runout.
+- **Tempi:** il cambio è durato circa 43 s. La stampa è proseguita dallo slot 4 ed era al 77 % la mattina dopo, senza errori nel log dopo il cambio.
+- **Kalico:** `1c910fab` più modifiche locali, non committate, al runtime CFS sul CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). Gestiscono i byte delle funzioni v3.20-v3.22 (`0x97`, `0xB7`, `0xD7`) e un blocco lato host tra le scritture runtime e le operazioni della CFS. Non ancora su GitHub.
+- Primo cambio bobina automatico: 6 ottobre 2026, firmware CFS di serie (vedi sotto).
 
 ### Ventola dell'host, 14 ottobre 2026
 
