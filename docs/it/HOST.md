@@ -59,6 +59,8 @@ Il [`[host_fan]`](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-pro-ope
 - **Controllo di blocco:** mentre Klipper comanda la ventola, 10 s senza impulsi del tachimetro producono un avviso `!!` in console.
 - **Throttling:** mentre la zona è disattivata, è disattivata anche la sua soglia critica a 110 °C. Il firmware continua a limitare la CPU a 85 °C, e la ventola è al massimo da 75 °C.
 
+Verificato sulla stampante di riferimento il 15 ottobre 2026: modalità target, manuale e kernel, spunto alla partenza, e restituzione al kernel con un riavvio di Klipper e dopo un processo di Klipper terminato a forza (vedi [TEST_STATUS](TEST_STATUS.md)).
+
 **Installazione:**
 1. Aggiorna Kalico a una versione con `host_fan` (kalico-k2pro #74).
 2. Esegui `./helper.sh install host-fan` (menu 36 dell'[installer helper](https://github.com/MzTechnology97/k2-openhost-installer-helper)). Installa:
