@@ -182,7 +182,7 @@ Sequence from `klippy.log`, in CM5 local time:
 
 - **Slots:** slot 3 and slot 4 hold the same material and colour (IEMAI PETG-CF, black), so they form one runout group.
 - **Timing:** the swap took about 43 s. The print went on from slot 4 and was at 77 % the next morning, with no errors in the log after the swap.
-- **Kalico:** `1c910fab` plus local, uncommitted CFS runtime changes on the CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). These handle the v3.20-v3.22 feature bytes (`0x97`, `0xB7`, `0xD7`) and a host interlock between runtime writes and CFS operations. Not on GitHub yet.
+- **Kalico:** `1c910fab` plus local, uncommitted CFS runtime changes on the CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). These handle the v3.20-v3.22 feature bytes (`0x97`, `0xB7`, `0xD7`) and a host interlock between runtime writes and CFS operations. Moved unchanged to the branch on 2026-10-15 (kalico-k2pro #75, `c00ab4a2`).
 - First automatic runout swap: 2026-10-06, stock CFS firmware (see below).
 
 ### Host fan, 2026-10-14
