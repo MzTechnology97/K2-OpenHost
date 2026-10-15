@@ -182,7 +182,7 @@ Sequenza da `klippy.log`, in ora locale del CM5:
 
 - **Slot:** gli slot 3 e 4 hanno lo stesso materiale e colore (IEMAI PETG-CF, nero), quindi formano un gruppo di runout.
 - **Tempi:** il cambio è durato circa 43 s. La stampa è proseguita dallo slot 4 ed era al 77 % la mattina dopo, senza errori nel log dopo il cambio.
-- **Kalico:** `1c910fab` più modifiche locali, non committate, al runtime CFS sul CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). Gestiscono i byte delle funzioni v3.20-v3.22 (`0x97`, `0xB7`, `0xD7`) e un blocco lato host tra le scritture runtime e le operazioni della CFS. Non ancora su GitHub.
+- **Kalico:** `1c910fab` più modifiche locali, non committate, al runtime CFS sul CM5 (`box.py`, `box_cfs_runtime.py`, `box.cfg`). Gestiscono i byte delle funzioni v3.20-v3.22 (`0x97`, `0xB7`, `0xD7`) e un blocco lato host tra le scritture runtime e le operazioni della CFS. Portate senza modifiche sul branch il 15 ottobre 2026 (kalico-k2pro #75, `c00ab4a2`).
 - Primo cambio bobina automatico: 6 ottobre 2026, firmware CFS di serie (vedi sotto).
 
 ### Ventola dell'host, 14 ottobre 2026
