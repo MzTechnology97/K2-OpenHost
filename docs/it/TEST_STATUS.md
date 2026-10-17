@@ -1,6 +1,6 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **15 ottobre 2026**.
+Aggiornato al **17 ottobre 2026**.
 
 ## Sintesi
 
@@ -166,6 +166,19 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 ### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
+### Seconda stampa da 30 h, 16-17 ottobre 2026
+
+Lo stesso file in PETG-CF stampato di nuovo, avviato il 16 ottobre alle 13:35 e completato il 17 ottobre alle 19:47 (30 h 12 min, 166,8 m). È la prima stampa lunga su Kalico `0174f4b6` senza modifiche locali, con la CFS ancora sul firmware sperimentale (`0xD7`) e la ventola del CM5 comandata da Klipper.
+
+- **Secondo cambio bobina su `0xD7`:**
+  - 23:28:31: la CFS segnala lo slot 4 vuoto;
+  - 23:46:36: il sensore della testina vede la coda;
+  - 23:47:22: `Auto runout swap complete: Box 1, slot 1 active`, notifica inviata.
+
+  Il cambio è durato circa 46 s, e la CFS ha spinto 1,51 m. L'ultimo avanzamento di 3 mm della CFS è rimasto corto, ma il sensore della testina aveva già confermato il filamento, quindi il carico è proseguito. A fine stampa il solito scarico ha tagliato e ritirato lo slot 1 (1,48 m).
+- **RS-485:** 370 724 richieste e 370 724 risposte. C'è stato un timeout, il 17 ottobre alle 14:35:59: una lettura periodica (GET `0x08`) al motore Y (`0x82`), fatta con un solo tentativo. La lettura successiva ha risposto, il collegamento non si è mai perso e la stampa non ne ha risentito. Nessun errore CRC.
+- **CM5 con `[host_fan]`:** 47,4-55,1 °C dal riavvio di Klipper del 15 ottobre, un periodo che comprende tutta la stampa. Mai in throttling (`0x0`), nessun avviso di ventola bloccata. Con il `target_temp: 50` dell'utente la ventola è rimasta tra il 30 % e circa il 50 %.
 
 ### Cambio bobina a fine filamento con il firmware CFS sperimentale, 15 ottobre 2026
 
