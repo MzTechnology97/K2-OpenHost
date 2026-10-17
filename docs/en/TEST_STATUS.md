@@ -1,6 +1,6 @@
 # K2-OpenHost test status
 
-Last updated: **2026-10-15**.
+Last updated: **2026-10-17**.
 
 ## Summary
 
@@ -166,6 +166,19 @@ The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.
 ### MCU firmware update from slot B (2026-10-06)
 
 `k2oh-mcu-fw update` brought the boards to Creality 1.1.7.0: X/Y motors and extruder `mot2_…071` → `081`, RFID `009` → `010`, Main and Nozzle unchanged. The CFS was flashed too (113 → 153) although no CFS pass was asked for: `mcu_util_485` follows `fw/cfs/version.json` at every run. A custom CFS image (v2.1 RFID diagnostics) did not start (`start_app NACK`) and the CFS was recovered with the stock 153. Both are fixed in bootstrap 0.1.2; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
+
+### Second 30 h print, 2026-10-16/17
+
+The same PETG-CF file printed again, started on 2026-10-16 at 13:35 and completed on 2026-10-17 at 19:47 (30 h 12 min, 166.8 m). It is the first long print on Kalico `0174f4b6` with no local changes, with the CFS still on the experimental firmware (`0xD7`) and the CM5 fan driven by Klipper.
+
+- **Second runout swap on `0xD7`:**
+  - 23:28:31: the CFS reports slot 4 empty;
+  - 23:46:36: the printhead sensor sees the tail;
+  - 23:47:22: `Auto runout swap complete: Box 1, slot 1 active`, notification sent.
+
+  The swap took about 46 s, and the CFS fed 1.51 m. The CFS's final 3 mm nudge fell short, but the printhead sensor had already confirmed the filament, so the load went on. At the end of the print the usual unload cut and retracted slot 1 (1.48 m).
+- **RS-485:** 370 724 requests and 370 724 answers. There was one timeout, at 14:35:59 on 2026-10-17: a periodic GET (`0x08`) to the Y motor (`0x82`), made with a single attempt. The next poll answered, the link was never lost and nothing happened to the print. There were 0 CRC errors.
+- **CM5 with `[host_fan]`:** 47.4-55.1 °C since the Klipper restart of 2026-10-15, which covers the whole print. It was never throttled (`0x0`), and there were no stall warnings. With the user's `target_temp: 50` the fan ran between 30 % and about 50 %.
 
 ### Runout swap with the experimental CFS firmware, 2026-10-15
 
