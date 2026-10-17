@@ -203,7 +203,7 @@ Sessione a parte, guidata passo passo: collegamento al CM5, controllo di `/dev/s
 | T1 associazione automatica + pausa/cambio slot | 2026-10-05 | associazione superata; pausa non provata | avvio normale di una stampa PLA da 18 h: `map = {"0": 3}`, T0 caricato da Box 1, slot 4 |
 | T2 `BOX_PRINT_START` due colori + pausa | | | |
 | T3 cambio bobina automatico | 2026-10-06 | superata | fine naturale della bobina PLA nello slot 4 invece del taglio; cambio allo slot 2 al primo `gap infill`, mappa `{"0": 1}`, la stampa è proseguita |
-| T3 ripetuta, firmware CFS sperimentale (`0xD7`) | 2026-10-15 | superata | fine naturale della bobina PETG-CF nello slot 3 durante una stampa di 34 h; cambio allo slot 4 al riempimento in circa 43 s (01:30:35-01:31:18), notifica inviata, la stampa è proseguita |
+| T3 ripetuta, firmware CFS sperimentale (`0xD7`) | 2026-10-15, 2026-10-16 | superata due volte | 16 ottobre: slot 4 -> slot 1 alle 23:46:36-23:47:22 (~46 s), seconda stampa da 30 h completata; fine naturale della bobina PETG-CF nello slot 3 durante una stampa di 34 h; cambio allo slot 4 al riempimento in circa 43 s (01:30:35-01:31:18), notifica inviata, la stampa è proseguita |
 | T4A ripresa dopo interruzione, monocolore | | | |
 | T4B ripresa dopo interruzione, due colori | | | |
 | T5 Cartographer USB diretto | | | |

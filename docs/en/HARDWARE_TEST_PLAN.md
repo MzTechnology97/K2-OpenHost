@@ -203,7 +203,7 @@ A separate, step-by-step guided session: connection to the CM5, check of `/dev/s
 | T1 automatic mapping + pause/slot change | 2026-10-05 | mapping passed; pause not run | normal start of an 18 h PLA print: `map = {"0": 3}`, T0 loaded from Box 1, slot 4 |
 | T2 two-colour `BOX_PRINT_START` + pause | | | |
 | T3 automatic runout swap | 2026-10-06 | passed | natural end of the PLA spool in slot 4 instead of a cut; swap to slot 2 at the next gap infill, map `{"0": 1}`, print went on |
-| T3 again, experimental CFS firmware (`0xD7`) | 2026-10-15 | passed | natural end of the PETG-CF spool in slot 3 during a 34 h print; swap to slot 4 at infill in about 43 s (01:30:35-01:31:18), notification sent, print went on |
+| T3 again, experimental CFS firmware (`0xD7`) | 2026-10-15, 2026-10-16 | passed twice | 2026-10-16: slot 4 -> slot 1 at 23:46:36-23:47:22 (~46 s), second 30 h print completed; natural end of the PETG-CF spool in slot 3 during a 34 h print; swap to slot 4 at infill in about 43 s (01:30:35-01:31:18), notification sent, print went on |
 | T4A power-loss recovery, single colour | | | |
 | T4B power-loss recovery, two colours | | | |
 | T5 Cartographer direct USB | | | |
