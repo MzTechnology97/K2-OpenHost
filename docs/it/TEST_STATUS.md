@@ -1,6 +1,6 @@
 # Stato test K2-OpenHost
 
-Aggiornato al **17 ottobre 2026**.
+Aggiornato al **18 ottobre 2026**.
 
 ## Sintesi
 
@@ -166,6 +166,18 @@ Il [bootstrap del T113](T113_BOOTSTRAP.md) gira sulla stampante di riferimento: 
 ### Aggiornamento firmware delle MCU dallo slot B (6 ottobre 2026)
 
 `k2oh-mcu-fw update` ha portato le schede alla 1.1.7.0 di Creality: motori X/Y ed estrusore `mot2_…071` → `081`, RFID `009` → `010`, Main e Nozzle invariate. È stato aggiornato anche il CFS (113 → 153), anche se non era stato chiesto: `mcu_util_485` segue `fw/cfs/version.json` a ogni esecuzione. Un'immagine CFS personalizzata (diagnostica RFID v2.1) non è partita (`start_app NACK`) e il CFS è stato ripristinato con lo stock 153. Entrambi sono corretti nel bootstrap 0.1.2; dettagli in [Bootstrap del T113](T113_BOOTSTRAP.md#stato).
+
+### OpenCFS sulla CFS e la richiesta della configurazione runtime, 17-18 ottobre 2026
+
+Sulla CFS di riferimento sono state provate immagini [OpenCFS](https://github.com/MzTechnology97/OpenCFS-Firmware) (OpenCFS-Firmware #7, sperimentali, non qualificate). Riportato da quella sessione in K2-OpenHost #21:
+
+- **Blocchi del bus RS-485:** le prime immagini fermavano tutti i dispositivi sul bus, motori compresi. Il loro stack pointer iniziale era `0x20010000`, la fine della SRAM. Il salto del loader Creality legge 16 byte oltre quel valore e andava in errore prima di entrare nell'immagine, poi restava nel gestore di errore con PA2 flottante, che occupa il bus. Stock e v3.22 non ne sono colpiti. Corretto in OpenCFS `932a818`: stack a `0x2000FFE0`, reimpostato all'ingresso.
+- **Risultati di `932a818`:** BUS-LED superato. INERT stadio 1 superato: il bus resta libero, i motori vengono trovati, Kalico enumera la CFS all'indirizzo 1 (stato IDLE), vengono letti l'AHT30, i sensori d'ingresso e il seriale nella EEPROM, e la CFS non si riavvia. Tabella dei risultati: OpenCFS [`15-hardware-test-plan.md`](https://github.com/MzTechnology97/OpenCFS-Firmware/blob/feat/arm-image/docs/spec/15-hardware-test-plan.md); dettagli del loader: [`08-loader-and-recovery.md`](https://github.com/MzTechnology97/OpenCFS-Firmware/blob/feat/arm-image/docs/spec/08-loader-and-recovery.md).
+- Dopo ogni tentativo è stata rimessa la v3.22. Il 18 ottobre la CFS ha risposto a `BOX_CFS_CONFIG_INFO` con API v2, 28 parametri e `0xD7`.
+- **Correzione di Kalico, richiesta della configurazione runtime dopo l'enumerazione** (kalico-k2pro #77, `993b01ab`):
+  - **Problema:** dopo uno spegnimento e riaccensione la CFS risponde a `0xFE` fino all'enumerazione A1/A0. `box_cfs_runtime` interrogava `0x57` 1 s dopo l'avvio del collegamento RS-485, andava in timeout tre volte e restava non supportato per tutta la sessione. Confermato nel log e attivo il 18 ottobre.
+  - **Correzione:** il primo contatto ora aspetta `box:ready`, dopo ogni enumerazione e riscoperta, e solo con la CFS online. Senza CFS non parte nessuna richiesta, quindi spariscono i tre timeout all'avvio. Con il firmware stock (status 1) viene segnato subito come non supportato.
+  - **Verificato sulla stampante dopo un riavvio di Klipper:** la richiesta segue `enumeration complete` senza timeout e legge `0xD7`. Il caso con la CFS spenta e riaccesa è coperto dai test simulati e non è ancora stato provato sull'hardware.
 
 ### Seconda stampa da 30 h, 16-17 ottobre 2026
 
