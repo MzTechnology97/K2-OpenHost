@@ -10,3 +10,10 @@
 2026-10-21 20:21:30 [k2oh-cfs] runout: _BOX_SET_RUNOUT_ORDER ORDER=5,3,0,2
 2026-10-21 20:21:30 [k2oh-cfs] runout: _BOX_SET_RUNOUT_ORDER ORDER=5
 2026-10-21 20:21:30 [k2oh-cfs] runout: _BOX_SET_RUNOUT_SWAP ENABLE=0
+2026-10-21 20:31:16 [k2oh-cfs] opening the CFS panel (PresetSelected)
+2026-10-21 20:31:16 [k2oh-cfs] opening the CFS panel (PresetSelected)
+2026-10-21 20:31:16 [k2oh-cfs] opening the CFS panel (PresetSelected)
+2026-10-21 20:31:16 [k2oh-cfs] slot map set: {0: 3, 2: 0}
+2026-10-21 20:31:16 [k2oh-cfs] runout: _BOX_SET_RUNOUT_ORDER ORDER=5,3,0,2
+2026-10-21 20:31:16 [k2oh-cfs] runout: _BOX_SET_RUNOUT_ORDER ORDER=5
+2026-10-21 20:31:16 [k2oh-cfs] runout: _BOX_SET_RUNOUT_SWAP ENABLE=0

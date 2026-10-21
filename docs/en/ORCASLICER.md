@@ -107,7 +107,8 @@ This works with the classic **Upload and print** of the Moonraker print host. Or
    - The new address makes OrcaSlicer add it under this agent.
 4. OrcaSlicer asks to let the plugin create a thread and connect to the Moonraker address: allow both. The first connection is refused while the question is open; the plugin retries every 2 s.
 5. Press **Sync** in the filament list.
-6. In the plugin manager, run **K2-OpenHost CFS slots** to open the CFS panel. Check the slots, then slice and **Upload and print**.
+6. The CFS panel opens by itself beside the 3D view when the K2 printer preset is selected, a preset is saved or a project is opened. It hides for other printers, and refreshes at those moments. Closed by hand, it stays closed until you select another printer and then the K2 again. You can always open it from the plugin manager (**K2-OpenHost CFS slots**). Its setting `auto_open: false` turns the automatic opening off.
+7. Check the slots, then slice and **Upload and print**.
 
 The panel keeps your choice until the project's filaments change. Then it proposes again: press **Refresh** after changing filaments, and **Propose** to start over.
 
