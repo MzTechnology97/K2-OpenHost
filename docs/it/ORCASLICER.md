@@ -107,8 +107,8 @@ Funziona con il classico **Carica e stampa** dell'host di stampa Moonraker. L'op
    - Con il nuovo indirizzo OrcaSlicer la aggiunge sotto questo agente.
 4. OrcaSlicer chiede di permettere al plugin di creare un thread e di collegarsi all'indirizzo di Moonraker: consenti entrambi. Il primo collegamento viene rifiutato finché la domanda è aperta; il plugin riprova ogni 2 s.
 5. Premi **Sync** nell'elenco dei filamenti.
-6. Il pannello CFS si apre da solo accanto alla vista 3D quando selezioni il preset della K2, salvi un preset o apri un progetto. Si nasconde per le altre stampanti e in quei momenti si aggiorna. Se lo chiudi a mano resta chiuso finché non selezioni un'altra stampante e poi di nuovo la K2. Puoi sempre aprirlo dalla gestione dei plugin (**K2-OpenHost CFS slots**). L'impostazione `auto_open: false` disattiva l'apertura automatica.
-7. Controlla gli slot, poi fai slicing e **Carica e stampa**.
+6. Fai lo slicing: quando lo slicing per la K2 finisce, il pannello CFS si apre da solo accanto alla vista 3D (o ricompare se l'avevi chiuso) con gli slot aggiornati. Cambiando preset o progetto un pannello aperto si aggiorna, e per le altre stampanti si nasconde. Puoi anche aprirlo dalla gestione dei plugin (**K2-OpenHost CFS slots**). L'impostazione `auto_open: false` disattiva l'apertura dopo lo slicing.
+7. Controlla gli slot, poi **Carica e stampa**.
 
 Il pannello tiene la tua scelta finché i filamenti del progetto non cambiano. Quando cambiano, propone di nuovo: premi **Aggiorna** dopo aver cambiato i filamenti, e **Proponi** per ripartire da capo.
 

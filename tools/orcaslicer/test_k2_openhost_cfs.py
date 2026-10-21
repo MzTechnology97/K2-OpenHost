@@ -421,37 +421,46 @@ class AutoOpen(unittest.TestCase):
     def tearDown(self):
         agent_mod.orca = self.saved
 
-    def test_opens_for_the_k2_and_hides_for_other_printers(self):
-        self.panel.on_lifecycle_event(Event("ObjectAdded"), None)
+    def test_opens_after_slicing_only(self):
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.panel.on_lifecycle_event(Event("ProjectOpened"), None)
+        self.assertEqual(self.created, [])  # no longer opens on preset or project
+        failed = types.SimpleNamespace(code=types.SimpleNamespace(name="Error"))
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), failed)
         self.assertEqual(self.created, [])
-        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        ok = types.SimpleNamespace(code=types.SimpleNamespace(name="Ok"))
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)
         self.assertEqual(len(self.created), 1)
-        self.panel.on_lifecycle_event(Event("ProjectOpened"), None)  # already open: refresh only
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)  # open: refresh only
         self.assertEqual(len(self.created), 1)
-        self.bundle.printer.values["printer_agent"] = "moonraker"
-        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
-        self.assertFalse(self.created[0].visible)
-        self.bundle.printer.values["printer_agent"] = agent_mod.AGENT_ID
-        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
-        self.assertTrue(self.created[0].visible)
 
-    def test_closed_by_the_user_stays_closed_until_the_printer_changes(self):
-        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+    def test_closed_panel_comes_back_at_the_next_slice(self):
+        ok = types.SimpleNamespace(code=types.SimpleNamespace(name="Ok"))
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)
         self.created[0].open = False
         self.panel.on_close()
         self.panel.on_lifecycle_event(Event("PresetSaved"), None)
         self.assertEqual(len(self.created), 1)
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)
+        self.assertEqual(len(self.created), 2)
+
+    def test_hides_for_other_printers(self):
+        ok = types.SimpleNamespace(code=types.SimpleNamespace(name="Ok"))
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)
         self.bundle.printer.values["printer_agent"] = "moonraker"
         self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.assertFalse(self.created[0].visible)
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)
+        self.assertEqual(len(self.created), 1)  # other printer: never opens
         self.bundle.printer.values["printer_agent"] = agent_mod.AGENT_ID
         self.panel.on_lifecycle_event(Event("PresetSelected"), None)
-        self.assertEqual(len(self.created), 2)
+        self.assertTrue(self.created[0].visible)
 
     def test_auto_open_off(self):
         self.panel.get_config = lambda: json.dumps({"auto_open": False})
-        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        ok = types.SimpleNamespace(code=types.SimpleNamespace(name="Ok"))
+        self.panel.on_lifecycle_event(Event("SlicingJobComplete"), ok)
         self.assertEqual(self.created, [])
-
 
 if __name__ == "__main__":
     unittest.main()
