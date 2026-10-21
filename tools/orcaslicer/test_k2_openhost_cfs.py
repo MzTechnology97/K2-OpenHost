@@ -180,6 +180,26 @@ class PrintStart(unittest.TestCase):
             params(self.path + ".missing"), self.update, None)
         self.assertEqual(code, agent_mod.ERR_FILE_NOT_EXIST)
 
+    def test_connection_is_retried_until_moonraker_answers(self):
+        class Flaky:
+            calls = 0
+
+            def server_info(self):
+                Flaky.calls += 1
+                if Flaky.calls == 1:  # first connection refused by the permission prompt
+                    raise OSError("audit permission required")
+                return {"machine_name": "k2pro", "moonraker_version": "v0.11"}
+
+        agent = make_agent(FakeClient())
+        agent._dev_id = "10.10.1.97:7125"
+        events = []
+        agent.set_on_local_connect_fn(lambda state, dev, msg: events.append(state))
+        self.assertFalse(agent._announce_connected(Flaky()))
+        self.assertEqual(events, [])
+        self.assertTrue(agent._announce_connected(Flaky()))
+        self.assertEqual(events, [agent_mod.CONNECT_OK])
+        self.assertEqual(agent._dev_name, "k2pro")
+
     def test_device_commands(self):
         client = FakeClient()
         agent = make_agent(client)

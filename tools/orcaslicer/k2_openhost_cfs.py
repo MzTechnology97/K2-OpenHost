@@ -503,25 +503,37 @@ class K2OpenHostCfsAgent(_AgentBase):
         with self._lock:
             return generation == self._generation
 
-    def _run(self, generation, stop):
-        client = self._client
+    def _announce_connected(self, client):
+        """Report the connection once Moonraker answers; False until then.
+
+        The first attempt can be refused: OrcaSlicer asks the user before a
+        plugin opens its first network connection, and denies the attempt
+        that triggered the question. So this is retried by the poll loop.
+        """
         try:
             info = client.server_info()
         except Exception as exc:
-            log("Moonraker %s:%s not reachable: %s", client.host, client.port, exc)
-            info = None
-        if info is not None and self._current(generation):
-            with self._lock:
-                self._dev_name = info.get("machine_name") or info.get("hostname") or self._dev_id
-                self._version = info.get("moonraker_version", "")
-                local_fn = self._callbacks.get("local_connect")
-                connected_fn = self._callbacks.get("connected")
-                dev_id = self._dev_id
-            _call(local_fn, CONNECT_OK, dev_id, "0")
-            _call(connected_fn, dev_id)
-            self._send_version_info()
+            log("Moonraker not reachable yet: %s", exc)
+            return False
+        with self._lock:
+            self._dev_name = info.get("machine_name") or info.get("hostname") or self._dev_id
+            self._version = info.get("moonraker_version", "")
+            local_fn = self._callbacks.get("local_connect")
+            connected_fn = self._callbacks.get("connected")
+            dev_id = self._dev_id
+        _call(local_fn, CONNECT_OK, dev_id, "0")
+        _call(connected_fn, dev_id)
+        self._send_version_info()
+        return True
+
+    def _run(self, generation, stop):
+        client = self._client
+        connected = False
         while not stop.is_set() and self._current(generation):
-            self._poll(force_ams=False)
+            if not connected:
+                connected = self._announce_connected(client)
+            if connected:
+                self._poll(force_ams=False)
             interval = max(0.5, float(self._config().get("poll_interval_s") or 2.0))
             self._wake.wait(interval)
             self._wake.clear()
