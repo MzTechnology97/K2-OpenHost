@@ -83,13 +83,38 @@ Ogni filamento della CFS ha il `filament_id` del suo preset OrcaSlicer, l'ID con
 - **Scelto da te**: nella libreria filamenti di Mainsail, menu della scheda → **OrcaSlicer preset…** (anche per i profili di sistema), oppure la sezione OrcaSlicer del modulo di modifica; `_BOX_FILAMENT_ORCA_ID` dalla console.
 - **Un tuo preset OrcaSlicer**: crealo da zero (Filamento → **+** → *Crea filamento*), poi copia `"filament_id"` (`P…`) da `%APPDATA%\OrcaSlicer\user\<account>\filament\base\<nome>.json`. Un preset salvato da un altro ("Salva come") non ha un ID suo: usa quello del genitore, e OrcaSlicer selezionerebbe il genitore.
 
-OrcaSlicer rilasciato (2.4.2) non legge ancora l'ID: la sincronizzazione sceglie ancora il preset generico per materiale. La [PR #16208 di OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer/pull/16208) legge il `filament_id` di una lane; gli ID che assegna Kalico seguono i profili attuali di OrcaSlicer (`OF…`), che hanno sostituito quelli della 2.4.2 (Bambu PLA Basic: `OGFA00` nella 2.4.2, `OFoiVqVM` ora).
+OrcaSlicer 2.4.2 e l'agente Moonraker integrato della 2.5 non leggono l'ID: la loro sincronizzazione sceglie il preset generico per materiale. Il [plugin K2-OpenHost CFS](#orcaslicer-25-il-plugin-k2-openhost-cfs) per OrcaSlicer 2.5 lo invia. La [PR #16208 di OrcaSlicer](https://github.com/OrcaSlicer/OrcaSlicer/pull/16208) legge il `filament_id` di una lane; gli ID che assegna Kalico seguono i profili attuali di OrcaSlicer (`OF…`), che hanno sostituito quelli della 2.4.2 (Bambu PLA Basic: `OGFA00` nella 2.4.2, `OFoiVqVM` ora).
+
+## OrcaSlicer 2.5: il plugin K2-OpenHost CFS
+
+OrcaSlicer 2.5 (alpha dal 16/10/2026) carica plugin Python, e un plugin può fare da agente della stampante: la parte che dialoga con la stampante, sincronizza i filamenti e invia la stampa. [`tools/orcaslicer/k2_openhost_cfs.py`](../../tools/orcaslicer/k2_openhost_cfs.py) è questo agente per K2-OpenHost. Usa lo stesso Moonraker dell'agente Moonraker integrato e risolve i due limiti descritti in questa pagina:
+
+- **Sincronizzazione per ID del preset.** Ogni slot della CFS arriva a OrcaSlicer con l'`orca_filament_id` che Kalico tiene per ogni filamento (vedi sopra), quindi Sync sceglie quel preset: Bambu PLA Basic per una bobina Bambu PLA Basic, non Generic PLA. Uno slot senza ID ricade sul preset `Generic <materiale>` di OrcaSlicer.
+- **Abbinamento degli slot all'invio.** La finestra di stampa di OrcaSlicer mostra la CFS come quattro vassoi per unità (CFS 1 = AMS 1, CFS 2 = AMS 2…). Clicca un filamento per scegliere il suo slot. La stampa viene caricata e avviata con `BOX_PRINT_START FILENAME=… MAP=strumento:slot`, la stessa richiesta della finestra di abbinamento di Mainsail. Kalico rifiuta un abbinamento a cui manca uno strumento usato dal file: in quel caso il plugin si ferma con un errore invece di avviare. Con **Usa AMS** disattivato, o senza abbinamento, la stampa parte normalmente e vale l'abbinamento automatico di Kalico.
+
+Tramite il plugin funziona anche la scheda Dispositivo (stato, temperature, avanzamento, pausa/ripresa/stop, riga G-code).
+
+**Installazione** (OrcaSlicer 2.5 o successivo):
+
+1. Scarica `k2_openhost_cfs.py`.
+2. In OrcaSlicer apri la gestione dei plugin e installalo come plugin locale. OrcaSlicer lo copia in `%APPDATA%\OrcaSlicer\orca_plugins\`.
+3. Nel preset della stampante (**Impostazioni stampante → Informazioni di base**) imposta l'agente della stampante su **K2-OpenHost CFS**. Lascia l'indirizzo di Moonraker (`http://<CM5>:7125`) nel campo dell'host di stampa.
+4. Apri una volta la scheda Dispositivo: l'agente si collega e pubblica la CFS. Poi premi **Sync** nell'elenco dei filamenti.
+
+Il plugin ha tre impostazioni:
+- `poll_interval_s`: aggiornamento dello stato, predefinito 2 s;
+- `model_id`: modello di stampante inviato a OrcaSlicer, predefinito il modello del preset con `_`, cioè `Creality_K2_Pro`;
+- `use_slot_map`: con false avvia sempre senza l'abbinamento della finestra.
+
+Le sue righe di log (`[k2oh-cfs]`) sono in `%APPDATA%\OrcaSlicer\log\python_*.log`.
+
+Il plugin è stato provato sul Moonraker della stampante di riferimento con il Python di OrcaSlicer (3.12): legge i quattro slot con i loro ID e lo stato della stampante. Una stampa inviata tramite il plugin non è ancora stata provata. L'API dei plugin di OrcaSlicer è ancora alpha e può cambiare.
 
 ## Abbinamento degli slot all'invio
 
 OrcaSlicer ufficiale mostra la finestra filamento → slot all'invio solo per il tipo di host **CrealityPrint** (firmware originale). Il [fork di OrcaSlicer di Jacob10383](https://github.com/Jacob10383/OrcaSlicer) la aggiunge per le stampanti Moonraker che pubblicano `box.print_mapping_version: 1`, come fa K2-OpenHost: ogni filamento del progetto ha una scelta **Load from: Box 1, slot n**, e la stampa parte con `BOX_PRINT_START` e quell'abbinamento, come la finestra di stampa di Mainsail. La sua sincronizzazione legge direttamente l'oggetto `box` e sceglie i preset per nome. Le build sono nella sua release `Nightly-Rolling` (lo zip portable per Windows gira accanto a un OrcaSlicer installato). I campi sono stati verificati sulla stampante di riferimento; non è ancora stato usato per una stampa.
 
-Senza il fork, fai slicing e caricamento come sempre: l'abbinamento automatico assegna gli strumenti agli slot all'avvio della stampa.
+Senza il fork o il plugin sopra, fai slicing e caricamento come sempre: l'abbinamento automatico assegna gli strumenti agli slot all'avvio della stampa.
 
 ## accel_to_decel
 
@@ -97,7 +122,7 @@ Kalico non ha `ACCEL_TO_DECEL`: il suo `SET_VELOCITY_LIMIT` scarta il parametro 
 
 ## Limiti
 
-- OrcaSlicer sceglie un **preset generico per materiale** ("Generic PLA" per uno slot PLA) con il colore dello slot, non il preset della marca, finché non legge l'ID del preset descritto sopra. Se ti servono le sue impostazioni scegli dopo il tuo preset; l'abbinamento CFS funziona lo stesso.
+- OrcaSlicer sceglie un **preset generico per materiale** ("Generic PLA" per uno slot PLA) con il colore dello slot, non il preset della marca, a meno che non usi il plugin K2-OpenHost CFS di OrcaSlicer 2.5. Se ti servono le sue impostazioni scegli dopo il tuo preset; l'abbinamento CFS funziona lo stesso.
 - I profili filamento non hanno la temperatura del piano, quindi `bed_temp` è vuoto e OrcaSlicer usa quella del preset.
 - La bobina esterna non fa parte della sincronizzazione; assegnala nella finestra di stampa di Mainsail quando serve.
 
