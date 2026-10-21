@@ -247,6 +247,16 @@ class SlotMapHelpers(unittest.TestCase):
         self.assertEqual(agent_mod.parse_host("10.10.1.97", "80"), ("10.10.1.97", "80", False))
         self.assertEqual(agent_mod.parse_host("https://k2.local"), ("k2.local", "", True))
 
+    def test_cfs_units_for_the_drawing(self):
+        slots = [dict(SLOTS[0], rfid_percent=31.0), SLOTS[1], dict(SLOTS[1], index=5)]
+        units = agent_mod.cfs_units(slots, [{"address": 1, "temp_c": 32, "humidity_pct": 36}])
+        self.assertEqual([u["address"] for u in units], [1, 2])
+        self.assertEqual(units[0]["temp_c"], 32)
+        self.assertEqual([b["index"] for b in units[0]["slots"]], [0, 1, 2, 3])
+        self.assertEqual(units[0]["slots"][0]["percent"], 31.0)
+        self.assertFalse(units[0]["slots"][2]["present"])  # drawn as an empty bay
+        self.assertEqual(units[1]["slots"][1]["local"], 2)
+
     def test_proposal_by_material_then_colour(self):
         slots = [dict(SLOTS[0]), dict(SLOTS[1]),
                  {"index": 3, "present": True, "material": "pla", "color": "#EE1010"},
