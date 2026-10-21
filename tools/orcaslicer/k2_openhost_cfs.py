@@ -3,28 +3,30 @@
 #
 # [tool.orcaslicer.plugin]
 # name = "K2-OpenHost CFS"
-# description = "Printer agent for a Creality K2 driven by K2-OpenHost (Kalico + Moonraker): CFS slots with their exact filament, and the filament -> slot map of the print dialog sent to the CFS."
+# description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.1.0"
-# type = "printer-connection"
+# version = "0.2.0"
 # ///
-"""K2-OpenHost CFS printer agent for OrcaSlicer 2.5 or later.
+"""K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
 OrcaSlicer's built-in Moonraker agent matches a CFS slot to a preset by
-material only ("Generic PLA" for every PLA) and starts every print with
-SDCARD_PRINT_FILE, ignoring the filament -> slot map of its print dialog.
-This agent talks to the same Moonraker, but:
+material only ("Generic PLA" for every PLA), and its classic print-host
+upload has no filament -> slot choice. This plugin has three capabilities:
 
-- it publishes each CFS slot with the OrcaSlicer filament_id Kalico keeps per
-  filament (box.slots[].orca_filament_id), so Sync selects the slot's own
-  preset (a system preset, or one of your custom root presets);
-- it starts a mapped print with Kalico's BOX_PRINT_START MAP=tool:slot, the
-  same request the Mainsail mapping dialog sends. Without a map (or with
-  "Use AMS" off) the print starts normally and Kalico maps it by material and
-  colour as before.
+- printer agent "K2-OpenHost CFS" (same Moonraker): each CFS slot is
+  published with the OrcaSlicer filament_id Kalico keeps per filament
+  (box.slots[].orca_filament_id), so Sync selects the slot's own root preset.
+  With OrcaSlicer's global "Use printer agents" option on, the print dialog's
+  map starts the job with BOX_PRINT_START MAP=tool:slot;
+- script "K2-OpenHost CFS slots": a panel beside the 3D view to choose the
+  CFS slot of each project filament (proposed by material, then colour);
+- slicing-pipeline post-process: that choice is written after the first
+  G-code line as "; K2OH_TOOL_MAP = tool:slot,...", which Kalico's
+  box_print_mapping uses at print start instead of its automatic map. This
+  works with the classic "Upload and print", without the global option.
 
-Select it in the printer preset (printer agent "K2-OpenHost CFS") and keep
-the Moonraker address in the print host field.
+Select the agent in the printer preset and put the Moonraker address with
+its port (host:7125) in the print host field.
 """
 
 import http.client
@@ -43,7 +45,7 @@ except ImportError:  # unit tests and stand-alone checks
 
 AGENT_ID = "k2_openhost_cfs"
 AGENT_NAME = "K2-OpenHost CFS"
-AGENT_VERSION = "0.1.0"
+AGENT_VERSION = "0.2.0"
 
 # Network status codes (slic3r/Utils/bambu_networking.hpp).
 SUCCESS = 0
@@ -756,8 +758,382 @@ class K2OpenHostCfsAgent(_AgentBase):
         return code
 
 
+# ----------------------------------------------------------------------------
+# CFS slot panel and G-code map: the slot choice without OrcaSlicer's global
+# "Use printer agents" switch. The panel stores a filament -> slot map; the
+# post-processing step writes it at the top of the G-code as
+# "; K2OH_TOOL_MAP = tool:slot,..." and Kalico's box_print_mapping uses it
+# when the print starts (upload and print, or a later start from Mainsail).
+# ----------------------------------------------------------------------------
+
+TOOL_MAP_KEY = "K2OH_TOOL_MAP"
+FOOTER_BYTES = 1024 * 1024
+_map_lock = threading.Lock()
+# {"printer": preset name, "filaments": [preset names], "map": {tool: slot}}
+_slot_map = {}
+
+
+def config_list(value):
+    """A serialized OrcaSlicer list option ('"A";"B"' or '#FF0000;#00FF00')."""
+    if value is None:
+        return []
+    if isinstance(value, (list, tuple)):
+        return [str(v) for v in value]
+    return [part.strip().strip('"') for part in str(value).split(";")]
+
+
+def config_text(value):
+    if isinstance(value, (list, tuple)):
+        value = value[0] if value else ""
+    return str(value or "").strip().strip('"')
+
+
+def parse_host(print_host, port=""):
+    """(host, port, use_ssl) from a print host field such as http://h:7125."""
+    text = config_text(print_host)
+    use_ssl = text.lower().startswith("https://")
+    for prefix in ("http://", "https://"):
+        if text.lower().startswith(prefix):
+            text = text[len(prefix):]
+    text = text.split("/", 1)[0]
+    host, sep, inline_port = text.rpartition(":")
+    if not sep or not inline_port.isdigit():
+        host, inline_port = text, ""
+    return host, inline_port or config_text(port), use_ssl
+
+
+def _rgb(color):
+    text = str(color or "").lstrip("#")
+    try:
+        return tuple(int(text[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return None
+
+
+def color_distance(a, b):
+    ra, rb = _rgb(a), _rgb(b)
+    if ra is None or rb is None:
+        return 3 * 255 ** 2
+    return sum((x - y) ** 2 for x, y in zip(ra, rb))
+
+
+def propose_map(filaments, slots):
+    """{tool: slot}: same material, then the closest colour; else nothing."""
+    loaded = [s for s in slots if s.get("present") and not s.get("external")
+              and str(s.get("material") or "").strip()]
+    mapping = {}
+    for tool, filament in enumerate(filaments):
+        material = str(filament.get("type") or "").strip().upper()
+        same = [s for s in loaded
+                if str(s["material"]).strip().upper() == material]
+        if same:
+            best = min(same, key=lambda s: (color_distance(filament.get("color"), s.get("color")),
+                                            s["index"]))
+            mapping[tool] = best["index"]
+    return mapping
+
+
+def used_tools_from_footer(path):
+    """Tools with filament used > 0, from the file's OrcaSlicer footer."""
+    with open(path, "rb") as handle:
+        size = os.fstat(handle.fileno()).st_size
+        handle.seek(max(0, size - FOOTER_BYTES))
+        tail = handle.read().decode("utf-8", "replace")
+    for line in tail.splitlines():
+        stripped = line.lstrip("; \t")
+        if stripped.startswith("filament used [mm]"):
+            values = stripped.split("=", 1)[1].split(",") if "=" in stripped else []
+            used = []
+            for tool, value in enumerate(values):
+                try:
+                    if float(value) > 0:
+                        used.append(tool)
+                except ValueError:
+                    return []
+            return used
+    return []
+
+
+def map_line(mapping, used_tools):
+    """The K2OH_TOOL_MAP line, or (None, missing tools)."""
+    missing = [tool for tool in used_tools if tool not in mapping]
+    if missing or not used_tools:
+        return None, missing
+    pairs = ",".join("%d:%d" % (tool, mapping[tool]) for tool in used_tools)
+    return "; %s = %s\n" % (TOOL_MAP_KEY, pairs), []
+
+
+def insert_after_first_line(path, line):
+    """Insert line after the first line of path, streaming (files can be large).
+
+    No-op when a K2OH_TOOL_MAP line is already there: the post-processing
+    step can run more than once on the same export.
+    """
+    marker = TOOL_MAP_KEY.encode()
+    tmp = path + ".k2oh-tmp"
+    with open(path, "rb") as src:
+        first = src.readline()
+        second = src.readline()
+        if marker in second:
+            return False
+        with open(tmp, "wb") as dst:
+            dst.write(first)
+            dst.write(line.encode("utf-8"))
+            dst.write(second)
+            while True:
+                chunk = src.read(1024 * 1024)
+                if not chunk:
+                    break
+                dst.write(chunk)
+    os.replace(tmp, path)
+    return True
+
+
+def store_slot_map(printer, filaments, mapping):
+    with _map_lock:
+        _slot_map.clear()
+        _slot_map.update({"printer": printer, "filaments": list(filaments),
+                          "map": {int(t): int(s) for t, s in mapping.items()}})
+
+
+def stored_slot_map():
+    with _map_lock:
+        return {"printer": _slot_map.get("printer"),
+                "filaments": list(_slot_map.get("filaments") or []),
+                "map": dict(_slot_map.get("map") or {})}
+
+
+def write_tool_map(gcode_path, printer, filament_names):
+    """Post-processing: write the panel's map into gcode_path.
+
+    Returns a short message. The map is written only for the printer and
+    filament list it was chosen for, and only when every tool the file uses
+    has a slot; otherwise Kalico maps the print automatically.
+    """
+    state = stored_slot_map()
+    if not state["map"]:
+        return "no slot map chosen"
+    if state["printer"] != printer:
+        return "slot map chosen for %r, not %r" % (state["printer"], printer)
+    if state["filaments"] != list(filament_names):
+        return "the filaments changed after the slot map was chosen: refresh the CFS panel"
+    line, missing = map_line(state["map"], used_tools_from_footer(gcode_path))
+    if line is None:
+        return ("no slot for %s: Kalico maps the print automatically"
+                % ", ".join("T%d" % t for t in missing) if missing else "no tools used")
+    insert_after_first_line(gcode_path, line)
+    return "wrote " + line.strip()
+
+
+TEXT = {
+    "en": {"title": "CFS slots", "auto": "Kalico decides", "refresh": "Refresh",
+           "propose": "Propose", "note": "Choose a CFS slot for each filament, then slice and send. "
+           "Filaments without a slot: Kalico maps the whole print automatically.",
+           "no_host": "Set the Moonraker address in the printer preset (print host).",
+           "printer": "Printer"},
+    "it": {"title": "Slot CFS", "auto": "Decide Kalico", "refresh": "Aggiorna",
+           "propose": "Proponi", "note": "Scegli uno slot CFS per ogni filamento, poi fai slicing e invia. "
+           "Se un filamento usato resta senza slot, Kalico abbina tutta la stampa da solo.",
+           "no_host": "Imposta l'indirizzo di Moonraker nel preset stampante (host di stampa).",
+           "printer": "Stampante"},
+}
+
+
+def _language():
+    try:
+        info = orca.host.app_info()
+        lang = info.get("language") if isinstance(info, dict) else getattr(info, "language", "")
+        return "it" if str(lang or "").lower().startswith("it") else "en"
+    except Exception:
+        return "en"
+
+
+PANEL_PAGE = """
+<style>
+  body { margin: 0; padding: 10px; font-size: 13px; }
+  h3 { margin: 0 0 6px; font-size: 14px; }
+  .note { margin: 0 0 10px; color: var(--orca-muted); font-size: 12px; }
+  .actions { display: flex; gap: 6px; margin-bottom: 10px; }
+  .row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
+  .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--orca-border); flex: none; }
+  .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  select { max-width: 55%; }
+  #status { margin-top: 8px; color: var(--orca-muted); font-size: 12px; }
+</style>
+<h3 id="title"></h3>
+<p class="note" id="note"></p>
+<div class="actions">
+  <button type="button" id="refresh"></button>
+  <button type="button" id="propose"></button>
+</div>
+<div id="rows"></div>
+<p id="status"></p>
+<script>
+(function () {
+  var state = null;
+  function esc(v) { var s = document.createElement("span"); s.textContent = v; return s.innerHTML; }
+  function render(m) {
+    state = m;
+    document.getElementById("title").textContent = m.text.title;
+    document.getElementById("note").textContent = m.text.note;
+    document.getElementById("refresh").textContent = m.text.refresh;
+    document.getElementById("propose").textContent = m.text.propose;
+    var rows = document.getElementById("rows");
+    if (m.error) { rows.innerHTML = ""; document.getElementById("status").textContent = m.error; return; }
+    rows.innerHTML = m.filaments.map(function (f) {
+      var opts = '<option value="">' + esc(m.text.auto) + '</option>' + m.slots.map(function (s) {
+        var sel = (String(m.map[f.index]) === String(s.index)) ? " selected" : "";
+        return '<option value="' + s.index + '"' + sel + '>' + esc(s.label) + '</option>';
+      }).join("");
+      return '<div class="row"><span class="sw" style="background:' + esc(f.color) + '"></span>' +
+             '<span class="name" title="' + esc(f.name) + '">' + (f.index + 1) + '. ' + esc(f.name) +
+             ' <small>(' + esc(f.type) + ')</small></span>' +
+             '<select data-tool="' + f.index + '">' + opts + '</select></div>';
+    }).join("");
+    Array.prototype.forEach.call(rows.querySelectorAll("select"), function (el) {
+      el.addEventListener("change", send);
+    });
+    document.getElementById("status").textContent = m.text.printer + ": " + m.printer + " - " + m.summary;
+  }
+  function send() {
+    var map = {};
+    Array.prototype.forEach.call(document.querySelectorAll("select"), function (el) {
+      if (el.value !== "") map[el.getAttribute("data-tool")] = parseInt(el.value, 10);
+    });
+    orca.postMessage({ command: "set", map: map });
+  }
+  orca.onMessage(function (m) { if (m && m.command === "state") render(m); });
+  document.getElementById("refresh").addEventListener("click", function () { orca.postMessage({ command: "refresh" }); });
+  document.getElementById("propose").addEventListener("click", function () { orca.postMessage({ command: "propose" }); });
+  orca.postMessage({ command: "refresh" });
+})();
+</script>
+"""
+
+
+def _slot_label(slot):
+    index = int(slot["index"])
+    name = str(slot.get("name") or "").strip()
+    material = str(slot.get("material") or "").strip()
+    return "CFS%d-%d  %s%s" % (index // SLOTS_PER_BOX + 1, index % SLOTS_PER_BOX + 1, material,
+                               (" - " + name) if name and name != material else "")
+
+
+_ScriptBase = orca.script.ScriptPluginCapabilityBase if orca is not None else object
+_SlicingBase = orca.slicing.SlicingPipelineCapabilityBase if orca is not None else object
+
+
+class K2OpenHostCfsPanel(_ScriptBase):
+    """Opens the "CFS slots" panel beside the 3D view."""
+
+    panel = None
+
+    def get_name(self):
+        return "K2-OpenHost CFS slots"
+
+    def execute(self):
+        if self.panel is not None and self.panel.is_open():
+            self.panel.show()
+            return orca.ExecutionResult.success("CFS slots panel already open")
+        self.panel = orca.host.ui.create_dock_panel(
+            html=PANEL_PAGE, title="CFS", width=340, height=420,
+            on_message=self.on_message, on_close=self.on_close, dock="right")
+        return orca.ExecutionResult.success("CFS slots panel opened")
+
+    def on_close(self):
+        self.panel = None
+
+    def _project(self):
+        bundle = orca.host.preset_bundle()
+        printer = bundle.current_printer_preset()
+        names = [str(n) for n in bundle.current_filament_preset_names()]
+        colors = config_list(bundle.full_config_value("filament_colour"))
+        types = config_list(bundle.full_config_value("filament_type"))
+        filaments = [{"index": i, "name": name,
+                      "color": colors[i] if i < len(colors) else "",
+                      "type": types[i] if i < len(types) else ""}
+                     for i, name in enumerate(names)]
+        return printer, filaments
+
+    def _slots(self, printer):
+        host, port, use_ssl = parse_host(printer.config_value("print_host"),
+                                         printer.config_value("printhost_port"))
+        if not host:
+            return None
+        client = Moonraker(host, port, config_text(printer.config_value("printhost_apikey")),
+                           use_ssl)
+        box = client.query([("box", "slots")]).get("box") or {}
+        return [s for s in box.get("slots") or []
+                if s.get("present") and not s.get("external") and s.get("material")]
+
+    def _post_state(self, propose=False):
+        text = TEXT[_language()]
+        message = {"command": "state", "text": text, "filaments": [], "slots": [],
+                   "map": {}, "printer": "", "summary": ""}
+        try:
+            printer, filaments = self._project()
+            message["printer"] = printer.name
+            message["filaments"] = filaments
+            slots = self._slots(printer)
+            if slots is None:
+                message["error"] = text["no_host"]
+            else:
+                message["slots"] = [{"index": s["index"], "label": _slot_label(s)} for s in slots]
+                state = stored_slot_map()
+                names = [f["name"] for f in filaments]
+                valid = {s["index"] for s in slots}
+                if propose or state["printer"] != printer.name or state["filaments"] != names:
+                    mapping = propose_map(filaments, slots)
+                else:
+                    mapping = {t: s for t, s in state["map"].items() if s in valid}
+                store_slot_map(printer.name, names, mapping)
+                message["map"] = {str(t): s for t, s in mapping.items()}
+                message["summary"] = "%d/%d" % (len(mapping), len(filaments))
+        except Exception as exc:
+            log("CFS panel: %s", exc)
+            message["error"] = str(exc)
+        if self.panel is not None:
+            self.panel.post(message)
+
+    def on_message(self, message):
+        command = (message or {}).get("command")
+        if command == "refresh":
+            self._post_state()
+        elif command == "propose":
+            self._post_state(propose=True)
+        elif command == "set":
+            try:
+                printer, filaments = self._project()
+                mapping = {int(t): int(s) for t, s in (message.get("map") or {}).items()}
+                store_slot_map(printer.name, [f["name"] for f in filaments], mapping)
+                log("slot map set: %s", mapping)
+            except Exception as exc:
+                log("CFS panel: %s", exc)
+
+
+class K2OpenHostCfsGcodeMap(_SlicingBase):
+    """Writes the panel's slot map into the exported G-code."""
+
+    def get_name(self):
+        return "K2-OpenHost CFS G-code map"
+
+    def execute(self, ctx):
+        if ctx.step != orca.slicing.Step.psGCodePostProcess or not ctx.gcode_path:
+            return orca.ExecutionResult.success()
+        try:
+            result = write_tool_map(
+                ctx.gcode_path, config_text(ctx.config_value("printer_settings_id")),
+                config_list(ctx.config_value("filament_settings_id")))
+        except Exception as exc:  # never break an export
+            result = "not written: %s" % exc
+        log("G-code map (%s): %s", ctx.host or "?", result)
+        return orca.ExecutionResult.success("K2-OpenHost CFS: " + result)
+
+
 if orca is not None:
     @orca.plugin
     class K2OpenHostCfsPackage(orca.base):
         def register_capabilities(self):
             orca.register_capability(K2OpenHostCfsAgent)
+            orca.register_capability(K2OpenHostCfsPanel)
+            orca.register_capability(K2OpenHostCfsGcodeMap)
