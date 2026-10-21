@@ -22,6 +22,7 @@ The project is deliberately split into several repositories so upstream authorsh
 - **[Cartographer3D/cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin)** — the official Cartographer plugin, used unchanged (it supports Kalico and the K2 directly, as in Jacob10383's firmware). The former `cartographer3d-plugin-k2openhost` fork was archived on 2026-10-04. See [Cartographer](docs/en/CARTOGRAPHER.md) / [IT](docs/it/CARTOGRAPHER.md).
 - **[MzTechnology97/k2-improvements](https://github.com/MzTechnology97/k2-improvements)** — attributed reference fork in the `jamincollins -> Jacob10383` lineage.
 - **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork for the OpenHost UI (branch `develop`): CFS panel with filament mapping, runout order and settings (runout swap, unload after print, RFID reads, clog detection), filament warnings, motor and RS-485 counters, part fan labels; upstream Mainsail authorship remains unchanged.
+- **[MzTechnology97/ha-k2-openhost](https://github.com/MzTechnology97/ha-k2-openhost)** — Home Assistant integration for the CFS (HACS custom repository): it follows `printer.objects.box` through the Moonraker websocket and serves the K2-OpenHost CFS card, a port of the Mainsail CFS panel.
 - **[pedrolamas/klipper-virtual-pins](https://github.com/pedrolamas/klipper-virtual-pins)** — third-party Klipper module, installed unchanged on the host, used for the Mainsail **Axis Twist Compensation** switch (`config/k2/macros/openhost_controls.cfg`).
 - **[MzTechnology97/k2-openhost-firmware-tools](https://github.com/MzTechnology97/k2-openhost-firmware-tools)** — read-only tooling to inventory, compare and probe K2 peripheral (MCU, motor, CFS) firmware from the OpenHost host; controlled flashing is a later phase.
 - **[MzTechnology97/k2-openhost-installer-helper](https://github.com/MzTechnology97/k2-openhost-installer-helper)** — installer that prepares an external Linux host (Kalico K2-OpenHost, K2 Pro profile, Moonraker, Mainsail fork, udev names and start gate); experimental, pending a fresh-host test. A T113 bootstrap will follow after the hardware tests.
@@ -146,6 +147,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [OrcaSlicer and the CFS](docs/en/ORCASLICER.md)
 - [Chamber camera (K2 Plus 1080p camera on the K2 Pro)](docs/en/CAMERA.md)
 - [Host hardware: CM5 on CM5-IO-BASE-A, USB, CPU fan from Klipper](docs/en/HOST.md)
+- [Home Assistant: CFS integration and card (ha-k2-openhost)](https://github.com/MzTechnology97/ha-k2-openhost#readme)
 - [Roadmap](docs/en/ROADMAP.md)
 - [Credits and references](docs/en/REFERENCES.md)
 
@@ -169,6 +171,7 @@ Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-
 - [OrcaSlicer e il CFS](docs/it/ORCASLICER.md)
 - [Fotocamera della camera (fotocamera 1080p del K2 Plus sul K2 Pro)](docs/it/CAMERA.md)
 - [Hardware host: CM5 su CM5-IO-BASE-A, USB, ventola della CPU da Klipper](docs/it/HOST.md)
+- [Home Assistant: integrazione e scheda del CFS (ha-k2-openhost)](https://github.com/MzTechnology97/ha-k2-openhost/blob/main/README.it.md)
 - [Roadmap](docs/it/ROADMAP.md)
 - [Crediti e riferimenti](docs/it/REFERENCES.md)
 
