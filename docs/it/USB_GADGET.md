@@ -56,7 +56,8 @@ USB0 è dual-role. In modalità stock fa parte della topologia host USB interna,
 
 Conseguenze mentre il gadget è attivo, previste anche nell'architettura finale:
 
-- la **fotocamera dell'ugello** e la **fotocamera della camera** non sono più disponibili per il T113; vanno ricablate verso l'host Linux esterno;
+- la **fotocamera della camera** non è più disponibile per il T113: va scollegata dal T113 e ricablata verso l'host Linux esterno;
+- la **fotocamera dell'ugello** non è utilizzabile tramite il T113 in modalità OpenHost;
 - la **porta USB esterna** della stampante smette completamente di funzionare e non può essere usata per stampare da chiavetta.
 
 Vedi [Esclusione di responsabilità e limiti hardware](DISCLAIMER.md#limiti-hardware-in-modalità-openhost).
