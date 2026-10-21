@@ -1,0 +1,20 @@
+name: orcaslicer-plugin
+on:
+  push:
+    paths:
+      - 'tools/orcaslicer/**'
+      - '.github/workflows/orcaslicer-plugin.yml'
+  pull_request:
+    paths:
+      - 'tools/orcaslicer/**'
+      - '.github/workflows/orcaslicer-plugin.yml'
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'  # the interpreter OrcaSlicer 2.5 embeds
+      - name: Unit tests of the K2-OpenHost CFS agent
+        run: python -m unittest tools/orcaslicer/test_k2_openhost_cfs.py
