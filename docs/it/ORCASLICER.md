@@ -98,8 +98,12 @@ Tramite il plugin funziona anche la scheda Dispositivo (stato, temperature, avan
 
 1. Scarica `k2_openhost_cfs.py`.
 2. In OrcaSlicer apri la gestione dei plugin e installalo come plugin locale. OrcaSlicer lo copia in `%APPDATA%\OrcaSlicer\orca_plugins\`.
-3. Nel preset della stampante (**Impostazioni stampante → Informazioni di base**) imposta l'agente della stampante su **K2-OpenHost CFS**. Lascia l'indirizzo di Moonraker (`http://<CM5>:7125`) nel campo dell'host di stampa.
-4. Apri una volta la scheda Dispositivo: l'agente si collega e pubblica la CFS. Poi premi **Sync** nell'elenco dei filamenti.
+3. In **Preferenze → Sviluppatore** attiva **Use printer agents instead of print hosts**. Senza questa opzione OrcaSlicer carica ancora le stampe alla vecchia maniera (host di stampa) e l'abbinamento degli slot non viene inviato.
+4. Nel preset della stampante (**Impostazioni stampante → Informazioni di base → Avanzate**) imposta **Printer Agent** su **K2-OpenHost CFS** e salva il preset. Lascia l'indirizzo di Moonraker nel campo dell'host di stampa.
+5. OrcaSlicer chiede di permettere al plugin di creare un thread e di collegarsi all'indirizzo di Moonraker: consenti entrambi. Il primo collegamento viene rifiutato finché la domanda è aperta; il plugin riprova ogni 2 s.
+6. Apri una volta la scheda Dispositivo: l'agente si collega e pubblica la CFS. Poi premi **Sync** nell'elenco dei filamenti.
+
+La sincronizzazione sceglie solo **preset radice**: quelli di sistema e i tuoi creati con **Crea filamento**, che hanno un ID proprio `P…`. Un preset salvato da un altro (in *Dipendenze* mostra un genitore) non viene mai scelto, con nessun agente: OrcaSlicer prende il genitore. Per sincronizzare il tuo preset ottimizzato, crealo con **Crea filamento** (marca, tipo, basato sullo stesso preset di sistema), copia le tue impostazioni e assegna il suo ID `P…` al filamento della CFS in Mainsail.
 
 Il plugin ha tre impostazioni:
 - `poll_interval_s`: aggiornamento dello stato, predefinito 2 s;

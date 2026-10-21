@@ -98,8 +98,12 @@ The Device tab also works through it (state, temperatures, progress, pause/resum
 
 1. Download `k2_openhost_cfs.py`.
 2. In OrcaSlicer open the plugin manager and install it as a local plugin. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`.
-3. In the printer preset (**Printer settings → Basic information**), set the printer agent to **K2-OpenHost CFS**. Keep the Moonraker address (`http://<CM5>:7125`) in the print host field.
-4. Open the Device tab once: the agent connects and publishes the CFS. Then press **Sync** in the filament list.
+3. In **Preferences → Developer**, turn on **Use printer agents instead of print hosts**. Without it OrcaSlicer still uploads jobs the old print-host way and the slot map is not sent.
+4. In the printer preset (**Printer settings → Basic information → Advanced**), set **Printer Agent** to **K2-OpenHost CFS** and save the preset. Keep the Moonraker address in the print host field.
+5. OrcaSlicer asks to let the plugin create a thread and connect to the Moonraker address: allow both. The first connection is refused while the question is open; the plugin retries every 2 s.
+6. Open the Device tab once: the agent connects and publishes the CFS. Then press **Sync** in the filament list.
+
+Sync selects **root presets** only: system presets, and your own presets made with **Create filament**, which have their own `P…` ID. A preset saved from another one (it shows a parent under *Dependencies*) is never picked, by any agent: OrcaSlicer takes its parent instead. To sync to your tuned preset, create it with **Create filament** (vendor, type, based on the same system preset), copy your settings into it, and give its `P…` ID to the CFS filament in Mainsail.
 
 The plugin has three settings: `poll_interval_s` (status refresh, default 2 s), `model_id` (printer model sent to OrcaSlicer, default the preset's model with `_`, `Creality_K2_Pro`) and `use_slot_map` (false = always start without the dialog's map). Its log lines (`[k2oh-cfs]`) are in `%APPDATA%\OrcaSlicer\log\python_*.log`.
 
