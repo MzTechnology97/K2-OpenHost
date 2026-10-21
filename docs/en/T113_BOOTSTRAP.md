@@ -27,6 +27,11 @@ The T113 bootstrap prepares the K2 Pro's own T113 board for K2-OpenHost. It is d
 - **Serial names on the host:** slot B's gadget has other `/dev/serial/by-id` names than slot A's stock gadget. The host uses `/dev/k2-main`, `/dev/k2-nozzle` and `/dev/k2-rs485` (udev, by interface), the same in both slots; the installer helper sets them.
 - **Wi-Fi:** works without Creality's `wifi-server`, using the networks copied from slot A.
 - **HelixScreen:** installed at the first boot and pointed at the external host's Moonraker.
+- **`k2oh-helix-filaments`:** HelixScreen's filament pickers list only the host's library (Kalico's CFS system filaments plus the custom ones in `cfs_filaments.json`), not HelixScreen's ~360 presets.
+  - The library is kept in sync every 30 s.
+  - A filament created on the screen goes to Kalico while the printer is idle.
+  - During a print the service only reads Moonraker.
+  - Details: [bootstrap README](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap#helixscreen-filament-list-k2oh-helix-filaments).
 - **`k2oh-mcu-fw`:** manual MCU, motor and CFS firmware updates (below).
 
 Disabled:
