@@ -5,7 +5,7 @@
 # name = "K2-OpenHost CFS"
 # description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.4.0"
+# version = "0.5.0"
 # ///
 """K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
@@ -45,7 +45,7 @@ except ImportError:  # unit tests and stand-alone checks
 
 AGENT_ID = "k2_openhost_cfs"
 AGENT_NAME = "K2-OpenHost CFS"
-AGENT_VERSION = "0.4.0"
+AGENT_VERSION = "0.5.0"
 
 # Network status codes (slic3r/Utils/bambu_networking.hpp).
 SUCCESS = 0
@@ -1226,12 +1226,66 @@ _ScriptBase = orca.script.ScriptPluginCapabilityBase if orca is not None else ob
 _SlicingBase = orca.slicing.SlicingPipelineCapabilityBase if orca is not None else object
 
 
+# Events after which the panel follows the selected printer and project. They
+# come from the GUI; slicing events are left out (worker thread).
+PANEL_EVENTS = ("PresetSelected", "PresetSaved", "ProjectOpened", "NewProject")
+
+
+def is_k2oh_printer(printer):
+    """The selected printer preset uses this plugin's agent."""
+    try:
+        return config_text(printer.config_value("printer_agent")) == AGENT_ID
+    except Exception:
+        return False
+
+
 class K2OpenHostCfsPanel(_ScriptBase):
-    """Opens the "CFS slots" panel beside the 3D view."""
+    """Opens the "CFS slots" panel beside the 3D view.
+
+    It also opens by itself (option auto_open) when a printer using the
+    K2-OpenHost CFS agent is selected, a preset is saved or a project is
+    opened, and refreshes then; it hides for other printers. Closed by the
+    user, it stays closed until another printer and then the K2 are
+    selected again.
+    """
 
     panel = None
     _boxes = ()
     _runout = None
+    _dismissed = False
+
+    def get_default_config(self):
+        return {"auto_open": True}
+
+    def _auto_open(self):
+        try:
+            return bool(json.loads(self.get_config()).get("auto_open", True))
+        except Exception:
+            return True
+
+    def on_lifecycle_event(self, event, ctx):
+        name = getattr(event, "name", str(event)).split(".")[-1]
+        if name not in PANEL_EVENTS:
+            return
+        # UI calls only from the GUI thread, where these events come from.
+        if threading.current_thread() is not threading.main_thread():
+            return
+        try:
+            printer = orca.host.preset_bundle().current_printer_preset()
+        except Exception:
+            return
+        is_open = self.panel is not None and self.panel.is_open()
+        if not is_k2oh_printer(printer):
+            self._dismissed = False
+            if is_open:
+                self.panel.hide()
+            return
+        if is_open:
+            self.panel.show()
+            self._post_state()
+        elif self._auto_open() and not self._dismissed:
+            log("opening the CFS panel (%s)", name)
+            self.execute()
 
     def _client(self, printer):
         host, port, use_ssl = parse_host(printer.config_value("print_host"),
@@ -1254,7 +1308,9 @@ class K2OpenHostCfsPanel(_ScriptBase):
         return orca.ExecutionResult.success("CFS slots panel opened")
 
     def on_close(self):
+        # Closed by the user: keep it closed until the printer changes.
         self.panel = None
+        self._dismissed = True
 
     def _project(self):
         bundle = orca.host.preset_bundle()

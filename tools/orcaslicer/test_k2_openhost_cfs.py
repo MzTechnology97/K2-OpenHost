@@ -375,5 +375,83 @@ class Panel(unittest.TestCase):
         self.assertEqual(self.panel.panel.messages[-1]["command"], "state")
 
 
+class DockPanel(FakePanel):
+    def __init__(self):
+        super().__init__()
+        self.open, self.visible = True, True
+
+    def is_open(self):
+        return self.open
+
+    def show(self):
+        self.visible = True
+
+    def hide(self):
+        self.visible = False
+
+
+class Event:
+    def __init__(self, name):
+        self.name = name
+
+
+class AutoOpen(unittest.TestCase):
+    def setUp(self):
+        agent_mod.store_slot_map(None, [], {})
+        self.bundle = FakeBundle(FILAMENTS, "#B1BEC6;#FFFFFF;#000000", "PLA;TPU;PETG-CF")
+        self.bundle.printer.values["printer_agent"] = agent_mod.AGENT_ID
+        self.created = []
+
+        def create_dock_panel(**kwargs):
+            panel = DockPanel()
+            self.created.append(panel)
+            return panel
+
+        self.saved = agent_mod.orca
+        agent_mod.orca = types.SimpleNamespace(
+            host=types.SimpleNamespace(
+                preset_bundle=lambda: self.bundle, app_info=lambda: {"language": "en"},
+                ui=types.SimpleNamespace(create_dock_panel=create_dock_panel)),
+            ExecutionResult=types.SimpleNamespace(success=lambda msg="": msg))
+        self.panel = agent_mod.K2OpenHostCfsPanel()
+        self.panel.get_config = lambda: json.dumps({"auto_open": True})
+        self.panel._slots = lambda printer: [s for s in SLOTS if s.get("present")
+                                             and not s.get("external")]
+
+    def tearDown(self):
+        agent_mod.orca = self.saved
+
+    def test_opens_for_the_k2_and_hides_for_other_printers(self):
+        self.panel.on_lifecycle_event(Event("ObjectAdded"), None)
+        self.assertEqual(self.created, [])
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.assertEqual(len(self.created), 1)
+        self.panel.on_lifecycle_event(Event("ProjectOpened"), None)  # already open: refresh only
+        self.assertEqual(len(self.created), 1)
+        self.bundle.printer.values["printer_agent"] = "moonraker"
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.assertFalse(self.created[0].visible)
+        self.bundle.printer.values["printer_agent"] = agent_mod.AGENT_ID
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.assertTrue(self.created[0].visible)
+
+    def test_closed_by_the_user_stays_closed_until_the_printer_changes(self):
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.created[0].open = False
+        self.panel.on_close()
+        self.panel.on_lifecycle_event(Event("PresetSaved"), None)
+        self.assertEqual(len(self.created), 1)
+        self.bundle.printer.values["printer_agent"] = "moonraker"
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.bundle.printer.values["printer_agent"] = agent_mod.AGENT_ID
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.assertEqual(len(self.created), 2)
+
+    def test_auto_open_off(self):
+        self.panel.get_config = lambda: json.dumps({"auto_open": False})
+        self.panel.on_lifecycle_event(Event("PresetSelected"), None)
+        self.assertEqual(self.created, [])
+
+
 if __name__ == "__main__":
     unittest.main()
