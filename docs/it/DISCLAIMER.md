@@ -24,8 +24,8 @@ In K2-OpenHost la scheda T113 originale smette di essere il computer della stamp
 
 | Componente | In modalità OpenHost | Cosa fare |
 | --- | --- | --- |
-| **Fotocamera dell'ugello** | Non può essere gestita dal T113. | Ricablare il percorso originale del cavo e collegare la fotocamera **direttamente a una porta USB dell'host Linux esterno**; lo streaming si fa dall'host (per esempio con Crowsnest). |
-| **Fotocamera della camera** | Non può essere gestita dal T113. | Come per la fotocamera dell'ugello: ricablarla e collegarla **direttamente all'host esterno**. |
+| **Fotocamera della camera** | Non può essere gestita dal T113. | **Scollegarla dal T113** e ricablarla **direttamente a una porta USB dell'host Linux esterno**; lo streaming si fa dall'host con Crowsnest (vedi [Fotocamera della camera](CAMERA.md)). |
+| **Fotocamera dell'ugello** | **Non utilizzabile**: in modalità OpenHost il T113 non può gestirla. | Nessuna: la fotocamera dell'ugello non è disponibile in modalità OpenHost. Torna a funzionare quando la stampante avvia il firmware stock (slot A). |
 | **Porta USB esterna** della stampante (chiavetta) | **Non può essere usata per stampare** da chiavetta e **smette completamente di funzionare** mentre il T113 è in modalità gadget. | Carica e stampa i file tramite Mainsail/Moonraker sull'host esterno. |
 | **Cartographer3D** (opzionale) | Non passa dai canali gadget del T113. | Collegalo direttamente all'host esterno (vedi [Trasporto USB gadget](USB_GADGET.md)). |
 

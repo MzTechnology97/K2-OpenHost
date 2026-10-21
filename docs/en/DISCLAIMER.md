@@ -24,8 +24,8 @@ In K2-OpenHost the original T113 board stops being the printer's computer: its s
 
 | Part | In OpenHost mode | What to do |
 | --- | --- | --- |
-| **Nozzle camera** | Cannot be managed by the T113. | Rewire the original camera cable path and connect the camera **directly to a USB port of the external Linux host**; stream it from the host (for example with Crowsnest). |
-| **Chamber camera** | Cannot be managed by the T113. | Same as the nozzle camera: rewire it and connect it **directly to the external host**. |
+| **Chamber camera** | Cannot be managed by the T113. | **Disconnect it from the T113** and rewire it **directly to a USB port of the external Linux host**; stream it from the host with Crowsnest (see [Chamber camera](CAMERA.md)). |
+| **Nozzle camera** | **Cannot be used**: the T113 cannot run it in OpenHost mode. | None: the nozzle camera is not available in OpenHost mode. It works again when the printer boots the stock firmware (slot A). |
 | **External USB port** of the printer (USB stick) | **Cannot be used to print** from a USB stick, and **stops working completely** while the T113 is in gadget mode. | Upload and print files through Mainsail/Moonraker on the external host. |
 | **Cartographer3D** (optional) | Not carried through the T113 gadget channels. | Connect it directly to the external host (see [USB gadget transport](USB_GADGET.md)). |
 
