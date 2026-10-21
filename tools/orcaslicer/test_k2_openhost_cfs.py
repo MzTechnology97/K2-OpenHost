@@ -247,6 +247,13 @@ class SlotMapHelpers(unittest.TestCase):
         self.assertEqual(agent_mod.parse_host("10.10.1.97", "80"), ("10.10.1.97", "80", False))
         self.assertEqual(agent_mod.parse_host("https://k2.local"), ("k2.local", "", True))
 
+    def test_runout_order_merge(self):
+        # Moving one group keeps the other groups' order.
+        self.assertEqual(agent_mod.merged_runout_order([2, 0, 3, 5, 6], [3, 2, 0]), [5, 6, 3, 2, 0])
+        self.assertEqual(agent_mod.merged_runout_order([2, 0, 3], [2, 0, 3], manual=False), [])
+        self.assertEqual(agent_mod.runout_order_script([]), "_BOX_SET_RUNOUT_ORDER ORDER=AUTO")
+        self.assertEqual(agent_mod.runout_order_script([3, 2]), "_BOX_SET_RUNOUT_ORDER ORDER=3,2")
+
     def test_cfs_units_for_the_drawing(self):
         slots = [dict(SLOTS[0], rfid_percent=31.0), SLOTS[1], dict(SLOTS[1], index=5)]
         units = agent_mod.cfs_units(slots, [{"address": 1, "temp_c": 32, "humidity_pct": 36}])
@@ -353,6 +360,19 @@ class Panel(unittest.TestCase):
         self.bundle.names = FILAMENTS[:2]  # project filaments changed: new proposal
         self.panel.on_message({"command": "refresh"})
         self.assertEqual(self.panel.panel.messages[-1]["map"], {"0": 1})
+
+    def test_runout_commands(self):
+        sent = []
+        self.panel._client = lambda printer: types.SimpleNamespace(
+            gcode=lambda script, timeout=60.0: sent.append(script))
+        self.panel._runout = {"swap": True, "order": [2, 0, 3, 5], "groups": []}
+        self.panel.on_message({"command": "runout_order", "slots": [3, 0, 2], "manual": True})
+        self.panel.on_message({"command": "runout_order", "slots": [3, 0, 2], "manual": False})
+        self.panel.on_message({"command": "runout_swap", "enable": False})
+        self.assertEqual(sent, ["_BOX_SET_RUNOUT_ORDER ORDER=5,3,0,2",
+                                "_BOX_SET_RUNOUT_ORDER ORDER=5",
+                                "_BOX_SET_RUNOUT_SWAP ENABLE=0"])
+        self.assertEqual(self.panel.panel.messages[-1]["command"], "state")
 
 
 if __name__ == "__main__":

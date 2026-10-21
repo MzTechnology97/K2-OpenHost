@@ -5,7 +5,7 @@
 # name = "K2-OpenHost CFS"
 # description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.3.0"
+# version = "0.4.0"
 # ///
 """K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
@@ -45,7 +45,7 @@ except ImportError:  # unit tests and stand-alone checks
 
 AGENT_ID = "k2_openhost_cfs"
 AGENT_NAME = "K2-OpenHost CFS"
-AGENT_VERSION = "0.3.0"
+AGENT_VERSION = "0.4.0"
 
 # Network status codes (slic3r/Utils/bambu_networking.hpp).
 SUCCESS = 0
@@ -947,6 +947,10 @@ TEXT = {
            "Filaments without a slot: Kalico maps the whole print automatically.",
            "pick": "Click a filament, then the spool it should print from.",
            "empty": "empty",
+           "runout": "Runout order", "swap": "Switch to an identical spool when one runs out",
+           "no_groups": "No group: runout needs at least two identical spools (same material and colour).",
+           "manual": "manual order", "lowest": "lowest remaining first", "slot_order": "slot order",
+           "auto_order": "Automatic order",
            "no_host": "Set the Moonraker address in the printer preset (print host).",
            "printer": "Printer"},
     "it": {"title": "Slot CFS", "auto": "Decide Kalico", "refresh": "Aggiorna",
@@ -954,6 +958,10 @@ TEXT = {
            "Se un filamento usato resta senza slot, Kalico abbina tutta la stampa da solo.",
            "pick": "Clicca un filamento, poi la bobina da cui deve stampare.",
            "empty": "vuoto",
+           "runout": "Ordine di runout", "swap": "Passa a una bobina uguale quando una finisce",
+           "no_groups": "Nessun gruppo: il runout richiede almeno due bobine uguali (stesso materiale e colore).",
+           "manual": "ordine manuale", "lowest": "prima la bobina con meno residuo", "slot_order": "ordine degli slot",
+           "auto_order": "Ordine automatico",
            "no_host": "Imposta l'indirizzo di Moonraker nel preset stampante (host di stampa).",
            "printer": "Stampante"},
 }
@@ -999,6 +1007,15 @@ PANEL_PAGE = """
   .dest { font-weight: 600; white-space: nowrap; }
   .clr { border: none; background: transparent; color: var(--orca-muted); cursor: pointer; padding: 0 4px; }
   #status { margin-top: 8px; color: var(--orca-muted); font-size: 12px; }
+  h4 { margin: 14px 0 6px; font-size: 13px; }
+  .swap { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
+  .grp { border: 1px solid var(--orca-border); border-radius: 10px; padding: 6px 8px; margin-bottom: 8px; }
+  .grp-head { display: flex; align-items: center; gap: 6px; font-weight: 600; margin-bottom: 4px; }
+  .grp-head small { font-weight: 400; color: var(--orca-muted); }
+  .ro { display: flex; align-items: center; gap: 6px; margin: 3px 0; }
+  .ro .pos { width: 16px; text-align: right; font-weight: 700; }
+  .ro .lbl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ro button, .grp .auto { padding: 0 6px; }
 </style>
 <h3 id="title"></h3>
 <p class="note" id="note"></p>
@@ -1009,6 +1026,7 @@ PANEL_PAGE = """
 <div id="units"></div>
 <div id="fils"></div>
 <p id="status"></p>
+<div id="runout"></div>
 <script>
 (function () {
   var m = null, sel = null;
@@ -1091,10 +1109,49 @@ PANEL_PAGE = """
         send(); render();
       });
     });
+    renderRunout();
     var done = m.filaments.filter(function (f) { return m.map[f.index] != null; }).length;
     document.getElementById("status").textContent = t.printer + ": " + m.printer + " · " + done + "/" + m.filaments.length;
   }
   function send() { orca.postMessage({ command: "set", map: m.map }); }
+  function renderRunout() {
+    var t = m.text, r = m.runout || { groups: [] }, box = document.getElementById("runout");
+    var bays = {};
+    (m.units || []).forEach(function (u) { u.slots.forEach(function (s) { bays[s.index] = s; }); });
+    var label = { manual_order: t.manual, lowest_remaining_first: t.lowest, slot_order: t.slot_order };
+    var html = '<h4>' + esc(t.runout) + '</h4><label class="swap"><input type="checkbox" id="swap"' +
+      (r.swap ? " checked" : "") + '> ' + esc(t.swap) + '</label>';
+    if (!r.groups.length) html += '<p class="note">' + esc(t.no_groups) + '</p>';
+    html += r.groups.map(function (g, gi) {
+      return '<div class="grp"><div class="grp-head"><span class="sw" style="background:' + esc(g.color) + '"></span>' +
+        esc(g.material) + ' <small>' + esc(label[g.strategy] || g.strategy) + '</small></div>' +
+        g.slots.map(function (slot, i) {
+          var b = bays[slot] || {};
+          var pct = b.percent != null ? " · " + Math.round(b.percent) + "%" : "";
+          return '<div class="ro"><span class="pos">' + (i + 1) + '.</span><span class="sw" style="background:' +
+            esc(b.color) + '"></span><span class="lbl">' + slotName(slot) + " " + esc(b.name || "") + pct + '</span>' +
+            '<button data-g="' + gi + '" data-i="' + i + '" data-d="-1"' + (i === 0 ? " disabled" : "") + '>▲</button>' +
+            '<button data-g="' + gi + '" data-i="' + i + '" data-d="1"' + (i === g.slots.length - 1 ? " disabled" : "") + '>▼</button></div>';
+        }).join("") + (g.strategy === "manual_order" ? '<button class="auto" data-auto="' + gi + '">' + esc(t.auto_order) + '</button>' : "") +
+        '</div>';
+    }).join("");
+    box.innerHTML = html;
+    document.getElementById("swap").addEventListener("change", function (ev) {
+      orca.postMessage({ command: "runout_swap", enable: ev.target.checked });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("button[data-d]"), function (el) {
+      el.addEventListener("click", function () {
+        var g = r.groups[+el.getAttribute("data-g")], i = +el.getAttribute("data-i"), j = i + (+el.getAttribute("data-d"));
+        var order = g.slots.slice(); var x = order[i]; order[i] = order[j]; order[j] = x;
+        orca.postMessage({ command: "runout_order", slots: order, manual: true });
+      });
+    });
+    Array.prototype.forEach.call(box.querySelectorAll("button[data-auto]"), function (el) {
+      el.addEventListener("click", function () {
+        orca.postMessage({ command: "runout_order", slots: r.groups[+el.getAttribute("data-auto")].slots, manual: false });
+      });
+    });
+  }
   orca.onMessage(function (msg) {
     if (msg && msg.command === "state") {
       m = msg; var fixed = {};
@@ -1108,6 +1165,24 @@ PANEL_PAGE = """
 })();
 </script>
 """
+
+
+def merged_runout_order(current, group_slots, manual=True):
+    """Kalico's global runout order after changing one group of identical spools.
+
+    Kalico ranks slots only against the other slots of their group, so the
+    group's slots are taken out of the saved order and, for a manual order,
+    appended in the new sequence. Without manual, the group goes back to
+    Kalico's automatic order (lowest RFID remaining first).
+    """
+    group = [int(slot) for slot in group_slots]
+    order = [int(slot) for slot in current or [] if int(slot) not in group]
+    return order + group if manual else order
+
+
+def runout_order_script(order):
+    return "_BOX_SET_RUNOUT_ORDER ORDER=%s" % (
+        ",".join(str(slot) for slot in order) if order else "AUTO")
 
 
 def cfs_units(slots, boxes=()):
@@ -1156,6 +1231,15 @@ class K2OpenHostCfsPanel(_ScriptBase):
 
     panel = None
     _boxes = ()
+    _runout = None
+
+    def _client(self, printer):
+        host, port, use_ssl = parse_host(printer.config_value("print_host"),
+                                         printer.config_value("printhost_port"))
+        if not host:
+            return None
+        return Moonraker(host, port, config_text(printer.config_value("printhost_apikey")),
+                         use_ssl)
 
     def get_name(self):
         return "K2-OpenHost CFS slots"
@@ -1185,14 +1269,18 @@ class K2OpenHostCfsPanel(_ScriptBase):
         return printer, filaments
 
     def _slots(self, printer):
-        host, port, use_ssl = parse_host(printer.config_value("print_host"),
-                                         printer.config_value("printhost_port"))
-        if not host:
+        client = self._client(printer)
+        if client is None:
             return None
-        client = Moonraker(host, port, config_text(printer.config_value("printhost_apikey")),
-                           use_ssl)
-        box = client.query([("box", "slots,boxes")]).get("box") or {}
+        box = client.query([("box", "slots,boxes,runout_order,runout_groups,"
+                                       "runout_swap_enabled")]).get("box") or {}
         self._boxes = box.get("boxes") or []
+        self._runout = {"swap": bool(box.get("runout_swap_enabled")),
+                        "order": list(box.get("runout_order") or []),
+                        "groups": [{"material": g.get("material"), "color": g.get("color"),
+                                    "slots": list(g.get("slots") or []),
+                                    "strategy": g.get("strategy")}
+                                   for g in box.get("runout_groups") or []]}
         return [s for s in box.get("slots") or []
                 if not s.get("external") and isinstance(s.get("index"), int)]
 
@@ -1211,6 +1299,7 @@ class K2OpenHostCfsPanel(_ScriptBase):
                 loaded = [s for s in slots if s.get("present") and s.get("material")]
                 message["slots"] = [{"index": s["index"], "label": _slot_label(s)} for s in loaded]
                 message["units"] = cfs_units(slots, self._boxes)
+                message["runout"] = self._runout or {"swap": False, "order": [], "groups": []}
                 state = stored_slot_map()
                 names = [f["name"] for f in filaments]
                 valid = {s["index"] for s in loaded}
@@ -1233,6 +1322,23 @@ class K2OpenHostCfsPanel(_ScriptBase):
             self._post_state()
         elif command == "propose":
             self._post_state(propose=True)
+        elif command in ("runout_order", "runout_swap"):
+            try:
+                printer, _filaments = self._project()
+                client = self._client(printer)
+                if client is None:
+                    return
+                if command == "runout_swap":
+                    script = "_BOX_SET_RUNOUT_SWAP ENABLE=%d" % (1 if message.get("enable") else 0)
+                else:
+                    current = (self._runout or {}).get("order") or []
+                    script = runout_order_script(merged_runout_order(
+                        current, message.get("slots") or [], bool(message.get("manual"))))
+                log("runout: %s", script)
+                client.gcode(script, timeout=10.0)
+            except Exception as exc:
+                log("CFS panel: %s", exc)
+            self._post_state()
         elif command == "set":
             try:
                 printer, filaments = self._project()
