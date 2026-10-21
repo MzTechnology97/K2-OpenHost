@@ -5,7 +5,7 @@
 # name = "K2-OpenHost CFS"
 # description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.5.0"
+# version = "0.6.0"
 # ///
 """K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
@@ -45,7 +45,7 @@ except ImportError:  # unit tests and stand-alone checks
 
 AGENT_ID = "k2_openhost_cfs"
 AGENT_NAME = "K2-OpenHost CFS"
-AGENT_VERSION = "0.5.0"
+AGENT_VERSION = "0.6.0"
 
 # Network status codes (slic3r/Utils/bambu_networking.hpp).
 SUCCESS = 0
@@ -1226,9 +1226,12 @@ _ScriptBase = orca.script.ScriptPluginCapabilityBase if orca is not None else ob
 _SlicingBase = orca.slicing.SlicingPipelineCapabilityBase if orca is not None else object
 
 
-# Events after which the panel follows the selected printer and project. They
-# come from the GUI; slicing events are left out (worker thread).
+# Events after which the panel follows the selected printer and project, all
+# fired on the GUI thread. SlicingJobComplete comes from the plater's
+# "slicing finished" handler; the other slicing events run on the worker
+# thread and are left out.
 PANEL_EVENTS = ("PresetSelected", "PresetSaved", "ProjectOpened", "NewProject")
+SLICED_EVENT = "SlicingJobComplete"
 
 
 def is_k2oh_printer(printer):
@@ -1242,17 +1245,16 @@ def is_k2oh_printer(printer):
 class K2OpenHostCfsPanel(_ScriptBase):
     """Opens the "CFS slots" panel beside the 3D view.
 
-    It also opens by itself (option auto_open) when a printer using the
-    K2-OpenHost CFS agent is selected, a preset is saved or a project is
-    opened, and refreshes then; it hides for other printers. Closed by the
-    user, it stays closed until another printer and then the K2 are
-    selected again.
+    It also opens by itself (option auto_open) after every successful slice
+    for a printer using the K2-OpenHost CFS agent, the moment to check the
+    slots before sending. When the printer preset, a preset save or the
+    project changes, an open panel refreshes, and it hides for other
+    printers.
     """
 
     panel = None
     _boxes = ()
     _runout = None
-    _dismissed = False
 
     def get_default_config(self):
         return {"auto_open": True}
@@ -1265,8 +1267,12 @@ class K2OpenHostCfsPanel(_ScriptBase):
 
     def on_lifecycle_event(self, event, ctx):
         name = getattr(event, "name", str(event)).split(".")[-1]
-        if name not in PANEL_EVENTS:
+        if name not in PANEL_EVENTS and name != SLICED_EVENT:
             return
+        if name == SLICED_EVENT:
+            code = getattr(getattr(ctx, "code", None), "name", "Ok")
+            if code != "Ok":  # cancelled or failed slice
+                return
         # UI calls only from the GUI thread, where these events come from.
         if threading.current_thread() is not threading.main_thread():
             return
@@ -1276,16 +1282,19 @@ class K2OpenHostCfsPanel(_ScriptBase):
             return
         is_open = self.panel is not None and self.panel.is_open()
         if not is_k2oh_printer(printer):
-            self._dismissed = False
             if is_open:
                 self.panel.hide()
             return
-        if is_open:
+        if name == SLICED_EVENT and self._auto_open():
+            if is_open:
+                self.panel.show()
+                self._post_state()
+            else:
+                log("opening the CFS panel after slicing")
+                self.execute()
+        elif is_open:
             self.panel.show()
             self._post_state()
-        elif self._auto_open() and not self._dismissed:
-            log("opening the CFS panel (%s)", name)
-            self.execute()
 
     def _client(self, printer):
         host, port, use_ssl = parse_host(printer.config_value("print_host"),
@@ -1308,9 +1317,7 @@ class K2OpenHostCfsPanel(_ScriptBase):
         return orca.ExecutionResult.success("CFS slots panel opened")
 
     def on_close(self):
-        # Closed by the user: keep it closed until the printer changes.
         self.panel = None
-        self._dismissed = True
 
     def _project(self):
         bundle = orca.host.preset_bundle()
