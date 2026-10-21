@@ -5,7 +5,7 @@
 # name = "K2-OpenHost CFS"
 # description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.2.0"
+# version = "0.3.0"
 # ///
 """K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
@@ -45,7 +45,7 @@ except ImportError:  # unit tests and stand-alone checks
 
 AGENT_ID = "k2_openhost_cfs"
 AGENT_NAME = "K2-OpenHost CFS"
-AGENT_VERSION = "0.2.0"
+AGENT_VERSION = "0.3.0"
 
 # Network status codes (slic3r/Utils/bambu_networking.hpp).
 SUCCESS = 0
@@ -69,8 +69,24 @@ FULL_PUSH_EVERY_S = 30.0
 DEFAULTS = {"poll_interval_s": 2.0, "model_id": "", "use_slot_map": True}
 
 
+LOG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "k2oh_cfs.log")
+LOG_MAX_BYTES = 512 * 1024
+
+
 def log(msg, *args):
-    print("[k2oh-cfs] " + (msg % args if args else msg), file=sys.stderr, flush=True)
+    line = "%s [k2oh-cfs] %s" % (time.strftime("%Y-%m-%d %H:%M:%S"),
+                                 msg % args if args else msg)
+    print(line, file=sys.stderr, flush=True)
+    if orca is None:  # unit tests
+        return
+    # OrcaSlicer does not keep plugin stderr; the plugin folder is writable.
+    try:
+        if os.path.exists(LOG_PATH) and os.path.getsize(LOG_PATH) > LOG_MAX_BYTES:
+            os.replace(LOG_PATH, LOG_PATH + ".1")
+        with open(LOG_PATH, "a", encoding="utf-8") as handle:
+            handle.write(line + "\n")
+    except OSError:
+        pass
 
 
 # ----------------------------------------------------------------------------
@@ -929,11 +945,15 @@ TEXT = {
     "en": {"title": "CFS slots", "auto": "Kalico decides", "refresh": "Refresh",
            "propose": "Propose", "note": "Choose a CFS slot for each filament, then slice and send. "
            "Filaments without a slot: Kalico maps the whole print automatically.",
+           "pick": "Click a filament, then the spool it should print from.",
+           "empty": "empty",
            "no_host": "Set the Moonraker address in the printer preset (print host).",
            "printer": "Printer"},
     "it": {"title": "Slot CFS", "auto": "Decide Kalico", "refresh": "Aggiorna",
            "propose": "Proponi", "note": "Scegli uno slot CFS per ogni filamento, poi fai slicing e invia. "
            "Se un filamento usato resta senza slot, Kalico abbina tutta la stampa da solo.",
+           "pick": "Clicca un filamento, poi la bobina da cui deve stampare.",
+           "empty": "vuoto",
            "no_host": "Imposta l'indirizzo di Moonraker nel preset stampante (host di stampa).",
            "printer": "Stampante"},
 }
@@ -951,13 +971,33 @@ def _language():
 PANEL_PAGE = """
 <style>
   body { margin: 0; padding: 10px; font-size: 13px; }
-  h3 { margin: 0 0 6px; font-size: 14px; }
-  .note { margin: 0 0 10px; color: var(--orca-muted); font-size: 12px; }
+  h3 { margin: 0 0 4px; font-size: 14px; }
+  .note { margin: 0 0 8px; color: var(--orca-muted); font-size: 12px; }
   .actions { display: flex; gap: 6px; margin-bottom: 10px; }
-  .row { display: flex; align-items: center; gap: 6px; margin: 6px 0; }
-  .sw { width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--orca-border); flex: none; }
-  .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  select { max-width: 55%; }
+  .cfs { border: 1px solid var(--orca-border); border-radius: 12px; padding: 8px 8px 10px;
+         margin-bottom: 10px; background: rgba(127,127,127,0.08); }
+  .cfs-head { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 6px; }
+  .cfs-head span.env { font-weight: 400; color: var(--orca-muted); font-size: 12px; }
+  .bays { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+  .bay { border: 2px solid transparent; border-radius: 10px; padding: 4px 2px 6px; text-align: center;
+         cursor: pointer; background: rgba(0,0,0,0.12); position: relative; min-width: 0; }
+  .bay.empty { cursor: default; opacity: 0.55; }
+  .bay.target { border-color: var(--orca-accent, #00ae42); }
+  .bay svg { width: 100%; max-width: 64px; height: auto; display: block; margin: 0 auto; }
+  .num { font-weight: 700; font-size: 12px; }
+  .mat { font-size: 11px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .nm { font-size: 10px; color: var(--orca-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bar { height: 4px; border-radius: 2px; background: rgba(127,127,127,0.3); margin: 3px 6px 0; overflow: hidden; }
+  .bar i { display: block; height: 100%; background: var(--orca-accent, #00ae42); }
+  .tags { position: absolute; top: 2px; left: 2px; right: 2px; display: flex; flex-wrap: wrap; gap: 2px; }
+  .tag { font-size: 10px; font-weight: 700; padding: 0 4px; border-radius: 6px; border: 1px solid rgba(0,0,0,0.4); }
+  .fil { display: flex; align-items: center; gap: 6px; padding: 5px 6px; margin: 4px 0; border-radius: 8px;
+         border: 2px solid var(--orca-border); cursor: pointer; }
+  .fil.sel { border-color: var(--orca-accent, #00ae42); }
+  .sw { width: 16px; height: 16px; border-radius: 50%; border: 1px solid rgba(0,0,0,0.4); flex: none; }
+  .fname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dest { font-weight: 600; white-space: nowrap; }
+  .clr { border: none; background: transparent; color: var(--orca-muted); cursor: pointer; padding: 0 4px; }
   #status { margin-top: 8px; color: var(--orca-muted); font-size: 12px; }
 </style>
 <h3 id="title"></h3>
@@ -966,49 +1006,137 @@ PANEL_PAGE = """
   <button type="button" id="refresh"></button>
   <button type="button" id="propose"></button>
 </div>
-<div id="rows"></div>
+<div id="units"></div>
+<div id="fils"></div>
 <p id="status"></p>
 <script>
 (function () {
-  var state = null;
-  function esc(v) { var s = document.createElement("span"); s.textContent = v; return s.innerHTML; }
-  function render(m) {
-    state = m;
-    document.getElementById("title").textContent = m.text.title;
-    document.getElementById("note").textContent = m.text.note;
-    document.getElementById("refresh").textContent = m.text.refresh;
-    document.getElementById("propose").textContent = m.text.propose;
-    var rows = document.getElementById("rows");
-    if (m.error) { rows.innerHTML = ""; document.getElementById("status").textContent = m.error; return; }
-    rows.innerHTML = m.filaments.map(function (f) {
-      var opts = '<option value="">' + esc(m.text.auto) + '</option>' + m.slots.map(function (s) {
-        var sel = (String(m.map[f.index]) === String(s.index)) ? " selected" : "";
-        return '<option value="' + s.index + '"' + sel + '>' + esc(s.label) + '</option>';
-      }).join("");
-      return '<div class="row"><span class="sw" style="background:' + esc(f.color) + '"></span>' +
-             '<span class="name" title="' + esc(f.name) + '">' + (f.index + 1) + '. ' + esc(f.name) +
-             ' <small>(' + esc(f.type) + ')</small></span>' +
-             '<select data-tool="' + f.index + '">' + opts + '</select></div>';
+  var m = null, sel = null;
+  function esc(v) { var s = document.createElement("span"); s.textContent = v == null ? "" : v; return s.innerHTML; }
+  function lum(hex) {
+    var h = String(hex || "").replace("#", "");
+    if (h.length < 6) return 0.5;
+    var r = parseInt(h.substr(0, 2), 16), g = parseInt(h.substr(2, 2), 16), b = parseInt(h.substr(4, 2), 16);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  }
+  function spool(color, empty) {
+    if (empty) {
+      return '<svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="27" fill="none" stroke="currentColor" ' +
+             'stroke-opacity="0.5" stroke-width="2" stroke-dasharray="5 4"/><circle cx="32" cy="32" r="8" ' +
+             'fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-width="2"/></svg>';
+    }
+    var c = esc(color || "#888888");
+    return '<svg viewBox="0 0 64 64">' +
+      '<circle cx="32" cy="32" r="30" fill="#2b2b2b" stroke="#555" stroke-width="1.5"/>' +
+      '<circle cx="32" cy="32" r="26" fill="' + c + '"/>' +
+      '<circle cx="32" cy="32" r="26" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1" stroke-dasharray="2 3"/>' +
+      '<circle cx="32" cy="32" r="13" fill="#3a3a3a" stroke="#666" stroke-width="1.5"/>' +
+      '<circle cx="32" cy="32" r="5" fill="#1e1e1e"/></svg>';
+  }
+  function slotName(index) { return "CFS" + (Math.floor(index / 4) + 1) + "·" + (index % 4 + 1); }
+  function render() {
+    var t = m.text;
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("note").textContent = t.note;
+    document.getElementById("refresh").textContent = t.refresh;
+    document.getElementById("propose").textContent = t.propose;
+    var units = document.getElementById("units"), fils = document.getElementById("fils");
+    if (m.error) { units.innerHTML = ""; fils.innerHTML = ""; document.getElementById("status").textContent = m.error; return; }
+    var byFil = {};
+    m.filaments.forEach(function (f) { byFil[f.index] = f; });
+    units.innerHTML = m.units.map(function (u) {
+      var env = [];
+      if (u.temp_c != null) env.push(u.temp_c + "°C");
+      if (u.humidity_pct != null) env.push(u.humidity_pct + "%RH");
+      return '<div class="cfs"><div class="cfs-head"><span>CFS ' + u.address + '</span><span class="env">' +
+        esc(env.join(" · ")) + '</span></div><div class="bays">' + u.slots.map(function (s) {
+          var loaded = s.present && s.material;
+          var tags = Object.keys(m.map).filter(function (k) { return m.map[k] === s.index; }).map(function (k) {
+            var f = byFil[k] || {}; var fg = lum(f.color) > 0.6 ? "#000" : "#fff";
+            return '<span class="tag" style="background:' + esc(f.color) + ';color:' + fg + '">T' + (Number(k) + 1) + '</span>';
+          }).join("");
+          var bar = (loaded && s.percent != null) ? '<div class="bar" title="' + Math.round(s.percent) + '%"><i style="width:' +
+            Math.max(0, Math.min(100, s.percent)) + '%"></i></div>' : "";
+          return '<div class="bay' + (loaded ? "" : " empty") + (loaded && sel !== null ? " target" : "") +
+            '" data-slot="' + s.index + '" title="' + esc(s.name || "") + '"><div class="tags">' + tags + '</div>' +
+            spool(s.color, !loaded) + '<div class="num">' + s.local + '</div>' +
+            '<div class="mat">' + esc(loaded ? s.material : t.empty) + '</div>' +
+            '<div class="nm">' + esc(loaded ? (s.name || "") : "") + '</div>' +
+            (loaded && s.percent != null ? '<div class="nm">' + Math.round(s.percent) + '%</div>' : "") + bar + '</div>';
+        }).join("") + '</div></div>';
     }).join("");
-    Array.prototype.forEach.call(rows.querySelectorAll("select"), function (el) {
-      el.addEventListener("change", send);
+    fils.innerHTML = '<p class="note">' + esc(t.pick) + '</p>' + m.filaments.map(function (f) {
+      var slot = m.map[f.index];
+      var dest = slot == null ? t.auto : slotName(slot);
+      return '<div class="fil' + (sel === f.index ? " sel" : "") + '" data-tool="' + f.index + '">' +
+        '<span class="sw" style="background:' + esc(f.color) + '"></span>' +
+        '<span class="fname" title="' + esc(f.name) + '"><b>T' + (f.index + 1) + '</b> ' + esc(f.name) +
+        ' <small>(' + esc(f.type) + ')</small></span><span class="dest">→ ' + esc(dest) + '</span>' +
+        (slot == null ? "" : '<button class="clr" data-clear="' + f.index + '" title="' + esc(t.auto) + '">✕</button>') + '</div>';
+    }).join("");
+    Array.prototype.forEach.call(fils.querySelectorAll(".fil"), function (el) {
+      el.addEventListener("click", function (ev) {
+        var clear = ev.target.getAttribute("data-clear");
+        if (clear !== null) { delete m.map[clear]; send(); render(); ev.stopPropagation(); return; }
+        var tool = parseInt(el.getAttribute("data-tool"), 10);
+        sel = (sel === tool) ? null : tool; render();
+      });
     });
-    document.getElementById("status").textContent = m.text.printer + ": " + m.printer + " - " + m.summary;
-  }
-  function send() {
-    var map = {};
-    Array.prototype.forEach.call(document.querySelectorAll("select"), function (el) {
-      if (el.value !== "") map[el.getAttribute("data-tool")] = parseInt(el.value, 10);
+    Array.prototype.forEach.call(units.querySelectorAll(".bay"), function (el) {
+      el.addEventListener("click", function () {
+        if (sel === null || el.classList.contains("empty")) return;
+        m.map[sel] = parseInt(el.getAttribute("data-slot"), 10);
+        var next = m.filaments.filter(function (f) { return m.map[f.index] == null; })[0];
+        sel = next ? next.index : null;
+        send(); render();
+      });
     });
-    orca.postMessage({ command: "set", map: map });
+    var done = m.filaments.filter(function (f) { return m.map[f.index] != null; }).length;
+    document.getElementById("status").textContent = t.printer + ": " + m.printer + " · " + done + "/" + m.filaments.length;
   }
-  orca.onMessage(function (m) { if (m && m.command === "state") render(m); });
+  function send() { orca.postMessage({ command: "set", map: m.map }); }
+  orca.onMessage(function (msg) {
+    if (msg && msg.command === "state") {
+      m = msg; var fixed = {};
+      Object.keys(m.map || {}).forEach(function (k) { fixed[k] = m.map[k]; });
+      m.map = fixed; sel = null; render();
+    }
+  });
   document.getElementById("refresh").addEventListener("click", function () { orca.postMessage({ command: "refresh" }); });
   document.getElementById("propose").addEventListener("click", function () { orca.postMessage({ command: "propose" }); });
   orca.postMessage({ command: "refresh" });
 })();
 </script>
 """
+
+
+def cfs_units(slots, boxes=()):
+    """CFS units to draw: [{address, temp_c, humidity_pct, slots: [...]}]."""
+    env = {b.get("address"): b for b in boxes or [] if isinstance(b.get("address"), int)}
+    units = {}
+    for slot in slots:
+        index = slot["index"]
+        address = index // SLOTS_PER_BOX + 1
+        units.setdefault(address, {}).setdefault(index, slot)
+    result = []
+    for address in sorted(units):
+        box = env.get(address) or {}
+        bays = []
+        for local in range(SLOTS_PER_BOX):
+            index = (address - 1) * SLOTS_PER_BOX + local
+            slot = units[address].get(index) or {}
+            percent = slot.get("rfid_percent")
+            bays.append({
+                "index": index, "local": local + 1,
+                "present": bool(slot.get("present")),
+                "material": str(slot.get("material") or ""),
+                "color": str(slot.get("color") or ""),
+                "name": str(slot.get("name") or ""),
+                "percent": float(percent) if isinstance(percent, (int, float)) else None,
+            })
+        result.append({"address": address, "temp_c": box.get("temp_c"),
+                       "humidity_pct": box.get("humidity_pct"), "slots": bays})
+    return result
 
 
 def _slot_label(slot):
@@ -1027,6 +1155,7 @@ class K2OpenHostCfsPanel(_ScriptBase):
     """Opens the "CFS slots" panel beside the 3D view."""
 
     panel = None
+    _boxes = ()
 
     def get_name(self):
         return "K2-OpenHost CFS slots"
@@ -1062,14 +1191,15 @@ class K2OpenHostCfsPanel(_ScriptBase):
             return None
         client = Moonraker(host, port, config_text(printer.config_value("printhost_apikey")),
                            use_ssl)
-        box = client.query([("box", "slots")]).get("box") or {}
+        box = client.query([("box", "slots,boxes")]).get("box") or {}
+        self._boxes = box.get("boxes") or []
         return [s for s in box.get("slots") or []
-                if s.get("present") and not s.get("external") and s.get("material")]
+                if not s.get("external") and isinstance(s.get("index"), int)]
 
     def _post_state(self, propose=False):
         text = TEXT[_language()]
         message = {"command": "state", "text": text, "filaments": [], "slots": [],
-                   "map": {}, "printer": "", "summary": ""}
+                   "units": [], "map": {}, "printer": "", "summary": ""}
         try:
             printer, filaments = self._project()
             message["printer"] = printer.name
@@ -1078,12 +1208,14 @@ class K2OpenHostCfsPanel(_ScriptBase):
             if slots is None:
                 message["error"] = text["no_host"]
             else:
-                message["slots"] = [{"index": s["index"], "label": _slot_label(s)} for s in slots]
+                loaded = [s for s in slots if s.get("present") and s.get("material")]
+                message["slots"] = [{"index": s["index"], "label": _slot_label(s)} for s in loaded]
+                message["units"] = cfs_units(slots, self._boxes)
                 state = stored_slot_map()
                 names = [f["name"] for f in filaments]
-                valid = {s["index"] for s in slots}
+                valid = {s["index"] for s in loaded}
                 if propose or state["printer"] != printer.name or state["filaments"] != names:
-                    mapping = propose_map(filaments, slots)
+                    mapping = propose_map(filaments, loaded)
                 else:
                     mapping = {t: s for t, s in state["map"].items() if s in valid}
                 store_slot_map(printer.name, names, mapping)
