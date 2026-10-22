@@ -31,6 +31,12 @@ map $http_x_api_key $k2oh_api_key {
 
 then add `proxy_set_header X-Api-Key $k2oh_api_key;` after both `proxy_pass http://apiserver...` lines of the Mainsail site, check with `sudo nginx -t` and reload with `sudo systemctl reload nginx`. Verified on the reference machine with OrcaSlicer 2.4.2.
 
+## Ready-made profile for the K2 Pro
+
+[`tools/orcaslicer/profiles`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer/profiles) has the printer preset and seven process presets (0.08 to 0.28 mm) the reference K2 Pro prints with: Klipper flavour, `START_PRINT`/`END_PRINT`/`PAUSE`, no change-filament G-code, thumbnails for Mainsail, `accel_to_decel` off, and the K2-OpenHost CFS plugin already selected. Filament presets are not included.
+
+Download the [`.orca_printer` bundle](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer) and import it with **File → Import → Import Configs…**, then enter your host address with the Moonraker port (`k2host.local:7125`) in the printer's connection settings: address and API key are empty in the files. Details in the folder's [README](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer/profiles#readme).
+
 ## Sync the filaments
 
 Press **Sync** (the arrows button at the top of the filament list in the Prepare tab). OrcaSlicer creates one filament per occupied CFS slot, grouped four by four like CFS units:
