@@ -20,7 +20,9 @@ OrcaSlicer 2.5 (alpha dal 16 ottobre 2026) carica plugin Python. Il plugin **K2-
 1. Scarica [`k2_openhost_cfs.py`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer).
 2. OrcaSlicer → **Plugins** → **Install local plugin** → scegli il file. OrcaSlicer lo copia in `%APPDATA%\OrcaSlicer\orca_plugins\`.
 3. Preset stampante → **Printer settings → Basic information → Advanced → Printer Agent**: **K2-OpenHost CFS**.
-4. **Print host**: l'indirizzo di Moonraker **con la porta**, per esempio `10.10.1.97:7125`. Salva il preset.
+4. **Print host**: l'indirizzo di Moonraker **con la porta**, per esempio `10.10.1.97:7125`.
+   - **Device UI** (modalità avanzata): `http://10.10.1.97`, l'indirizzo semplice. La scheda Dispositivo apre questo campo quando è compilato, così continua a mostrare Mainsail mentre l'host di stampa ha la porta.
+   - Salva il preset.
 5. OrcaSlicer chiede il permesso perché il plugin crei un thread e si colleghi a quell'indirizzo: consenti entrambi. Il primo collegamento viene rifiutato mentre la domanda è aperta; il plugin riprova ogni 2 s.
 6. **Preset di processo** → passa alla modalità **Avanzata** → **Altro** → **Slicing Pipeline Plugin**: aggiungi **K2-OpenHost CFS G-code map** e salva. Fallo in ogni preset di processo che usi con la K2.
 
@@ -41,6 +43,8 @@ Premi **Sync** nell'elenco dei filamenti. Ogni slot del CFS arriva con l'ID del 
 
 !!! info "Perché il tuo preset personalizzato non viene scelto"
     Il sync di OrcaSlicer abbina solo i **preset radice**: i preset di sistema, e i tuoi preset creati con **Create filament** (hanno un loro ID `P…`). Un preset salvato da un altro (mostra un genitore in *Dependencies*) non viene mai scelto, da nessun agent: OrcaSlicer prende il genitore. Per sincronizzare il tuo preset personalizzato, crealo con **Create filament**, copia dentro le tue impostazioni e dai il suo ID `P…` al filamento CFS in Mainsail (libreria filamenti → **OrcaSlicer preset…**). Il pannello degli slot qui sotto non ha questo limite.
+
+    Il plugin **Filament ID Fixer** (catalogo plugin di OrcaSlicer) lo fa per te: filtra `@K2`, seleziona i tuoi preset, **Apply**, riavvia OrcaSlicer. Ogni preset viene staccato dal genitore e riceve un ID proprio `U…` (prima viene fatto un backup zip). Dai quell'ID al filamento CFS in Mainsail (libreria filamenti → **OrcaSlicer preset…**, oppure `_BOX_FILAMENT_ORCA_ID ID=<filamento> ORCA_ID=<U…>`). Un preset staccato non segue più le modifiche fatte al genitore.
 
 ## Pannello CFS
 
