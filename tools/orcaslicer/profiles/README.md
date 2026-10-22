@@ -22,7 +22,7 @@ Filament presets are not included: use OrcaSlicer's own, or Sync from the CFS ([
 - No *Change filament G-code*: the CFS changes come from the slicer's `T<n>` through Kalico's tool map.
 - Retraction 0.8 mm at 40 mm/s, Z hop 0.4 mm (auto lift), wipe 2 mm.
 - 96×96 and 300×300 PNG thumbnails for Mainsail.
-- **Printer agent** `k2_openhost_cfs`: the [K2-OpenHost CFS plugin](../../../docs/en/usage/orca-plugin.md) for OrcaSlicer 2.5. Without the plugin, set the printer agent back to the default.
+- **Printer agent** `k2_openhost_cfs`: the [K2-OpenHost CFS plugin](../../../docs/en/usage/orca-plugin.md) for OrcaSlicer 2.5, also on [Orca Cloud](https://cloud.orcaslicer.com/p/3bca64efe969). Without the plugin, set the printer agent back to the default.
 
 **Process** (each one inherits Creality's preset of the same layer height)
 
@@ -64,7 +64,7 @@ I preset dei filamenti non sono inclusi: usa quelli di OrcaSlicer, oppure il Syn
 - Nessun *Change filament G-code*: i cambi del CFS arrivano dai `T<n>` dello slicer attraverso la mappa dei tool di Kalico.
 - Retrazione 0,8 mm a 40 mm/s, Z hop 0,4 mm (auto lift), wipe 2 mm.
 - Miniature PNG 96×96 e 300×300 per Mainsail.
-- **Printer agent** `k2_openhost_cfs`: il [plugin K2-OpenHost CFS](../../../docs/it/usage/orca-plugin.md) per OrcaSlicer 2.5. Senza il plugin, rimetti il printer agent predefinito.
+- **Printer agent** `k2_openhost_cfs`: il [plugin K2-OpenHost CFS](../../../docs/it/usage/orca-plugin.md) per OrcaSlicer 2.5, anche su [Orca Cloud](https://cloud.orcaslicer.com/p/3bca64efe969). Senza il plugin, rimetti il printer agent predefinito.
 
 **Processo** (ognuno eredita il preset Creality con la stessa altezza layer)
 

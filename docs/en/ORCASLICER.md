@@ -108,8 +108,8 @@ This works with the classic **Upload and print** of the Moonraker print host. Or
 
 **Install** (OrcaSlicer 2.5 or later; Kalico with `box_print_mapping` slicer-map support):
 
-1. Download `k2_openhost_cfs.py`.
-2. In OrcaSlicer open the plugin manager and install it as a local plugin. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`.
+1. Install the plugin from Orca Cloud, [K2-OpenHost CFS](https://cloud.orcaslicer.com/p/3bca64efe969) (**Subscribe**), or download `k2_openhost_cfs.py`.
+2. For the file: in OrcaSlicer open the plugin manager and install it as a local plugin. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`. Keep only one copy, cloud or local.
 3. In the printer preset (**Printer settings → Basic information → Advanced**), set **Printer Agent** to **K2-OpenHost CFS**. Set the print host to the Moonraker address **with its port**, for example `10.10.1.97:7125`, then save the preset.
    - A printer OrcaSlicer already knows under the plain address stays bound to the built-in Moonraker agent.
    - The new address makes OrcaSlicer add it under this agent.

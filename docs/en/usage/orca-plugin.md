@@ -17,8 +17,10 @@ OrcaSlicer 2.5 (alpha since 2026-10-16) loads Python plugins. The **K2-OpenHost 
 
 ## Install
 
-1. Download [`k2_openhost_cfs.py`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer).
-2. OrcaSlicer → **Plugins** → **Install local plugin** → choose the file. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`.
+1. Install the plugin, either way:
+    - **from Orca Cloud** (recommended): open [K2-OpenHost CFS](https://cloud.orcaslicer.com/p/3bca64efe969) and press **Subscribe**, signed in with the same account as OrcaSlicer, or search *K2-OpenHost CFS* in OrcaSlicer → **Plugins**;
+    - **from the file**: download [`k2_openhost_cfs.py`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer), then OrcaSlicer → **Plugins** → **Install local plugin** → choose the file. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`.
+2. Keep only one copy: a cloud and a local copy declare the same agent and capability names.
 3. Printer preset → **Printer settings → Basic information → Advanced → Printer Agent**: **K2-OpenHost CFS**.
 4. **Print host**: the Moonraker address **with the port**, for example `10.10.1.97:7125`.
    - **Device UI** (advanced mode): `http://10.10.1.97`, the plain address. The Device tab opens this field when it is set, so it keeps showing Mainsail while the print host carries the port.
