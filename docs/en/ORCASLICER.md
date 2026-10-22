@@ -37,6 +37,8 @@ then add `proxy_set_header X-Api-Key $k2oh_api_key;` after both `proxy_pass http
 
 Download the [`.orca_printer` bundle](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer) and import it with **File → Import → Import Configs…**, then enter your host address with the Moonraker port (`k2host.local:7125`) in the printer's connection settings: address and API key are empty in the files. Details in the folder's [README](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer/profiles#readme).
 
+The same profile is on **Orca Cloud**, OrcaSlicer's online platform: [K2 Pro-Openhost](https://cloud.orcaslicer.com/b/34557d4e7501). Signed in to OrcaSlicer 2.5, subscribe to the bundle and its presets, and later updates, arrive in OrcaSlicer by themselves.
+
 ## Sync the filaments
 
 Press **Sync** (the arrows button at the top of the filament list in the Prepare tab). OrcaSlicer creates one filament per occupied CFS slot, grouped four by four like CFS units:
