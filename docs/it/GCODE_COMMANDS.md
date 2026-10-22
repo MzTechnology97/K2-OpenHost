@@ -1,10 +1,10 @@
 # Comandi G-code aggiunti da K2-OpenHost
 
-Aggiornato: **9 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
+Aggiornato: **21 ottobre 2026**. [English](../en/GCODE_COMMANDS.md)
 
 Questa pagina elenca tutti i comandi G-code che K2-OpenHost aggiunge a Kalico, divisi per tipologia. Vengono da due posti:
 - i moduli K2 di [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro) (`klippy/extras`), ramo `k2-pro-openhost`;
-- le macro del profilo K2 in `config/k2/macros/` (`print.cfg`, `kamp.cfg`, `fans.cfg`, `maintenance.cfg`, `openhost_controls.cfg`).
+- le macro del profilo K2 in `config/k2/macros/` (`print.cfg`, `kamp.cfg`, `fans.cfg`, `maintenance.cfg`, `openhost_controls.cfg`, `host_fan.cfg`).
 
 I comandi standard di Klipper e Kalico (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBRATE`, `SET_FAN_SPEED`…) non sono ripetuti qui: vedi il [riferimento G-code di Kalico](https://docs.kalico.gg/G-Codes.html).
 
@@ -28,6 +28,7 @@ I comandi standard di Klipper e Kalico (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBR
 10. [Diagnostica](#10-diagnostica)
 11. [Ventole, camera, luci e limiti di movimento](#11-ventole-camera-luci-e-limiti-di-movimento)
 12. [Macro di stampa del profilo K2](#12-macro-di-stampa-del-profilo-k2)
+13. [Ventola della CPU dell'host](#13-ventola-della-cpu-dellhost)
 
 ## 1. CFS: caricamento, scaricamento e cambio filamento
 
@@ -52,6 +53,8 @@ I comandi standard di Klipper e Kalico (`G28`, `PID_CALIBRATE`, `BED_MESH_CALIBR
 | `PARSE_FLUSH_VOLUMES` | — | Legge dai metadati dello slicer del file caricato la matrice dei volumi di spurgo e le temperature di stampa. Lo chiama la sequenza di avvio stampa. |
 | `BOX_RUNOUT_CHECK` ⚠ | — | Gestisce la fine del filamento nel CFS: passa a una bobina identica se lo scambio automatico è attivo, altrimenti mette in pausa. Lo chiama il sensore, non si usa a mano. |
 
+**Mappa dello slicer nel file.** Una riga `; K2OH_TOOL_MAP = 0:2,1:0` nei primi 256 KB di un file G-code (scritta dal [plugin OrcaSlicer](usage/orca-plugin.md)) viene usata come mappa tool → slot quando il file viene caricato, anche con l'abbinamento automatico spento. Se uno slot della mappa non è utilizzabile si usa l'abbinamento automatico e la console spiega perché.
+
 ## 3. CFS: slot, libreria filamenti e RFID
 
 Questi comandi li invia il pannello CFS di Mainsail. I dati restano salvati sull'host anche dopo un riavvio.
@@ -63,6 +66,7 @@ Questi comandi li invia il pannello CFS di Mainsail. I dati restano salvati sull
 | `_BOX_RFID_SPOOL_NEW` | `SLOT=<n>` `[REMAINING=100]` | Dichiara nuova la bobina di uno slot e porta la stima del filamento rimasto a `REMAINING` per cento. Serve per i tag con numero di serie generico: altrimenti una bobina nuova erediterebbe la stima di una usata con stessa marca, materiale, colore e lunghezza. |
 | `_BOX_SLOT_SET` | `SLOT=<n>` `MATERIAL=<tipo>` `COLOR=#RRGGBB` `[TARGET_TEMP]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Salva a mano i dati del filamento di uno slot (per bobine senza RFID). |
 | `_BOX_SLOT_CLEAR` | `SLOT=<n>` | Cancella i dati del filamento di uno slot. |
+| `_BOX_SLOT_PA_SET` | `SLOT=<n>` `PRESSURE_ADVANCE=<0–2>` | Salva un pressure advance per il filamento di uno slot, per esempio dopo una stampa di prova: nel profilo personalizzato della libreria che usa, altrimenti sullo slot. |
 | `_BOX_SLOT_ASSIGN` | `SLOT=<n>` `FILAMENT_ID=<id>` `[COLOR=#RRGGBB]` | Assegna a uno slot un profilo della libreria filamenti, eventualmente con un altro colore. Rifiutato se lo slot è gestito da un tag RFID presente. |
 | `_BOX_FILAMENT_SET` | `ID=<id>` `MATERIAL=<tipo>` `[COLOR]` `[TARGET_TEMP]` `[MIN_TEMP]` `[MAX_TEMP]` `[PRESSURE_ADVANCE]` `[MAX_FLOW]` `[NOMINAL_LENGTH_M]` `[BRAND]` `[NAME]` `[SPOOLMAN_ID]` | Crea o aggiorna un profilo filamento riutilizzabile nella libreria (`cfs_filaments.json`). `NOMINAL_LENGTH_M` è la lunghezza della bobina usata per le bobine RFID di terze parti; vuoto = lunghezza di riferimento del materiale. |
 | `_BOX_FILAMENT_DELETE` | `ID=<id>` | Cancella un profilo filamento personalizzato. |
@@ -73,6 +77,8 @@ Questi comandi li invia il pannello CFS di Mainsail. I dati restano salvati sull
 | `_BOX_RFID_MAP_DELETE` | `CODE=<codice rfid>` | Elimina un codice RFID imparato. |
 | `_BOX_RFID_ASSOCIATE` | `SLOT=<n>` `FILAMENT_ID=<id>` | Associa il tag presente in uno slot (Creality o di terze parti) a un profilo esistente della libreria. |
 | `_BOX_RFID_FALLBACK_CACHE` | `[CLEAR=1]` `[UID=<hex>]` | Mostra i decoder di terze parti, i budget di rilettura e la cache per UID; `CLEAR=1` svuota la cache (o un solo UID). |
+| `BOX_RFID_BAMBU_READ` | `SLOT=<n>` | Forza la lettura di un tag Bambu Lab su un CFS API7, con una riga di log dettagliata (UID, materiale, colore, blocchi grezzi). Richiede `[box_rfid_bambu]`. |
+| `BOX_RFID_MIFARE_READ` | `SLOT=<n>` | Forza una lettura MIFARE Classic generica (QIDI e altri produttori) su un CFS API7. Richiede `[box_rfid_mifare]`. |
 | `RFID_READER_READ` | — | Mostra l'ultimo dato letto dal lettore RFID separato della bobina esterna. |
 
 ## 4. CFS: impostazioni
@@ -95,14 +101,13 @@ Si impostano in `box.cfg`, non con un comando:
 | `_BOX_NOTIFY` | `EVENT` `TITLE` `MESSAGE` | La chiama Box per gli eventi della CFS (`runout_swap`, `runout`, `clog`, `cfs_error`, `rfid_unknown`, `low_filament`, `humidity`); li invia a Mobileraker (`MR_NOTIFY:`) e a moonraker-telegram-bot (`RESPOND PREFIX=tgnotify`). `variable_events`, `variable_mobileraker` e `variable_telegram` scelgono cosa inviare e dove; `notify_macro:` in `[box]` indica la macro (vuoto = spento). |
 | `humidity_warnings`, `humidity_limits` | `PA:15, PLA:45` | Avviso all'avvio della stampa quando una bobina associata sta in una CFS più umida di quanto il suo materiale tolleri (PLA 55 %, PETG 50 %, TPU 40 %, PC 35 %, PA 25 %, PVA 20 %); `humidity_limits` cambia i singoli materiali. |
 
-Configurazione runtime della CFS (`[box_cfs_runtime]`), solo con un firmware CFS che ha l'API di configurazione runtime (v3.13 e successivi). I valori stanno nella RAM della CFS: si perdono quando la CFS si riavvia e `auto_apply` rimanda quelli configurati. Nulla viene scritto nella EEPROM della CFS o nei tag, e una modifica è rifiutata mentre la CFS legge un tag.
+Configurazione runtime della CFS (`[box_cfs_runtime]`), con il [firmware CFS sperimentale](cfs-firmware/index.md). I comandi sono **in sola lettura**: non esistono SET, RESET o APPLY da console. I valori arrivano solo da `box.cfg` e vengono scritti all'avvio di Klipper, a stampante ferma, con `auto_apply: True`, su un CFS la cui identità corrisponde esattamente (vedi [Parametri runtime](cfs-firmware/parameters.md)). Stanno nella RAM della CFS; nulla viene scritto nella EEPROM della CFS o nei tag.
 
 | Comando | Parametri | Cosa fa |
 | --- | --- | --- |
-| `BOX_CFS_CONFIG_INFO` | — | Valori attuali, con quelli diversi dall'originale segnati. |
-| `BOX_CFS_CONFIG_SET` | `PARAM=<nome>` `VALUE=<n>` | Imposta un parametro (nomi come in `box.cfg`, es. `hub_forward_speed`); la CFS controlla l'intervallo. |
-| `BOX_CFS_CONFIG_RESET` | `[PARAM=ALL]` | Torna al valore originale per un parametro o per tutti. |
-| `BOX_CFS_CONFIG_APPLY` | — | Rimanda i valori configurati in `box.cfg`. |
+| `BOX_CFS_CONFIG_INFO` | `[ADDRESS=1–4]` | Identità del firmware (`0x7A`: `K2OH`, revisione, feature), esito dell'applicazione all'avvio, tutti i valori per gruppo. |
+| `BOX_CFS_CONFIG_DIAG` | `[ALL=1]` `[ADDRESS=1–4]` | GET dei parametri con valore previsto, intervallo e `OK`/`INVALID`. Senza `ALL=1` solo gli ID 0, 6, 7, 8, 11, 20, 27. |
+| `BOX_CFS_CONFIG_SNAPSHOT` | `[ADDRESS=1–4]` | Istantanea dello stato interno, solo su firmware `0xD7` (v3.22, CFG4). |
 
 ## 5. CFS: compatibilità con HelixScreen e Creality
 
@@ -184,6 +189,14 @@ Solo lettura: mostrano informazioni e non cambiano niente.
 | `LINK_MONITOR_REPORT` | — | Percentili dei tempi di andata e ritorno di ogni collegamento seriale (MCU e RS-485) dall'avvio di Klipper. Richiede `[link_monitor]`. |
 | `FAN_FEEDBACK_STATUS` | — | Velocità delle ventole che hanno un tachimetro. |
 | `EXTENDED_ZONE_TRANSFORM_STATUS` | — | Stato dell'instradamento nella zona estesa: l'area di Y oltre il limite normale del piatto (cestino e taglierina) si raggiunge solo dentro una finestra sicura di X. |
+| `_BOX_RFID_REMAINING_DIAG` | `SLOT=<n>` | Valore grezzo del residuo che il CFS restituisce per uno slot (255 = nessuno). |
+| `BOX_RFID_DIAG_INFO` | — | API RFID del firmware CFS: versione API, lettori, slot per lettore, bit delle capacità (`caps=0xE8` con API7). Richiede `[box_rfid_diag]`. |
+| `BOX_RFID_DIAG_RUNTIME`, `BOX_RFID_DIAG_STATE` | — | Runtime e stato RFID del CFS, in modo passivo. |
+| `BOX_RFID_DIAG_INTERNAL` | `SLOT=<0–3>` | Record RFID interno di uno slot (UID, ATQA, SAK, tipo di tag), come l'ha lasciato la lettura stock. |
+| `BOX_RFID_DIAG_REMAIN_STATE` | `SLOT=<0–3>` | Campi stock del residuo di uno slot (solo sui firmware che lo dichiarano). |
+| `BOX_CFS_TRACE_START` / `STOP` / `SHOW [LIMIT=15]` / `CLEAR` | — | Cronologia passiva delle operazioni del CFS dallo stato in cache di Kalico (nessun traffico in più sul bus). Richiede `[box_cfs_trace]`. |
+
+Gli altri comandi `BOX_RFID_DIAG_*` (`READ`, `READ_AUTH_A`, `POLL`, `STOCK_CAPTURE`, `ARM_KEY(S)`, `CLEAR_KEY(S)`, `CACHE`, `REMAIN_INIT4`, `REMAIN_CLEAR4`) sono strumenti di ricerca per il reverse engineering RFID: alcuni richiedono `CONFIRM=1` e `allow_active_rf`, e nessuno scrive un tag. Per l'uso normale non servono.
 
 ## 11. Ventole, camera, luci e limiti di movimento
 
@@ -223,3 +236,12 @@ Solo lettura: mostrano informazioni e non cambiano niente.
 | `ACCELL_TEST_X` / `ACCELL_TEST_Y` ⚠ | `[STEPS=20]` `[ACCEL_START=10000]` `[ACCEL_STEP=1000]` `[VELOCITY=500]` `[VELOCITY_STEP=0]` | Un solo asse avanti e indietro (X a metà Y, Y a metà X); ogni passata alza accelerazione (e velocità) oltre i limiti configurati e viene scritta nel log; alla fine i limiti tornano quelli configurati. |
 
 Macro interne, usate da quelle sopra: `_START_PRINT_VARS` (impostazioni dell'avvio stampa, in `macros/overrides.cfg`), `_NOZZLE_HOT_CLEAN`, `_MOTION_TEST_RESTORE`, `_PAUSE_CONTEXT`, `_PAUSE_Z_MOVE`, `_RETRACT_WIPE`, `_END_PRINT_Z_MOVE`, `_RESET_PRINT_STATE`, `_KAMP_Settings`, `_BOX_PAUSE_CAPTURE`, `_BOX_RESUME_PREPARE`, `_BOX_RESUME_COMMIT`.
+
+## 13. Ventola della CPU dell'host
+
+Con `[host_fan]` (menu 36 dell'helper, vedi [Hardware host](HOST.md#ventola-della-cpu)).
+
+| Comando | Parametri | Cosa fa |
+| --- | --- | --- |
+| `SET_HOST_FAN` | `TARGET=<°C>` oppure `SPEED=<0–1>` oppure `MODE=kernel` | La ventola segue la temperatura della CPU, gira a velocità fissa, oppure torna al controllo del kernel fino al prossimo `SET_HOST_FAN` o riavvio di Klipper. |
+| `HOST_FAN_STATUS` | — | Modalità, temperatura della CPU, velocità e giri. |

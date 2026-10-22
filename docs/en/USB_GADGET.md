@@ -56,7 +56,8 @@ USB0 is dual-role. In stock operation it participates in the internal USB-host t
 
 Consequences while the gadget is active, expected in the final architecture as well:
 
-- the **nozzle camera** and the **chamber camera** are no longer available to the T113; rewire them to the external Linux host;
+- the **chamber camera** is no longer available to the T113: disconnect it from the T113 and rewire it to the external Linux host;
+- the **nozzle camera** cannot be used through the T113 in OpenHost mode;
 - the printer's **external USB port** stops working completely and cannot be used to print from a USB stick.
 
 See [Disclaimer and hardware limitations](DISCLAIMER.md#hardware-limitations-in-openhost-mode).

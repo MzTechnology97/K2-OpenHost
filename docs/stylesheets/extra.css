@@ -1,0 +1,48 @@
+/* K2-OpenHost wiki: red theme on top of Material's red palette. */
+
+:root {
+  --k2oh-red: #e53935;
+  --k2oh-red-dark: #b71c1c;
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--k2oh-red);
+  --md-primary-fg-color--dark: var(--k2oh-red-dark);
+  --md-accent-fg-color: var(--k2oh-red-dark);
+  --md-typeset-a-color: var(--k2oh-red-dark);
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: var(--k2oh-red-dark);
+  --md-primary-fg-color--dark: #8e1515;
+  --md-accent-fg-color: #ff6f60;
+  --md-typeset-a-color: #ff7b6e;
+}
+
+/* Home page cards: red top border and a lift on hover. */
+.md-typeset .grid.cards > ul > li {
+  border-top: 3px solid var(--k2oh-red);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.md-typeset .grid.cards > ul > li:hover {
+  transform: translateY(-2px);
+}
+
+/* Tables: header row tinted red, wide tables scroll instead of overflowing. */
+.md-typeset table:not([class]) th {
+  background-color: color-mix(in srgb, var(--k2oh-red) 12%, transparent);
+}
+.md-typeset__table {
+  max-width: 100%;
+}
+
+/* Photos and screenshots: rounded corners. */
+.md-typeset img {
+  border-radius: 6px;
+}
+
+/* Inline code in headings keeps the heading colour. */
+.md-typeset h2 code,
+.md-typeset h3 code {
+  color: inherit;
+}
