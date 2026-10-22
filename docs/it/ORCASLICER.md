@@ -106,9 +106,10 @@ Funziona con il classico **Carica e stampa** dell'host di stampa Moonraker. L'op
    - Una stampante che OrcaSlicer conosce già con l'indirizzo semplice resta legata all'agente Moonraker integrato.
    - Con il nuovo indirizzo OrcaSlicer la aggiunge sotto questo agente.
 4. OrcaSlicer chiede di permettere al plugin di creare un thread e di collegarsi all'indirizzo di Moonraker: consenti entrambi. Il primo collegamento viene rifiutato finché la domanda è aperta; il plugin riprova ogni 2 s.
-5. Premi **Sync** nell'elenco dei filamenti.
-6. Fai lo slicing: quando lo slicing per la K2 finisce, il pannello CFS si apre da solo accanto alla vista 3D (o ricompare se l'avevi chiuso) con gli slot aggiornati. Cambiando preset o progetto un pannello aperto si aggiorna, e per le altre stampanti si nasconde. Puoi anche aprirlo dalla gestione dei plugin (**K2-OpenHost CFS slots**). L'impostazione `auto_open: false` disattiva l'apertura dopo lo slicing.
-7. Controlla gli slot, poi **Carica e stampa**.
+5. Nel preset di processo passa alla modalità **Avanzata**, apri **Altro → Slicing Pipeline Plugin**, aggiungi **K2-OpenHost CFS G-code map** e salva il preset; fallo in ogni preset di processo che usi con la K2. OrcaSlicer scrive nel G-code solo con le funzioni elencate lì: attivare il plugin non basta. Finché non è elencata, il pannello CFS mostra un avviso.
+6. Premi **Sync** nell'elenco dei filamenti.
+7. Fai lo slicing: quando lo slicing per la K2 finisce, il pannello CFS si apre da solo accanto alla vista 3D (o ricompare se l'avevi chiuso) con gli slot aggiornati. Cambiando preset o progetto un pannello aperto si aggiorna, e per le altre stampanti si nasconde. Puoi anche aprirlo dalla gestione dei plugin (**K2-OpenHost CFS slots**). L'impostazione `auto_open: false` disattiva l'apertura dopo lo slicing.
+8. Controlla gli slot, poi **Carica e stampa**. La mappa viene scritta quando il file viene caricato o esportato, quindi va bene scegliere gli slot dopo lo slicing.
 
 Il pannello tiene la tua scelta finché i filamenti del progetto non cambiano. Quando cambiano, propone di nuovo: premi **Aggiorna** dopo aver cambiato i filamenti, e **Proponi** per ripartire da capo.
 

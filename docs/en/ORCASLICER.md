@@ -106,9 +106,10 @@ This works with the classic **Upload and print** of the Moonraker print host. Or
    - A printer OrcaSlicer already knows under the plain address stays bound to the built-in Moonraker agent.
    - The new address makes OrcaSlicer add it under this agent.
 4. OrcaSlicer asks to let the plugin create a thread and connect to the Moonraker address: allow both. The first connection is refused while the question is open; the plugin retries every 2 s.
-5. Press **Sync** in the filament list.
-6. Slice: when slicing finishes for the K2, the CFS panel opens by itself beside the 3D view (or comes back if you closed it) with the slots refreshed. Changing presets or the project refreshes an open panel, and it hides for other printers. You can also open it from the plugin manager (**K2-OpenHost CFS slots**). Its setting `auto_open: false` turns the opening after slicing off.
-7. Check the slots, then **Upload and print**.
+5. In the process preset, switch to **Advanced** mode, open **Others → Slicing Pipeline Plugin**, add **K2-OpenHost CFS G-code map** and save the preset; do it in every process preset you use with the K2. OrcaSlicer writes into the G-code only with the capabilities listed there: enabling the plugin is not enough. Until it is listed, the CFS panel shows a warning.
+6. Press **Sync** in the filament list.
+7. Slice: when slicing finishes for the K2, the CFS panel opens by itself beside the 3D view (or comes back if you closed it) with the slots refreshed. Changing presets or the project refreshes an open panel, and it hides for other printers. You can also open it from the plugin manager (**K2-OpenHost CFS slots**). Its setting `auto_open: false` turns the opening after slicing off.
+8. Check the slots, then **Upload and print**. The map is written when the file is uploaded or exported, so choosing the slots after slicing is fine.
 
 The panel keeps your choice until the project's filaments change. Then it proposes again: press **Refresh** after changing filaments, and **Propose** to start over.
 

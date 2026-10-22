@@ -5,7 +5,7 @@
 # name = "K2-OpenHost CFS"
 # description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.6.0"
+# version = "0.6.1"
 # ///
 """K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
@@ -26,7 +26,10 @@ upload has no filament -> slot choice. This plugin has three capabilities:
   works with the classic "Upload and print", without the global option.
 
 Select the agent in the printer preset and put the Moonraker address with
-its port (host:7125) in the print host field.
+its port (host:7125) in the print host field. Add "K2-OpenHost CFS G-code
+map" to the process preset's Slicing Pipeline Plugin (Process -> Others,
+advanced mode): OrcaSlicer runs the post-process only for capabilities
+listed there.
 """
 
 import http.client
@@ -783,6 +786,10 @@ class K2OpenHostCfsAgent(_AgentBase):
 # ----------------------------------------------------------------------------
 
 TOOL_MAP_KEY = "K2OH_TOOL_MAP"
+# OrcaSlicer runs a slicing-pipeline capability on the exported G-code only
+# when the process preset lists it in slicing_pipeline_plugin (Process ->
+# Others -> Slicing Pipeline Plugin); enabling the plugin is not enough.
+GCODE_MAP_NAME = "K2-OpenHost CFS G-code map"
 FOOTER_BYTES = 1024 * 1024
 _map_lock = threading.Lock()
 # {"printer": preset name, "filaments": [preset names], "map": {tool: slot}}
@@ -905,6 +912,11 @@ def insert_after_first_line(path, line):
     return True
 
 
+def gcode_map_selected(value):
+    """The process preset's slicing_pipeline_plugin option lists the G-code map."""
+    return any(GCODE_MAP_NAME in entry for entry in config_list(value))
+
+
 def store_slot_map(printer, filaments, mapping):
     with _map_lock:
         _slot_map.clear()
@@ -952,6 +964,8 @@ TEXT = {
            "manual": "manual order", "lowest": "lowest remaining first", "slot_order": "slot order",
            "auto_order": "Automatic order",
            "no_host": "Set the Moonraker address in the printer preset (print host).",
+           "no_pipeline": "The slot choice is not written into the G-code: add \"" + GCODE_MAP_NAME +
+           "\" in Process > Others > Slicing Pipeline Plugin (advanced mode) and save the process preset.",
            "printer": "Printer"},
     "it": {"title": "Slot CFS", "auto": "Decide Kalico", "refresh": "Aggiorna",
            "propose": "Proponi", "note": "Scegli uno slot CFS per ogni filamento, poi fai slicing e invia. "
@@ -963,6 +977,8 @@ TEXT = {
            "manual": "ordine manuale", "lowest": "prima la bobina con meno residuo", "slot_order": "ordine degli slot",
            "auto_order": "Ordine automatico",
            "no_host": "Imposta l'indirizzo di Moonraker nel preset stampante (host di stampa).",
+           "no_pipeline": "La scelta degli slot non viene scritta nel G-code: aggiungi \"" + GCODE_MAP_NAME +
+           "\" in Processo > Altro > Slicing Pipeline Plugin (modalità avanzata) e salva il preset di processo.",
            "printer": "Stampante"},
 }
 
@@ -1007,6 +1023,9 @@ PANEL_PAGE = """
   .dest { font-weight: 600; white-space: nowrap; }
   .clr { border: none; background: transparent; color: var(--orca-muted); cursor: pointer; padding: 0 4px; }
   #status { margin-top: 8px; color: var(--orca-muted); font-size: 12px; }
+  .warn { margin: 0 0 8px; padding: 6px 8px; border-radius: 8px; font-size: 12px;
+          border: 1px solid #e0a000; background: rgba(224,160,0,0.12); }
+  .warn:empty { display: none; }
   h4 { margin: 14px 0 6px; font-size: 13px; }
   .swap { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; }
   .grp { border: 1px solid var(--orca-border); border-radius: 10px; padding: 6px 8px; margin-bottom: 8px; }
@@ -1019,6 +1038,7 @@ PANEL_PAGE = """
 </style>
 <h3 id="title"></h3>
 <p class="note" id="note"></p>
+<p class="warn" id="warn"></p>
 <div class="actions">
   <button type="button" id="refresh"></button>
   <button type="button" id="propose"></button>
@@ -1058,6 +1078,7 @@ PANEL_PAGE = """
     document.getElementById("note").textContent = t.note;
     document.getElementById("refresh").textContent = t.refresh;
     document.getElementById("propose").textContent = t.propose;
+    document.getElementById("warn").textContent = m.warning || "";
     var units = document.getElementById("units"), fils = document.getElementById("fils");
     if (m.error) { units.innerHTML = ""; fils.innerHTML = ""; document.getElementById("status").textContent = m.error; return; }
     var byFil = {};
@@ -1355,6 +1376,12 @@ class K2OpenHostCfsPanel(_ScriptBase):
             printer, filaments = self._project()
             message["printer"] = printer.name
             message["filaments"] = filaments
+            try:
+                pipeline = orca.host.preset_bundle().full_config_value("slicing_pipeline_plugin")
+            except Exception:  # option unknown to this OrcaSlicer: say nothing
+                pipeline = None
+            if pipeline is not None and not gcode_map_selected(pipeline):
+                message["warning"] = text["no_pipeline"]
             slots = self._slots(printer)
             if slots is None:
                 message["error"] = text["no_host"]
@@ -1416,7 +1443,7 @@ class K2OpenHostCfsGcodeMap(_SlicingBase):
     """Writes the panel's slot map into the exported G-code."""
 
     def get_name(self):
-        return "K2-OpenHost CFS G-code map"
+        return GCODE_MAP_NAME
 
     def execute(self, ctx):
         if ctx.step != orca.slicing.Step.psGCodePostProcess or not ctx.gcode_path:

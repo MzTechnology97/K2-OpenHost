@@ -313,6 +313,7 @@ class FakeBundle:
         self.printer = FakePreset(PRINTER, {"print_host": "10.10.1.97:7125",
                                             "printhost_port": "", "printhost_apikey": ""})
         self.names, self.colours, self.types = names, colours, types
+        self.pipeline = None  # slicing_pipeline_plugin; None = option unknown
 
     def current_printer_preset(self):
         return self.printer
@@ -321,7 +322,10 @@ class FakeBundle:
         return self.names
 
     def full_config_value(self, key):
-        return {"filament_colour": self.colours, "filament_type": self.types}[key]
+        values = {"filament_colour": self.colours, "filament_type": self.types}
+        if self.pipeline is not None:
+            values["slicing_pipeline_plugin"] = self.pipeline
+        return values[key]
 
 
 class FakePanel:
@@ -360,6 +364,16 @@ class Panel(unittest.TestCase):
         self.bundle.names = FILAMENTS[:2]  # project filaments changed: new proposal
         self.panel.on_message({"command": "refresh"})
         self.assertEqual(self.panel.panel.messages[-1]["map"], {"0": 1})
+
+    def test_warns_when_the_gcode_map_is_not_in_the_process_preset(self):
+        self.panel.on_message({"command": "refresh"})  # option unknown: no warning
+        self.assertNotIn("warning", self.panel.panel.messages[-1])
+        self.bundle.pipeline = ""
+        self.panel.on_message({"command": "refresh"})
+        self.assertIn("Slicing Pipeline Plugin", self.panel.panel.messages[-1]["warning"])
+        self.bundle.pipeline = '"Other stamp";"' + agent_mod.GCODE_MAP_NAME + '"'
+        self.panel.on_message({"command": "refresh"})
+        self.assertNotIn("warning", self.panel.panel.messages[-1])
 
     def test_runout_commands(self):
         sent = []
