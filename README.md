@@ -1,6 +1,8 @@
 # K2-OpenHost
 
-> **Experimental / Work in Progress — Sperimentale / Lavori in corso**
+> **Wiki: [mztechnology97.github.io/K2-OpenHost](https://mztechnology97.github.io/K2-OpenHost/)** — getting started, installation, helper, Mainsail, CFS, G-code commands, troubleshooting (English / [Italiano](https://mztechnology97.github.io/K2-OpenHost/it/)).
+>
+> In daily production use on a print farm. The modified CFS firmware and the OrcaSlicer 2.5 plugin are still experimental. — In uso quotidiano in produzione su una print farm. Il firmware CFS modificato e il plugin per OrcaSlicer 2.5 sono ancora sperimentali.
 
 > [!WARNING]
 > **For experienced users only. Use at your own risk.** K2-OpenHost voids the manufacturer's warranty and can damage the printer beyond repair, brick its firmware or, in case of malfunction, cause a fire. The authors accept no liability for damage to property or persons. Read the [disclaimer and hardware limitations](docs/en/DISCLAIMER.md) before using any of these tools.
@@ -53,7 +55,7 @@ Raspberry Pi CM5 / external Linux host
   - kalico-k2pro:k2-pro-openhost (+ klipper-virtual-pins)
   - Moonraker
   - mainsail-k2openhost
-  - crowsnest: chamber and nozzle cameras (USB, rewired to the host)
+  - crowsnest: chamber camera (USB, rewired from the T113 to the host)
         |
         +-- /dev/k2-main   -> T113 ttyGS0 -> ttyS2 -> Main MCU
         +-- /dev/k2-nozzle -> T113 ttyGS1 -> ttyS3 -> Nozzle MCU
@@ -115,12 +117,14 @@ The OpenHost stack has moved beyond passive transport validation: real homing, h
 
 With the T113 service USB port in gadget mode (required by OpenHost):
 
-- the **nozzle camera** and the **chamber camera** cannot be managed by the T113: rewire their original cable path and connect them **directly to the external Linux host**;
+- the **chamber camera** cannot be managed by the T113: disconnect it from the T113 and rewire it **directly to the external Linux host**;
+- the **nozzle camera** cannot be used through the T113 in OpenHost mode;
 - the printer's **external USB port** cannot be used to print from a USB stick and **stops working completely** in gadget mode; send files through Mainsail/Moonraker instead.
 
 Con la porta USB di servizio del T113 in modalità gadget (necessaria per OpenHost):
 
-- la **fotocamera dell'ugello** e la **fotocamera della camera** non possono essere gestite dal T113: occorre ricablare il percorso originale e collegarle **direttamente all'host Linux esterno**;
+- la **fotocamera della camera** non può essere gestita dal T113: va scollegata dal T113 e ricablata **direttamente all'host Linux esterno**;
+- la **fotocamera dell'ugello** non è utilizzabile tramite il T113 in modalità OpenHost;
 - la **porta USB esterna** della stampante non può essere usata per stampare da chiavetta e in modalità gadget **smette completamente di funzionare**; i file si inviano da Mainsail/Moonraker.
 
 Details / Dettagli: [EN](docs/en/DISCLAIMER.md#hardware-limitations-in-openhost-mode) · [IT](docs/it/DISCLAIMER.md#limiti-hardware-in-modalità-openhost).
