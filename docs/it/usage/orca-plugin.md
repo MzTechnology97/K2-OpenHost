@@ -46,7 +46,36 @@ Premi **Sync** nell'elenco dei filamenti. Ogni slot del CFS arriva con l'ID del 
 !!! info "Perché il tuo preset personalizzato non viene scelto"
     Il sync di OrcaSlicer abbina solo i **preset radice**: i preset di sistema, e i tuoi preset creati con **Create filament** (hanno un loro ID `P…`). Un preset salvato da un altro (mostra un genitore in *Dependencies*) non viene mai scelto, da nessun agent: OrcaSlicer prende il genitore. Per sincronizzare il tuo preset personalizzato, crealo con **Create filament**, copia dentro le tue impostazioni e dai il suo ID `P…` al filamento CFS in Mainsail (libreria filamenti → **OrcaSlicer preset…**). Il pannello degli slot qui sotto non ha questo limite.
 
-    Il plugin **Filament ID Fixer** (catalogo plugin di OrcaSlicer) lo fa per te: filtra `@K2`, seleziona i tuoi preset, **Apply**, riavvia OrcaSlicer. Ogni preset viene staccato dal genitore e riceve un ID proprio `U…` (prima viene fatto un backup zip). Dai quell'ID al filamento CFS in Mainsail (libreria filamenti → **OrcaSlicer preset…**, oppure `_BOX_FILAMENT_ORCA_ID ID=<filamento> ORCA_ID=<U…>`). Un preset staccato non segue più le modifiche fatte al genitore.
+    La soluzione più rapida è il plugin **Filament ID Fixer**: vedi [la sezione successiva](#filament-id-fixer).
+
+## Sincronizzare i tuoi preset: Filament ID Fixer { #filament-id-fixer }
+
+[Filament ID Fixer](https://cloud.orcaslicer.com/p/472a21f74983) (di ni42, su Orca Cloud) dà a ciascuno dei tuoi preset filamento un ID filamento proprio, così il Sync sceglie il *tuo* preset `@K2` invece del suo genitore (Generic o un preset di sistema). Verificato sulla stampante di riferimento: dopo il plugin, il Sync sceglie `IEMAI PETG-CF @K2` e `Bambu PLA Basic @K2`.
+
+![Filament ID Fixer, preset filtrati per @k2](../../images/orca/filament-id-fixer.png)
+
+1. Installalo da Orca Cloud: apri [Filament ID Fixer](https://cloud.orcaslicer.com/p/472a21f74983) e premi **Subscribe**, oppure cercalo in OrcaSlicer → **Plugins**.
+2. Salva o scarta le modifiche non salvate ai tuoi preset filamento: un preset con modifiche non salvate è grigio (*Has unsaved changes*).
+3. OrcaSlicer → **Plugins** → **Filament ID Fixer**. Attendi **Self-test passed**: senza, i preset ereditati non si possono staccare.
+4. Scrivi **`@K2`** in *Filter by name*, così l'elenco mostra solo i tuoi preset K2, poi **Select all**. Non selezionare tutto senza il filtro: staccheresti anche i preset delle altre stampanti. I preset Bambu vengono saltati di proposito.
+5. **Apply** → **Sì**. Prima viene fatto un backup zip di tutti i preset filamento in `%APPDATA%\OrcaSlicer\filament_id_fixer\backups\`.
+6. **Riavvia subito OrcaSlicer**, senza salvare prima nessun preset filamento.
+7. Dai ogni nuovo ID al filamento CFS corrispondente in Kalico: Mainsail → libreria filamenti → **OrcaSlicer preset…**, oppure in console:
+
+    ```text
+    _BOX_FILAMENT_ORCA_ID ID=90001 ORCA_ID=UcUhD2Z9
+    ```
+
+    `ID` è l'ID del filamento nella libreria di Kalico, `ORCA_ID` l'ID `U…` della colonna *New*.
+8. Premi **Sync**: gli slot del CFS ricevono i tuoi preset `@K2`.
+
+| Preset | Filamento in Kalico | Nuovo ID (stampante di riferimento) |
+| --- | --- | --- |
+| IEMAI PETG-CF @K2 | 90001 IEMAI PETG-CF | `UcUhD2Z9` |
+| Bambu PLA Basic @K2 | 05628 Bambulab PLA Basic | `Ua0gnCPo` |
+
+!!! warning "Cosa cambia"
+    Un preset viene **staccato** dal genitore: tutte le sue impostazioni vengono scritte nel suo file, e gli aggiornamenti successivi del genitore (aggiornamenti dei profili OrcaSlicer o Creality) non lo raggiungono più. I nuovi ID dipendono solo da marca, tipo e nome del preset, quindi sono uguali su ogni PC. Per tornare indietro, ripristina il backup zip con OrcaSlicer chiuso.
 
 ## Pannello CFS
 

@@ -124,7 +124,7 @@ The panel keeps your choice until the project's filaments change. Then it propos
 
 Sync selects **root presets** only: system presets, and your own presets made with **Create filament**, which have their own `P…` ID. A preset saved from another one (it shows a parent under *Dependencies*) is never picked, by any agent: OrcaSlicer takes its parent instead. The CFS panel has no such limit: it maps whatever filament presets the project uses. To make Sync pick your tuned preset, create it with **Create filament** (vendor, type, based on the same system preset), copy your settings into it, and give its `P…` ID to the CFS filament in Mainsail.
 
-The **Filament ID Fixer** plugin (OrcaSlicer plugin catalogue) does this for you: filter `@K2`, select your presets, **Apply**, restart OrcaSlicer. Each preset is detached from its parent and gets its own `U…` ID (a backup zip is made first). Give that ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**, or `_BOX_FILAMENT_ORCA_ID ID=<filament> ORCA_ID=<U…>`). A detached preset no longer follows changes made to its parent.
+The [Filament ID Fixer](https://cloud.orcaslicer.com/p/472a21f74983) plugin does this for you, step by step in [OrcaSlicer plugin → Filament ID Fixer](usage/orca-plugin.md#filament-id-fixer): filter `@K2`, select your presets, **Apply**, restart OrcaSlicer. Each preset is detached from its parent and gets its own `U…` ID (a backup zip is made first). Give that ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**, or `_BOX_FILAMENT_ORCA_ID ID=<filament> ORCA_ID=<U…>`). A detached preset no longer follows changes made to its parent.
 
 The agent has three settings:
 - `poll_interval_s`: status refresh, default 2 s;
