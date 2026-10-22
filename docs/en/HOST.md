@@ -10,8 +10,12 @@ The external host of the reference K2 Pro, and how its CPU fan is driven from Kl
 |---|---|
 | Module | Raspberry Pi **Compute Module 5** (revision `d04180`): 8 GB RAM, 32 GB eMMC, Wi-Fi |
 | Carrier | Waveshare **[CM5-IO-BASE-A](https://www.waveshare.com/wiki/CM5-IO-BASE-A)** |
-| Cooling | heatsink with a 4-pin PWM fan on the carrier's fan header |
+| Cooling | Waveshare **CM5 Cooling Fan** `CM5-FAN-3007-B-5V`: dedicated all-in-one cooler, aluminium heatsink with a 30x07 mm 5 V PWM fan (8000 RPM ±10 %), 4-pin plug on the carrier's fan header |
 | System | Raspberry Pi OS (Debian 12 bookworm), kernel `6.12.109+rpt-rpi-2712` |
+
+| Carrier: Waveshare CM5-IO-BASE-A | Cooler: Waveshare CM5-FAN-3007-B-5V |
+| :---: | :---: |
+| ![Waveshare CM5-IO-BASE-A carrier board](../images/hardware/cm5-io-base-a.jpg){ width="340" } | ![Waveshare CM5-FAN-3007-B-5V cooler](../images/hardware/cm5-fan-3007.jpg){ width="340" } |
 
 On 2026-10-05 the CM5 still sat on a Waveshare **CM4-IO-BASE-A**. That board's USB ports were all USB 2.0 behind one hub on `dwc2`, and its fan header was driven over I2C by an EMC2301 controller. [USB bridge](USB_BRIDGE.md#the-cm5s-usb-30-ports-and-the-carrier-board) describes that setup and why the board was changed.
 
