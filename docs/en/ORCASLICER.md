@@ -111,6 +111,7 @@ This works with the classic **Upload and print** of the Moonraker print host. Or
 3. In the printer preset (**Printer settings → Basic information → Advanced**), set **Printer Agent** to **K2-OpenHost CFS**. Set the print host to the Moonraker address **with its port**, for example `10.10.1.97:7125`, then save the preset.
    - A printer OrcaSlicer already knows under the plain address stays bound to the built-in Moonraker agent.
    - The new address makes OrcaSlicer add it under this agent.
+   - **Device UI** (advanced mode): `http://10.10.1.97`, the plain address. The Device tab opens this field when it is set, so it keeps showing Mainsail while the print host carries the port.
 4. OrcaSlicer asks to let the plugin create a thread and connect to the Moonraker address: allow both. The first connection is refused while the question is open; the plugin retries every 2 s.
 5. In the process preset, switch to **Advanced** mode, open **Others → Slicing Pipeline Plugin**, add **K2-OpenHost CFS G-code map** and save the preset; do it in every process preset you use with the K2. OrcaSlicer writes into the G-code only with the capabilities listed there: enabling the plugin is not enough. Until it is listed, the CFS panel shows a warning.
 6. Press **Sync** in the filament list.
@@ -120,6 +121,8 @@ This works with the classic **Upload and print** of the Moonraker print host. Or
 The panel keeps your choice until the project's filaments change. Then it proposes again: press **Refresh** after changing filaments, and **Propose** to start over.
 
 Sync selects **root presets** only: system presets, and your own presets made with **Create filament**, which have their own `P…` ID. A preset saved from another one (it shows a parent under *Dependencies*) is never picked, by any agent: OrcaSlicer takes its parent instead. The CFS panel has no such limit: it maps whatever filament presets the project uses. To make Sync pick your tuned preset, create it with **Create filament** (vendor, type, based on the same system preset), copy your settings into it, and give its `P…` ID to the CFS filament in Mainsail.
+
+The **Filament ID Fixer** plugin (OrcaSlicer plugin catalogue) does this for you: filter `@K2`, select your presets, **Apply**, restart OrcaSlicer. Each preset is detached from its parent and gets its own `U…` ID (a backup zip is made first). Give that ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**, or `_BOX_FILAMENT_ORCA_ID ID=<filament> ORCA_ID=<U…>`). A detached preset no longer follows changes made to its parent.
 
 The agent has three settings:
 - `poll_interval_s`: status refresh, default 2 s;

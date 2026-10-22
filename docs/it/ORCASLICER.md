@@ -111,6 +111,7 @@ Funziona con il classico **Carica e stampa** dell'host di stampa Moonraker. L'op
 3. Nel preset della stampante (**Impostazioni stampante → Informazioni di base → Avanzate**) imposta **Printer Agent** su **K2-OpenHost CFS**. Come host di stampa metti l'indirizzo di Moonraker **con la porta**, per esempio `10.10.1.97:7125`, poi salva il preset.
    - Una stampante che OrcaSlicer conosce già con l'indirizzo semplice resta legata all'agente Moonraker integrato.
    - Con il nuovo indirizzo OrcaSlicer la aggiunge sotto questo agente.
+   - **Device UI** (modalità avanzata): `http://10.10.1.97`, l'indirizzo semplice. La scheda Dispositivo apre questo campo quando è compilato, così continua a mostrare Mainsail mentre l'host di stampa ha la porta.
 4. OrcaSlicer chiede di permettere al plugin di creare un thread e di collegarsi all'indirizzo di Moonraker: consenti entrambi. Il primo collegamento viene rifiutato finché la domanda è aperta; il plugin riprova ogni 2 s.
 5. Nel preset di processo passa alla modalità **Avanzata**, apri **Altro → Slicing Pipeline Plugin**, aggiungi **K2-OpenHost CFS G-code map** e salva il preset; fallo in ogni preset di processo che usi con la K2. OrcaSlicer scrive nel G-code solo con le funzioni elencate lì: attivare il plugin non basta. Finché non è elencata, il pannello CFS mostra un avviso.
 6. Premi **Sync** nell'elenco dei filamenti.
@@ -120,6 +121,8 @@ Funziona con il classico **Carica e stampa** dell'host di stampa Moonraker. L'op
 Il pannello tiene la tua scelta finché i filamenti del progetto non cambiano. Quando cambiano, propone di nuovo: premi **Aggiorna** dopo aver cambiato i filamenti, e **Proponi** per ripartire da capo.
 
 La sincronizzazione sceglie solo **preset radice**: quelli di sistema e i tuoi creati con **Crea filamento**, che hanno un ID proprio `P…`. Un preset salvato da un altro (in *Dipendenze* mostra un genitore) non viene mai scelto, con nessun agente: OrcaSlicer prende il genitore. Il pannello CFS non ha questo limite: abbina qualunque preset di filamento usi il progetto. Perché Sync scelga il tuo preset ottimizzato, crealo con **Crea filamento** (marca, tipo, basato sullo stesso preset di sistema), copia le tue impostazioni e assegna il suo ID `P…` al filamento della CFS in Mainsail.
+
+Il plugin **Filament ID Fixer** (catalogo plugin di OrcaSlicer) lo fa per te: filtra `@K2`, seleziona i tuoi preset, **Apply**, riavvia OrcaSlicer. Ogni preset viene staccato dal genitore e riceve un ID proprio `U…` (prima viene fatto un backup zip). Dai quell'ID al filamento CFS in Mainsail (libreria filamenti → **OrcaSlicer preset…**, oppure `_BOX_FILAMENT_ORCA_ID ID=<filamento> ORCA_ID=<U…>`). Un preset staccato non segue più le modifiche fatte al genitore.
 
 L'agente ha tre impostazioni:
 - `poll_interval_s`: aggiornamento dello stato, predefinito 2 s;

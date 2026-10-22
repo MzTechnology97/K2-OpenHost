@@ -20,7 +20,9 @@ OrcaSlicer 2.5 (alpha since 2026-10-16) loads Python plugins. The **K2-OpenHost 
 1. Download [`k2_openhost_cfs.py`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer).
 2. OrcaSlicer → **Plugins** → **Install local plugin** → choose the file. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`.
 3. Printer preset → **Printer settings → Basic information → Advanced → Printer Agent**: **K2-OpenHost CFS**.
-4. **Print host**: the Moonraker address **with the port**, for example `10.10.1.97:7125`. Save the preset.
+4. **Print host**: the Moonraker address **with the port**, for example `10.10.1.97:7125`.
+   - **Device UI** (advanced mode): `http://10.10.1.97`, the plain address. The Device tab opens this field when it is set, so it keeps showing Mainsail while the print host carries the port.
+   - Save the preset.
 5. OrcaSlicer asks permission for the plugin to create a thread and to connect to that address: allow both. The first connection is refused while the question is open; the plugin retries every 2 s.
 6. **Process preset** → switch to **Advanced** mode → **Others** → **Slicing Pipeline Plugin**: add **K2-OpenHost CFS G-code map** and save. Do it in every process preset you use with the K2.
 
@@ -41,6 +43,8 @@ Press **Sync** in the filament list. Each CFS slot arrives with its preset ID.
 
 !!! info "Why your tuned preset is not picked"
     OrcaSlicer's sync matches **root presets** only: system presets, and your own presets made with **Create filament** (they have their own `P…` ID). A preset saved from another one (it shows a parent under *Dependencies*) is never picked, by any agent: OrcaSlicer takes its parent. To sync to your tuned preset, create it with **Create filament**, copy your settings into it, and give its `P…` ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**). The slot panel below has no such limit.
+
+    The **Filament ID Fixer** plugin (OrcaSlicer plugin catalogue) does this for you: filter `@K2`, select your presets, **Apply**, restart OrcaSlicer. Each preset is detached from its parent and gets its own `U…` ID (a backup zip is made first). Give that ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**, or `_BOX_FILAMENT_ORCA_ID ID=<filament> ORCA_ID=<U…>`). A detached preset no longer follows changes made to its parent.
 
 ## CFS panel
 
