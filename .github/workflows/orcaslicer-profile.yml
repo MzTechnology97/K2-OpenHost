@@ -1,0 +1,17 @@
+name: orcaslicer-profile
+on:
+  push:
+    paths:
+      - 'tools/orcaslicer/profiles/**'
+      - '.github/workflows/orcaslicer-profile.yml'
+  pull_request:
+    paths:
+      - 'tools/orcaslicer/profiles/**'
+      - '.github/workflows/orcaslicer-profile.yml'
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: The .orca_printer bundle matches the presets
+        run: python3 tools/orcaslicer/profiles/build_bundle.py --check

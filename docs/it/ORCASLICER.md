@@ -35,7 +35,7 @@ poi aggiungi `proxy_set_header X-Api-Key $k2oh_api_key;` dopo le due righe `prox
 
 [`tools/orcaslicer/profiles`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer/profiles) contiene il preset della stampante e sette preset di processo (da 0,08 a 0,28 mm) con cui stampa la K2 Pro di riferimento: flavour Klipper, `START_PRINT`/`END_PRINT`/`PAUSE`, nessun G-code di cambio filamento, miniature per Mainsail, `accel_to_decel` spento, e il plugin K2-OpenHost CFS già selezionato. I preset dei filamenti non sono inclusi.
 
-Importali con **File → Importa → Importa configurazioni…** (seleziona tutti i JSON insieme), poi inserisci l'indirizzo del tuo host con la porta di Moonraker (`k2host.local:7125`) nelle impostazioni di connessione della stampante: indirizzo e chiave API nei file sono vuoti. Dettagli nel [README](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer/profiles#italiano) della cartella.
+Scarica il [pacchetto `.orca_printer`](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer) e importalo con **File → Importa → Importa configurazioni…**, poi inserisci l'indirizzo del tuo host con la porta di Moonraker (`k2host.local:7125`) nelle impostazioni di connessione della stampante: indirizzo e chiave API nei file sono vuoti. Dettagli nel [README](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer/profiles#italiano) della cartella.
 
 ## Sincronizzare i filamenti
 

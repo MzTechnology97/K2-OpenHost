@@ -4,8 +4,11 @@ The OrcaSlicer presets the reference K2 Pro prints with, on K2-OpenHost (Kalico 
 
 | File | Preset |
 | --- | --- |
+| [`Creality K2 Pro 0.4 nozzle - newpurge-Kalico.orca_printer`](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer) | **Everything in one file**: the printer and the seven process presets, ready to import |
 | `machine/Creality K2 Pro 0.4 nozzle - newpurge-Kalico.json` | Printer: K2 Pro, 0.4 mm hardened steel nozzle |
 | `process/* @K2 Pro Kalico.json` | 7 process presets: 0.08 mm HueForge and SuperDetail, 0.12 Detail, 0.16 Optimal, 0.20 Standard, 0.24 Draft, 0.28 SuperDraft |
+
+After changing a preset JSON, run `python3 build_bundle.py` to rebuild the bundle (CI checks it is up to date).
 
 Filament presets are not included: use OrcaSlicer's own, or Sync from the CFS ([OrcaSlicer](../../../docs/en/ORCASLICER.md)).
 
@@ -30,7 +33,7 @@ Filament presets are not included: use OrcaSlicer's own, or Sync from the CFS ([
 ## Import
 
 1. OrcaSlicer 2.5 or later. Install the K2-OpenHost CFS plugin first, if you use it.
-2. **File → Import → Import Configs…**, select the printer JSON **and** the seven process JSON files together, **Open**.
+2. Download the [`.orca_printer` bundle](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer), then **File → Import → Import Configs…**, choose it, **Open**. (Or select the printer JSON and the seven process JSON files together.)
 3. Select the printer **Creality K2 Pro 0.4 nozzle - newpurge-Kalico**, open its connection settings and enter the address of your K2-OpenHost host **with the Moonraker port**, for example `k2host.local:7125`. The address and the API key are empty in these files.
 4. Save the printer preset.
 
@@ -42,8 +45,11 @@ I preset OrcaSlicer con cui stampa la K2 Pro di riferimento, su K2-OpenHost (Kal
 
 | File | Preset |
 | --- | --- |
+| [`Creality K2 Pro 0.4 nozzle - newpurge-Kalico.orca_printer`](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer) | **Tutto in un file**: la stampante e i sette preset di processo, pronti da importare |
 | `machine/Creality K2 Pro 0.4 nozzle - newpurge-Kalico.json` | Stampante: K2 Pro, ugello 0,4 mm in acciaio temprato |
 | `process/* @K2 Pro Kalico.json` | 7 preset di processo: 0,08 mm HueForge e SuperDetail, 0,12 Detail, 0,16 Optimal, 0,20 Standard, 0,24 Draft, 0,28 SuperDraft |
+
+Dopo aver cambiato un JSON, esegui `python3 build_bundle.py` per rigenerare il pacchetto (la CI controlla che sia aggiornato).
 
 I preset dei filamenti non sono inclusi: usa quelli di OrcaSlicer, oppure il Sync dal CFS ([OrcaSlicer](../../../docs/it/ORCASLICER.md)).
 
@@ -68,6 +74,6 @@ I preset dei filamenti non sono inclusi: usa quelli di OrcaSlicer, oppure il Syn
 ### Importazione
 
 1. OrcaSlicer 2.5 o successivo. Se lo usi, installa prima il plugin K2-OpenHost CFS.
-2. **File → Importa → Importa configurazioni…**, seleziona insieme il JSON della stampante **e** i sette JSON di processo, **Apri**.
+2. Scarica il [pacchetto `.orca_printer`](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer), poi **File → Importa → Importa configurazioni…**, sceglilo, **Apri**. (Oppure seleziona insieme il JSON della stampante e i sette JSON di processo.)
 3. Scegli la stampante **Creality K2 Pro 0.4 nozzle - newpurge-Kalico**, apri le impostazioni di connessione e inserisci l'indirizzo del tuo host K2-OpenHost **con la porta di Moonraker**, per esempio `k2host.local:7125`. Indirizzo e chiave API in questi file sono vuoti.
 4. Salva il preset della stampante.
