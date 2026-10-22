@@ -63,7 +63,35 @@ class PureHelpers(unittest.TestCase):
         self.assertEqual(msg["printer_type"], "Creality_K2_Pro")
         self.assertTrue(msg["sdcard"])
         self.assertIn("ams", msg)
+        self.assertEqual(msg["sequence_id"], "0")
         self.assertNotIn("ams", agent_mod.build_status({}, "", None)["print"])
+
+    def test_poll_sends_printer_type_once_and_a_sequence_id_each_time(self):
+        # OrcaSlicer logs an error for a "print" message without sequence_id
+        # and for every non-Bambu printer_type it receives.
+        client = FakeClient()
+        client.query = lambda objects: {"print_stats": {"state": "standby"},
+                                        "box": {"slots": [], "boxes": []}}
+        agent = make_agent(client)
+        sent = []
+        agent._dev_id = "k2"
+        agent._callbacks["message"] = lambda dev_id, text: sent.append(json.loads(text)["print"])
+        agent._model_id = "Creality_K2_Pro"
+        agent._poll(force_ams=False)
+        agent._poll(force_ams=False)
+        self.assertEqual(sent[0]["printer_type"], "Creality_K2_Pro")
+        self.assertNotIn("printer_type", sent[1])
+        self.assertEqual([m["sequence_id"] for m in sent], ["1", "2"])
+
+    def test_gcode_line_reply_always_has_a_sequence_id(self):
+        client = FakeClient()
+        agent = make_agent(client)
+        sent = []
+        agent._dev_id = "k2"
+        agent._callbacks["message"] = lambda dev_id, text: sent.append(json.loads(text)["print"])
+        agent._gcode_async = lambda script, reply=None: sent.append(reply["print"])
+        agent._handle(json.dumps({"print": {"command": "gcode_line", "param": "M115"}}))
+        self.assertEqual(sent[0]["sequence_id"], "0")
 
     def test_slot_map_from_print_dialog(self):
         self.assertEqual(agent_mod.parse_slot_map("[1,-1,3]", "", [0, 1, 2, 3]),

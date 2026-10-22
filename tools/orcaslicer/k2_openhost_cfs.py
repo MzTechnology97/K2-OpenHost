@@ -5,7 +5,7 @@
 # name = "K2-OpenHost CFS"
 # description = "Creality K2 with K2-OpenHost (Kalico + Moonraker): CFS slots synced with their exact filament, a CFS panel to choose the slot of each filament, and that choice sent with the print."
 # author = "K2-OpenHost"
-# version = "0.6.1"
+# version = "0.6.2"
 # ///
 """K2-OpenHost CFS plugin for OrcaSlicer 2.5 or later.
 
@@ -171,12 +171,20 @@ def moonraker_state(state):
             "cancelled": "FINISH", "error": "FAILED"}.get(state or "", "IDLE")
 
 
-def build_status(status, model_id="", ams=None):
-    """A push_status message from a Moonraker objects query."""
+def build_status(status, model_id="", ams=None, sequence_id=0):
+    """A push_status message from a Moonraker objects query.
+
+    OrcaSlicer hands every "print" message to its fan module, which logs an
+    error for a message without sequence_id, so one is always sent. model_id
+    goes out once per connection (the caller passes "" afterwards): OrcaSlicer
+    keeps printer_type, and logs every non-Bambu type it is sent as
+    unsupported.
+    """
     stats = status.get("print_stats") or {}
     state = stats.get("state")
     print_ = {
         "command": "push_status", "msg": 0, "support_mqtt_alive": True,
+        "sequence_id": str(sequence_id),
         "gcode_state": moonraker_state(state),
         "mc_print_stage": {"printing": 1, "paused": 2, "complete": 3,
                            "error": 4}.get(state, 0),
@@ -412,6 +420,8 @@ class K2OpenHostCfsAgent(_AgentBase):
         self._last_ams = None
         self._last_full = 0.0
         self._slots = []
+        self._sequence = 0
+        self._type_sent = False
 
     # -- plugin metadata ----------------------------------------------------
     def get_name(self):
@@ -505,6 +515,7 @@ class K2OpenHostCfsAgent(_AgentBase):
                                      bool(params.use_ssl))
             self._model_id = self._resolve_model_id()
             self._last_ams = None
+            self._type_sent = False
             self._stop = threading.Event()
             self._wake = threading.Event()
             self._thread = threading.Thread(
@@ -580,8 +591,11 @@ class K2OpenHostCfsAgent(_AgentBase):
             if send_ams:
                 self._last_ams = ams
                 self._last_full = now
-            model_id = self._model_id
-        self._dispatch(build_status(status, model_id, ams if send_ams else None))
+            model_id = "" if self._type_sent else self._model_id
+            self._type_sent = True
+            self._sequence += 1
+            sequence = self._sequence
+        self._dispatch(build_status(status, model_id, ams if send_ams else None, sequence))
 
     def _send_version_info(self):
         self._dispatch({"info": {"command": "get_version", "result": "success",
@@ -666,9 +680,9 @@ class K2OpenHostCfsAgent(_AgentBase):
                 self._last_ams = None
             self._wake.set()
         elif command == "gcode_line" and isinstance(print_.get("param"), str):
-            reply = {"print": {"command": "gcode_line", "param": print_["param"]}}
-            if isinstance(print_.get("sequence_id"), str):
-                reply["print"]["sequence_id"] = print_["sequence_id"]
+            sequence_id = print_.get("sequence_id")
+            reply = {"print": {"command": "gcode_line", "param": print_["param"],
+                               "sequence_id": sequence_id if isinstance(sequence_id, str) else "0"}}
             self._gcode_async(print_["param"], reply)
         elif command in ("pause", "resume", "stop"):
             self._gcode_async({"pause": "PAUSE", "resume": "RESUME",
