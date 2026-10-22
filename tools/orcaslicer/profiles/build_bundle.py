@@ -8,7 +8,7 @@ Configs. Run it after changing a preset:
 
     python3 tools/orcaslicer/profiles/build_bundle.py
 
---check only verifies that the committed bundle matches the presets.
+--check only verifies that the committed bundle holds the same files.
 """
 import glob
 import io
@@ -57,16 +57,23 @@ def build():
     return printer_name, out.getvalue()
 
 
+def entries_of(data):
+    """(name, content) of every archive entry: deflate output differs between
+    zlib builds, so the check compares what OrcaSlicer reads, not the bytes."""
+    with zipfile.ZipFile(io.BytesIO(data)) as archive:
+        return [(name, archive.read(name)) for name in archive.namelist()]
+
+
 def main():
     printer_name, data = build()
     target = os.path.join(HERE, printer_name + ".orca_printer")
     if "--check" in sys.argv[1:]:
         try:
             with open(target, "rb") as f:
-                current = f.read()
-        except FileNotFoundError:
-            current = b""
-        if current != data:
+                current = entries_of(f.read())
+        except (FileNotFoundError, zipfile.BadZipFile):
+            current = None
+        if current != entries_of(data):
             raise SystemExit("%s is out of date: run build_bundle.py" % os.path.basename(target))
         print("bundle up to date")
         return
