@@ -20,8 +20,14 @@ OrcaSlicer 2.5 (alpha since 2026-10-16) loads Python plugins. The **K2-OpenHost 
 1. Download [`k2_openhost_cfs.py`](https://github.com/MzTechnology97/K2-OpenHost/tree/main/tools/orcaslicer).
 2. OrcaSlicer → **Plugins** → **Install local plugin** → choose the file. OrcaSlicer copies it to `%APPDATA%\OrcaSlicer\orca_plugins\`.
 3. Printer preset → **Printer settings → Basic information → Advanced → Printer Agent**: **K2-OpenHost CFS**.
-4. **Print host**: the Moonraker address **with the port**, for example `10.10.1.97:7125`. Save the preset.
+4. **Print host**: the Moonraker address **with the port**, for example `10.10.1.97:7125`.
+   - **Device UI** (advanced mode): `http://10.10.1.97`, the plain address. The Device tab opens this field when it is set, so it keeps showing Mainsail while the print host carries the port.
+   - Save the preset.
 5. OrcaSlicer asks permission for the plugin to create a thread and to connect to that address: allow both. The first connection is refused while the question is open; the plugin retries every 2 s.
+6. **Process preset** → switch to **Advanced** mode → **Others** → **Slicing Pipeline Plugin**: add **K2-OpenHost CFS G-code map** and save. Do it in every process preset you use with the K2.
+
+!!! important "Without step 6 no map is written"
+    OrcaSlicer runs a slicing-pipeline capability on the exported G-code only when the process preset lists it: installing and enabling the plugin is not enough. The panel and Sync work anyway, which hides the problem. Until the step is listed, the CFS panel shows a warning, and the plugin log has no `G-code map` line.
 
 !!! important "Use the address with the port"
     OrcaSlicer ties every saved printer to the agent it was added with. A printer saved under the plain address (`10.10.1.97`) stays bound to the built-in Moonraker agent, and selecting the plugin then finds no printer ("target machine was not found"). The address with the port is a new printer for OrcaSlicer, bound to the plugin.
@@ -38,6 +44,8 @@ Press **Sync** in the filament list. Each CFS slot arrives with its preset ID.
 !!! info "Why your tuned preset is not picked"
     OrcaSlicer's sync matches **root presets** only: system presets, and your own presets made with **Create filament** (they have their own `P…` ID). A preset saved from another one (it shows a parent under *Dependencies*) is never picked, by any agent: OrcaSlicer takes its parent. To sync to your tuned preset, create it with **Create filament**, copy your settings into it, and give its `P…` ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**). The slot panel below has no such limit.
 
+    The **Filament ID Fixer** plugin (OrcaSlicer plugin catalogue) does this for you: filter `@K2`, select your presets, **Apply**, restart OrcaSlicer. Each preset is detached from its parent and gets its own `U…` ID (a backup zip is made first). Give that ID to the CFS filament in Mainsail (filament library → **OrcaSlicer preset…**, or `_BOX_FILAMENT_ORCA_ID ID=<filament> ORCA_ID=<U…>`). A detached preset no longer follows changes made to its parent.
+
 ## CFS panel
 
 After every slice for the K2, the panel opens beside the 3D view (or comes back if you closed it). It shows each CFS with its four spools (colour, material, name, remaining, temperature and humidity) and the project's filaments below.
@@ -46,7 +54,7 @@ After every slice for the K2, the panel opens beside the 3D view (or comes back 
 
 1. The plugin proposes a slot for each filament: same material, then closest colour.
 2. To change it: click the filament, then the spool. The ✕ leaves that filament to Kalico.
-3. **Upload and print**. The plugin writes the map into the G-code; Kalico applies it when the print starts.
+3. **Upload and print**. The plugin writes the map into the G-code at upload (or export) time, so choosing the slots after slicing is fine; Kalico applies it when the print starts. The plugin log shows `G-code map (OctoPrint): wrote ; K2OH_TOOL_MAP = …`.
 
 The map is written only for the printer preset and filament list it was chosen for, and only when **every filament the plate uses** has a slot. Otherwise nothing is written and Kalico maps the print automatically. Kalico also ignores, with a console message, a map whose slot is empty or offline.
 
@@ -76,3 +84,5 @@ Log: `k2oh_cfs.log` in the plugin's folder, `%APPDATA%\OrcaSlicer\orca_plugins\k
 
 - Kalico with `orca_filament_id` per filament (since 2026-10-09) for Sync.
 - Kalico with the slicer map in `box_print_mapping` (kalico-k2pro #87, 2026-10-21) for the panel's map.
+
+Verified on the reference printer on 2026-10-22: the uploaded file starts with `; K2OH_TOOL_MAP = 0:0` and Kalico reads it as tool 0 → slot 0 (CFS1·1).

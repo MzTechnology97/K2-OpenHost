@@ -34,7 +34,7 @@ Filament presets are not included: use OrcaSlicer's own, or Sync from the CFS ([
 
 1. OrcaSlicer 2.5 or later. Install the K2-OpenHost CFS plugin first, if you use it.
 2. Download the [`.orca_printer` bundle](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer), then **File → Import → Import Configs…**, choose it, **Open**. (Or select the printer JSON and the seven process JSON files together.)
-3. Select the printer **Creality K2 Pro 0.4 nozzle - newpurge-Kalico**, open its connection settings and enter the address of your K2-OpenHost host **with the Moonraker port**, for example `k2host.local:7125`. The address and the API key are empty in these files.
+3. Select the printer **Creality K2 Pro 0.4 nozzle - newpurge-Kalico**, open its connection settings and enter the address of your K2-OpenHost host **with the Moonraker port**, for example `k2host.local:7125`. In **Device UI** (advanced mode) put the plain address, `http://k2host.local`, so the Device tab keeps showing Mainsail. The address and the API key are empty in these files.
 4. Save the printer preset.
 
 ---
@@ -75,5 +75,5 @@ I preset dei filamenti non sono inclusi: usa quelli di OrcaSlicer, oppure il Syn
 
 1. OrcaSlicer 2.5 o successivo. Se lo usi, installa prima il plugin K2-OpenHost CFS.
 2. Scarica il [pacchetto `.orca_printer`](https://github.com/MzTechnology97/K2-OpenHost/raw/main/tools/orcaslicer/profiles/Creality%20K2%20Pro%200.4%20nozzle%20-%20newpurge-Kalico.orca_printer), poi **File → Importa → Importa configurazioni…**, sceglilo, **Apri**. (Oppure seleziona insieme il JSON della stampante e i sette JSON di processo.)
-3. Scegli la stampante **Creality K2 Pro 0.4 nozzle - newpurge-Kalico**, apri le impostazioni di connessione e inserisci l'indirizzo del tuo host K2-OpenHost **con la porta di Moonraker**, per esempio `k2host.local:7125`. Indirizzo e chiave API in questi file sono vuoti.
+3. Scegli la stampante **Creality K2 Pro 0.4 nozzle - newpurge-Kalico**, apri le impostazioni di connessione e inserisci l'indirizzo del tuo host K2-OpenHost **con la porta di Moonraker**, per esempio `k2host.local:7125`. In **Device UI** (modalità avanzata) metti l'indirizzo semplice, `http://k2host.local`, così la scheda Dispositivo continua a mostrare Mainsail. Indirizzo e chiave API in questi file sono vuoti.
 4. Salva il preset della stampante.
