@@ -1,0 +1,26 @@
+{
+    "accel_to_decel_enable": "0",
+    "compatible_printers": [
+        "Creality K2 Pro 0.4 nozzle - newpurge-Kalico"
+    ],
+    "enable_arc_fitting": "0",
+    "from": "User",
+    "gcode_label_objects": "1",
+    "infill_wall_overlap": "15%",
+    "inherits": "0.16mm Optimal @Creality K2 Pro 0.4 nozzle",
+    "name": "0.16mm Optimal @K2 Pro Kalico",
+    "plugins": [
+        "k2_openhost_cfs;;K2-OpenHost CFS G-code map"
+    ],
+    "print_extruder_id": [
+        "1"
+    ],
+    "print_extruder_variant": [
+        "Direct Drive Standard"
+    ],
+    "print_settings_id": "0.16mm Optimal @K2 Pro Kalico",
+    "slicing_pipeline_plugin": [
+        "K2-OpenHost CFS G-code map"
+    ],
+    "version": "2.3.2.75"
+}
