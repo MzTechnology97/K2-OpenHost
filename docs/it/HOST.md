@@ -10,8 +10,12 @@ L'host esterno del K2 Pro di riferimento, e come Klipper comanda la sua ventola 
 |---|---|
 | Modulo | Raspberry Pi **Compute Module 5** (revisione `d04180`): 8 GB di RAM, 32 GB di eMMC, Wi-Fi |
 | Scheda base | Waveshare **[CM5-IO-BASE-A](https://www.waveshare.com/wiki/CM5-IO-BASE-A)** |
-| Raffreddamento | dissipatore con ventola PWM a 4 pin sul connettore ventola della scheda |
+| Raffreddamento | Waveshare **CM5 Cooling Fan** `CM5-FAN-3007-B-5V`: dissipatore all-in-one dedicato in alluminio con ventola 30x07 mm 5 V PWM (8000 giri/min ±10 %), spina a 4 pin sul connettore ventola della scheda |
 | Sistema | Raspberry Pi OS (Debian 12 bookworm), kernel `6.12.109+rpt-rpi-2712` |
+
+| Scheda base: Waveshare CM5-IO-BASE-A | Dissipatore: Waveshare CM5-FAN-3007-B-5V |
+| :---: | :---: |
+| ![Scheda base Waveshare CM5-IO-BASE-A](../images/hardware/cm5-io-base-a.jpg){ width="340" } | ![Dissipatore Waveshare CM5-FAN-3007-B-5V](../images/hardware/cm5-fan-3007.jpg){ width="340" } |
 
 Il 5 ottobre 2026 il CM5 era ancora montato su una Waveshare **CM4-IO-BASE-A**. Le porte USB di quella scheda erano tutte USB 2.0 dietro un unico hub su `dwc2`, e il suo connettore ventola era comandato via I2C da un controller EMC2301. [Bridge USB](USB_BRIDGE.md#le-porte-usb-30-del-cm5-e-la-scheda-base) descrive quella configurazione e perché la scheda è stata cambiata.
 
