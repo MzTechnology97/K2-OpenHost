@@ -6,7 +6,7 @@ Tutte le immagini sono per la scheda CFS **`cfs0_050_G32`** con applicazione sto
 
 | Immagine | Identità / feature | Parametri scrivibili | Stato | Usala per |
 | --- | --- | --- | --- | --- |
-| **CFG6 v3.25** | `K2OH` / `v323-cfg6` / `0xE3` | **23** (ID 1–3, 5–9, 11–24, 27) + residuo type-4 in tempo reale | Installata sul CFS di riferimento; 23/23 SET/GET verificati a riposo; movimento/RFID non qualificati | L'ultima, tutte le funzioni sbloccate |
+| **CFG6 v3.25** | `K2OH` / `v323-cfg6` / `0xE3` | **23** (ID 1–3, 5–9, 11–24, 27); percorso residuo type-4 **sperimentale** | 23/23 SET/GET verificati a riposo; stampe type-4 **non qualificate** ([#59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59)) | Ultima build pubblicata CFG6, solo per test consapevoli |
 | CFG5T v3.24 | `K2OH` / `v323-cfg5t` / `0xE5` | 8 (ID 1, 2, 3, 5, 7, 8, 20, 22) + residuo type-4 in tempo reale | Sperimentale | Rollback da CFG6 |
 | CFG4 v3.23 | `K2OH` / `v323-cfg4` / `0xD7` | 6 (ID 1, 2, 3, 5, 7, 8) | Storica | — |
 | v3.22 | `0xD7` | sonde in sola lettura | **Provata sul campo**: caricamento/scaricamento e stampe lunghe | **Immagine di recupero** |
@@ -31,12 +31,16 @@ Immagini, sorgenti, builder e test offline: [k2-cfs-rfid-tools/firmware](https:/
 | Vuoi | Usa |
 | --- | --- |
 | Un CFS che funziona e basta | **Firmware stock** (nessun flash) |
-| Tutti i parametri sbloccati e il residuo in tempo reale | **CFG6 v3.25**, tenendo v3.22 e CFG5T per il rollback |
+| Provare i 23 parametri modificabili CFG6 in un ambiente controllato | **CFG6 v3.25**, tenendo un'immagine funzionante e v3.22 per il rollback; residuo type-4 non qualificato |
 | Recuperare un CFS dopo un esperimento fallito | **v3.22** |
 
 ## Storia
 
 v3.19 (`0xF7`, banco di prova in RAM volatile), v3.20 (`0xB7`, agganci di temporizzazione), v3.21 (`0x97`, protezione busy incompleta) e le build RFID v3.3/v3.6–v3.11 restano nella storia del repository del firmware ma sono state tolte dal menu dell'helper.
+
+## Candidata con fix RFID: NON FLASHARE
+
+La build sperimentale **CFG6 type-4 rescan fix** della [PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60) **non è una nuova versione hardware-qualificata**: il flash del 24 ottobre 2026 si è interrotto in `send fw data` e la CFS è stata ripristinata con la CFG6 v3.25. Mantiene la **stessa identità interna `v323-cfg6 / 0xE3`**: non usare il numero mostrato dall'applicazione per stabilire se un flash è riuscito. Il rapporto è nella [PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60); **non riprovare il BIN candidato** finché il trasferimento non sarà stato diagnosticato.
 
 ## Problema noto aperto
 
