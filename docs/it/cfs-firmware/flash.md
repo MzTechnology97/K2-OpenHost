@@ -84,7 +84,7 @@ Un rollback si esegue **solo a stampante ferma**, dopo aver confermato che il lo
 
 Eseguilo dallo slot B con la stampante ferma. Un aggiornamento del CFS da un OTA Creality stock nello slot A fa lo stesso.
 
-## Se il flash si interrompe a metà
+## Se il flash si interrompe a metà { #interrupted-flash }
 
 **Non ripetere automaticamente il flash che ha appena fallito**, soprattutto se il BIN è sperimentale.
 
