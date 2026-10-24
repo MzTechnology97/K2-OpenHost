@@ -72,7 +72,7 @@ The same operation from the command line:
 
 ## Roll back
 
-Flash the recovery image the same way (menu 40, **v3.22**), or the previous experimental image (CFG5T). If the CFS stops answering after an experimental image, the v3.22 image restores bus communication.
+Roll back **only while the printer is idle**, after confirming that the CFS loader responds and that the G32/APP153 image passes SHA-256 and compatibility checks. Prefer **the last image actually working on your CFS** (for example CFG6 v3.25); keep v3.22, CFG5T or stock as appropriate alternatives. **No firmware is guaranteed to recover every interrupted write**: if rollback also fails to receive ACKs, stop repeated attempts and diagnose the bus/loader.
 
 ## Back to stock CFS firmware
 
@@ -84,6 +84,14 @@ Flash the recovery image the same way (menu 40, **v3.22**), or the previous expe
 
 Run it from slot B with the printer idle. A CFS update from a stock Creality OTA in slot A does the same.
 
-## If the flash fails half-way
+## If the flash fails half-way { #interrupted-flash }
 
-Run the same command again: Creality's updater restarts each transfer from the beginning. The log on the printer is `/tmp/mcu_update.log`. Keep the printer powered.
+**Do not automatically repeat the flash that just failed**, particularly for experimental firmware.
+
+1. Keep power stable; **do not print, home, load or unload filament**. Preserve the T113 `/tmp/mcu_update.log` and record the image filename and SHA-256.
+2. Distinguish `send fw data ... failed` (data transfer has not reached the final **DONE** response) from `START_APP NACK` (later startup failure). The former **does not prove the new application ever executed**.
+3. With the printer idle, heater targets at zero and **exclusive ownership of the RS-485 bus**, check whether the CFS is discoverable in **loader** or **application** mode. `A1/A2` diagnostics and mode transitions are maintenance operations, not actions for an active print.
+4. If the loader responds, choose a **known-good, SHA-256-verified image already tested on that CFS**, rather than blindly retrying the experimental candidate. Creality's updater starts a new transfer from offset zero; it does not guarantee resume. If CFS discovery fails or the rollback also times out, **stop further writes** and investigate hardware/transport.
+5. After recovery, verify `A2` reports **`mode=application`**, CFS enumeration and normal application queries. An `F0/02` **ACK alone is not proof** of application startup. The documented `0B/01` fallback belongs in a supervised maintenance procedure. Verify RS-485 and X/Y motor readiness before returning to use.
+
+**Documented incident — October 24, 2026:** the type-4 RFID fix candidate in [CFG6 PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60) remained in loader mode after `send fw data` timeouts; the prior CFG6 v3.25 was restored successfully. The log does not establish a crash of the candidate application. **Do not flash PR #60 again** until it is qualified; see the [transport forensics](https://github.com/MzTechnology97/k2-cfs-rfid-tools/blob/fix/cfg6-type4-runtime-accounting/firmware/v3.26-cfg6-type4-fix/FLASH_FAILURE_AUDIT_20261024_IT.md).

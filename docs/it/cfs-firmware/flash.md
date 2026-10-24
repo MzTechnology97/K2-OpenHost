@@ -72,7 +72,7 @@ La stessa operazione da riga di comando:
 
 ## Rollback { #roll-back }
 
-Flasha l'immagine di recupero allo stesso modo (menu 40, **v3.22**), oppure l'immagine sperimentale precedente (CFG5T). Se il CFS smette di rispondere dopo un'immagine sperimentale, l'immagine v3.22 ripristina la comunicazione sul bus.
+Un rollback si esegue **solo a stampante ferma**, dopo aver confermato che il loader della CFS risponde e che l'immagine destinata all'hardware G32/APP153 è integra (SHA-256). Prediligi **l'ultima immagine effettivamente funzionante sulla tua CFS** (per esempio CFG6 v3.25); tieni anche v3.22, CFG5T o stock come alternative, secondo la compatibilità. **Nessun firmware garantisce il recupero di ogni scrittura interrotta**: se anche il rollback non ottiene ACK, interrompi i tentativi e diagnostica il bus/loader.
 
 ## Tornare al firmware CFS stock { #back-to-stock-cfs-firmware }
 
@@ -84,6 +84,14 @@ Flasha l'immagine di recupero allo stesso modo (menu 40, **v3.22**), oppure l'im
 
 Eseguilo dallo slot B con la stampante ferma. Un aggiornamento del CFS da un OTA Creality stock nello slot A fa lo stesso.
 
-## Se il flash si interrompe a metà
+## Se il flash si interrompe a metà { #interrupted-flash }
 
-Riesegui lo stesso comando: l'updater di Creality ricomincia ogni trasferimento dall'inizio. Il log sulla stampante è `/tmp/mcu_update.log`. Tieni la stampante accesa.
+**Non ripetere automaticamente il flash che ha appena fallito**, soprattutto se il BIN è sperimentale.
+
+1. Mantieni l'alimentazione stabile e **non avviare stampa, homing o carico/scarico**. Raccogli subito il log T113 `/tmp/mcu_update.log` e annota l'immagine e il suo SHA-256.
+2. Distingui `send fw data ... failed` (il trasferimento non è arrivato alla risposta finale **DONE**) da `START_APP NACK` (errore in una fase successiva). Nel primo caso **non è dimostrato che il nuovo firmware abbia eseguito codice**.
+3. Con stampante ferma, riscaldatori spenti ed **esclusività del bus RS-485**, verifica se la CFS risponde ancora come **loader** o come **applicazione**. La diagnostica con `A1/A2` e le eventuali transizioni di modalità non vanno eseguite durante la stampa e possono richiedere la procedura protetta sul T113.
+4. Se il bootloader è raggiungibile, preferisci l'immagine **già collaudata su quella CFS** e con checksum confermato, non un'altra prova dello stesso firmware sperimentale. L'updater Creality ricomincia da offset zero: non esiste un resume garantito. Se la CFS non è più visibile o il trasferimento fallisce ancora, **ferma i tentativi**; non è assicurato un recupero software.
+5. Dopo il rollback, verifica la risposta `A2` con **`mode=application`**, l'enumerazione CFS e i comandi applicativi. Un semplice `ACK` a `F0/02` **non basta**; il fallback `0B/01` è documentato ma va gestito solo da una procedura di manutenzione controllata. Controlla anche RS-485 e motori X/Y prima dell'uso.
+
+**Incidente documentato — 24 ottobre 2026:** la CFG6 candidata al fix RFID [PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60) è rimasta nel loader dopo timeout `send fw data`; la precedente CFG6 v3.25 è stata ripristinata. Il log non prova un crash dell'applicazione candidata. **Non usare la build della PR #60 per un altro flash** finché non sarà qualificata. Vedi l'[analisi del trasferimento](https://github.com/MzTechnology97/k2-cfs-rfid-tools/blob/fix/cfg6-type4-runtime-accounting/firmware/v3.26-cfg6-type4-fix/FLASH_FAILURE_AUDIT_20261024_IT.md).
