@@ -84,7 +84,7 @@ Roll back **only while the printer is idle**, after confirming that the CFS load
 
 Run it from slot B with the printer idle. A CFS update from a stock Creality OTA in slot A does the same.
 
-## If the flash fails half-way
+## If the flash fails half-way { #interrupted-flash }
 
 **Do not automatically repeat the flash that just failed**, particularly for experimental firmware.
 
