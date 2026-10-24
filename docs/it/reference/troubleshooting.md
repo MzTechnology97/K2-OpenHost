@@ -57,8 +57,8 @@ Trova il tuo sintomo, controlla la causa, applica la soluzione. Parti da `./help
 | --- | --- |
 | `BOX_CFS_CONFIG_INFO` non mostra un'identità | Firmware stock o precedente: non viene scritto nulla, è normale |
 | All'avvio vengono elencate opzioni ignorate | Opzione non scrivibile su questo firmware (es. opzione CFG6 su CFG5T) o fuori intervallo: correggi `box.cfg` |
-| Il CFS non risponde più dopo un flash | Flasha l'immagine di recupero **v3.22** ([Flash e rollback](../cfs-firmware/flash.md#roll-back)) |
-| Flash interrotto | Riesegui lo stesso comando; log in `/tmp/mcu_update.log` sulla T113 |
+| Il CFS non risponde più dopo un flash | **Non ritentare subito il firmware sperimentale.** Verifica se il dispositivo è in modalità loader (`A2`, da diagnostica in manutenzione), controlla `/tmp/mcu_update.log` e la [procedura di recupero](../cfs-firmware/flash.md#se-il-flash-si-interrompe-a-metà). Se il loader risponde e tutte le condizioni di sicurezza sono soddisfatte, usa un'immagine **già funzionante e con SHA-256 verificato** (CFG6 v3.25, v3.22 o stock, secondo l'hardware). |
+| Flash interrotto / `send fw data ... failed` | Il log può indicare un **trasferimento incompleto**, non un crash del firmware avviato. Non ripetere alla cieca lo stesso BIN: conserva il log `/tmp/mcu_update.log`, verifica loader e indirizzo CFS, assenza di stampa/riscaldamento e rollback disponibile; vedi [Flash e rollback](../cfs-firmware/flash.md#se-il-flash-si-interrompe-a-metà). |
 
 ## Mainsail, Moonraker, schermo
 
