@@ -4,7 +4,7 @@ Ogni bobina nel CFS mostra una **percentuale di residuo**. K2-OpenHost ha due fo
 
 | Fonte | Dove viene calcolata | Disponibile con |
 | --- | --- | --- |
-| **CFS** (`cfs`) | Nel CFS: l'odometro misura il filamento realmente tirato e il conteggio "type-4" stock lo trasforma in percentuale, in tempo reale durante la stampa | **CFG5T v3.24** e **CFG6 v3.25** |
+| **CFS** (`cfs`) | Il firmware include un percorso di contabilizzazione RAM basato su odometro; il comportamento continuo su tag type-4 di terze parti **non è ancora validato** | **CFG5T v3.24** e **CFG6 v3.25** (sperimentali) |
 | **Kalico** (`kalico`) | Sull'host: lunghezza nominale della bobina, meno il filamento misurato dall'encoder del percorso del CFS (o `print_stats` se l'encoder non è disponibile), salvato per UID del tag | Qualsiasi firmware CFS |
 
 La stima di Kalico è sempre attiva: è il **fallback** quando il CFS non fornisce un valore in tempo reale.
@@ -79,5 +79,9 @@ Per una singola bobina diversa (parzialmente usata, da 3 kg):
 _BOX_RFID_SPOOL_NEW SLOT=<slot-globale> TOTAL_M=<metri> REMAINING=<0..100>
 ```
 
-!!! note "Stato"
-    Il contratto SET/GET del CFS e l'identità sono verificati su hardware. I valori type-4 durante una **vera stampa lunga** sono ancora in validazione: tieni `cfs_live_remaining: True` e confronta `cfs` con quello che la bobina contiene davvero. Se qualcosa non torna, `cfs_live_remaining: False` torna alla stima di Kalico.
+!!! warning "CFG6: residuo type-4 non qualificato"
+    Con CFG6 v3.25, durante una stampa reale del **23 ottobre 2026**, la percentuale comunicata dalla CFS è rimasta attorno al **35%** mentre avanzava il consumo di filamento. È documentato nella [issue #59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59). Un reset del contatore durante reinizializzazione RFID è stato riprodotto **offline** nella [PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60), ma **non è ancora dimostrato** che sia stato l'evento effettivo della stampa.
+
+    Il contratto SET/GET e l'identità verificati a riposo **non** dimostrano che la stima type-4 funzioni durante una stampa lunga. `rfid_remaining_source: cfs` significa solo che l'host sta usando quel valore, **non** che sia accurato. Se osservi una percentuale bloccata, il passaggio documentato `cfs_live_remaining: False` usa la stima Kalico: applica eventuali modifiche alla configurazione **solo a stampa terminata**, e verifica i dati dell'encoder e la lunghezza nominale; anche la stima host richiede validazione.
+
+    **Non flashare la CFG6 con fix type-4 della PR #60**: il primo trasferimento sperimentale del 24 ottobre è fallito ed è stato effettuato il rollback alla v3.25 funzionante.
