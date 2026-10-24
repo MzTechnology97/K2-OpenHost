@@ -4,7 +4,7 @@ Every spool in the CFS shows a **remaining percentage**. K2-OpenHost has two sou
 
 | Source | Where it is computed | Available on |
 | --- | --- | --- |
-| **CFS** (`cfs`) | In the CFS: the odometer measures the filament actually drawn and the stock "type-4" accounting turns it into a percentage, live during the print | **CFG5T v3.24** and **CFG6 v3.25** |
+| **CFS** (`cfs`) | Firmware includes an odometer-based RAM accounting path; continuous accounting for third-party type-4 tags **has not been hardware-qualified** | **CFG5T v3.24** and **CFG6 v3.25** (experimental) |
 | **Kalico** (`kalico`) | On the host: nominal spool length, minus the filament measured by the CFS path encoder (or `print_stats` when the encoder is not available), saved by tag UID | Any CFS firmware |
 
 The Kalico estimate is always running: it is the **fallback** when the CFS gives no live value.
@@ -79,5 +79,9 @@ For one spool that differs (part-used, 3 kg):
 _BOX_RFID_SPOOL_NEW SLOT=<global-slot> TOTAL_M=<metres> REMAINING=<0..100>
 ```
 
-!!! note "Status"
-    The CFS SET/GET contract and the identity are verified on hardware. The type-4 values during a **real long print** are still being validated: keep `cfs_live_remaining: True` and compare `cfs` with what the spool actually holds. If something looks wrong, `cfs_live_remaining: False` goes back to the Kalico estimate.
+!!! warning "CFG6: type-4 remaining is not hardware-qualified"
+    On **October 23, 2026**, CFG6 v3.25 reported a remaining percentage stuck around **35%** during an actual print while filament consumption increased. See [issue #59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59). An active-print RFID reinitialization counter reset was reproduced **offline** in [PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60), but that event has **not been confirmed as the cause in the real print**.
+
+    Idle SET/GET and firmware identity readback **do not** validate live type-4 accounting. `rfid_remaining_source: cfs` indicates the host is using the reported value, **not that the value is accurate**. When the value is stuck, the documented `cfs_live_remaining: False` setting uses the Kalico estimate instead; apply configuration changes **only after the print ends**, and verify encoder movement and nominal spool length. The host estimate itself still requires validation.
+
+    **Do not flash the type-4 fix candidate from PR #60**: its first experimental transfer failed on October 24, and the working v3.25 was restored.

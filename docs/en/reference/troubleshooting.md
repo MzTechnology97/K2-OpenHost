@@ -57,8 +57,8 @@ Find your symptom, check the cause, apply the fix. Start with `./helper.sh docto
 | --- | --- |
 | `BOX_CFS_CONFIG_INFO` shows no identity | Stock or older firmware: nothing is written, this is normal |
 | Startup lists ignored options | Option not writable on this firmware (e.g. CFG6 option on CFG5T) or out of range: fix `box.cfg` |
-| CFS stops answering after a flash | Flash the **v3.22** recovery image ([Flash and roll back](../cfs-firmware/flash.md#roll-back)) |
-| Flash interrupted | Run the same command again; log in `/tmp/mcu_update.log` on the T113 |
+| CFS stops answering after a flash | **Do not immediately retry the experimental image.** Check whether the device is still in loader mode (A2, during supervised maintenance), examine `/tmp/mcu_update.log`, and follow the [interrupted-flash recovery procedure](../cfs-firmware/flash.md#interrupted-flash). If the loader responds and the safety prerequisites are met, use a **known-good image with verified SHA-256** (previous CFG6 v3.25, v3.22 or stock, as appropriate for the hardware). |
+| Flash interrupted / `send fw data ... failed` | The log may indicate an **incomplete transfer**, not an application crash. Do not blindly resend the failed BIN. Preserve `/tmp/mcu_update.log`, confirm loader/CFS address, printer and heaters idle, and a verified rollback image; see [Flash and roll back](../cfs-firmware/flash.md#interrupted-flash). |
 
 ## Mainsail, Moonraker, screen
 

@@ -13,7 +13,7 @@ Il CFS ha un suo microcontrollore (`cfs0_050_G32`) che esegue l'applicazione di 
 | --- | --- | --- |
 | Parametri runtime (velocità dell'hub, timeout, movimenti RFID, cicli di pretensionamento) | Fissi | **23 scrivibili** su 28, applicati da Kalico all'avvio |
 | Identità del firmware leggibile dall'host | No | `0x7A` → `K2OH`, revisione `v323-cfg6`, feature `0xE3` |
-| Residuo in tempo reale delle bobine type-4 durante la stampa | Solo con il chip sicuro di Creality | **Sì**: il CFS conta l'odometro e Kalico lo segue |
+| Residuo in tempo reale delle bobine type-4 durante la stampa | Solo con il chip sicuro di Creality | **Sperimentale, non qualificato**: il percorso di contabilizzazione è presente, ma con CFG6 v3.25 è stata osservata una percentuale bloccata ([#59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59)) |
 | Tag RFID di terze parti (Bambu, MIFARE) | No | Cattura API7 nella linea v3.12 e successive (vedi [RFID di terze parti](third-party-rfid.md)) |
 | Diagnostica (`BOX_CFS_CONFIG_INFO`, `BOX_CFS_CONFIG_DIAG`) | Solo le velocità v1 stock | GET in sola lettura di tutti i 28 parametri con controllo dei limiti |
 
@@ -30,6 +30,7 @@ flowchart LR
 - Kalico scrive i parametri **solo** su un CFS che si identifica con l'identità esatta, **solo all'avvio di Klipper** (o quando il CFS ritorna) e **mai durante la stampa**. Ogni scrittura viene riletta.
 - **Non esiste un comando di scrittura da console**: i valori arrivano solo da `box.cfg`. Firmware stock, build K2-OpenHost precedenti e OpenCFS vengono solo letti.
 - I valori vivono nella RAM del CFS: si perdono quando il CFS si spegne e vengono riscritti al successivo avvio di Klipper.
+- La build con fix RFID type-4 della [PR #60](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/60) **non è qualificata e non va flashata**: il tentativo del 24 ottobre si è interrotto durante il trasferimento.
 
 ## Pagine
 
