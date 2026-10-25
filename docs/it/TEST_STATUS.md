@@ -132,7 +132,7 @@ Dettagli: [Validazione CFS](CFS_VALIDATION.md) e [Mappatura CFS delle stampe](CF
 - associazione automatica di T0 a Box 1, slot 4 (`print_mapping.map = {"0": 3}`), caricamento dal CFS (1,48 m), spurgo di 100 mm nel cestino, T0 pronto in 91 s;
 - dopo circa 7 ore la bobina dello slot 4 è finita e la stampa è proseguita da sola con lo slot 2 (sezione successiva).
 
-All'89 %, dopo 15 ore, nessun errore. Il risultato finale lo aggiungo a stampa finita.
+Completata il 6 ottobre alle 10:45: 16 h 50 min di stampa, 129 m di filamento, nessun errore.
 
 Collegamenti durante la stampa, da `link_monitor.csv` (930 righe da un minuto per canale):
 

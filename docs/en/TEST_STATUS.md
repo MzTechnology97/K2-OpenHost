@@ -132,7 +132,7 @@ Details: [CFS validation](CFS_VALIDATION.md) and [CFS print mapping](CFS_PRINT_M
 - automatic mapping of T0 to Box 1, slot 4 (`print_mapping.map = {"0": 3}`), CFS load (1.48 m fed), 100 mm purge at the wastebin, T0 ready in 91 s;
 - after about 7 h the spool in slot 4 ran out and the print went on from slot 2 by itself (next section).
 
-At 89 % after 15 h there were no errors. The final result will be added when it ends.
+It completed on 2026-10-06 at 10:45: 16 h 50 min of printing, 129 m of filament, no errors.
 
 Link figures during the print, from `link_monitor.csv` (930 one-minute rows per channel):
 
