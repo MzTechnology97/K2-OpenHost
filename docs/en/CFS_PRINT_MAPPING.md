@@ -200,6 +200,6 @@ A two-tool PETG `cubo.gcode` was inspected successfully. With temporary black an
 1. single-tool `BOX_PRINT_START` started from the Mainsail mapping dialog (the automatic mapping on a normal start is done);
 2. controlled multi-material tool change including purge matrix and temperature handling;
 3. pause/resume with a slot change during a mapped job (the runout swap without a pause is done);
-4. real-time RFID remaining estimate over a complete print, and the complete print itself: an 18-hour single-colour print was at 89 % with no errors on 2026-10-06.
+4. real-time RFID remaining estimate checked against the real spool over a complete print (a complete 18-hour single-colour print is done: 2026-10-06, no errors).
 
 Do not classify the mapped CFS print path as production-ready until those hardware tests are complete.

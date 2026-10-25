@@ -200,6 +200,6 @@ Un `cubo.gcode` PETG a due tool è stato analizzato correttamente. Con metadata 
 1. `BOX_PRINT_START` monocolore avviato dalla finestra di mappatura di Mainsail (l'associazione automatica all'avvio normale è fatta);
 2. cambio utensile multimateriale controllato, con matrice di spurgo e temperature;
 3. pausa e ripresa con cambio slot durante una stampa mappata (il cambio bobina senza pausa è fatto);
-4. stima residua RFID in tempo reale su una stampa completa, e la stampa completa stessa: una stampa monocolore di 18 ore era all'89 % senza errori il 6 ottobre 2026.
+4. stima residua RFID in tempo reale confrontata con la bobina vera su una stampa completa (una stampa monocolore completa di 18 ore è fatta: 6 ottobre 2026, nessun errore).
 
 Il percorso di stampa CFS mappato non va considerato production-ready finché questi test hardware non sono conclusi.
