@@ -6,7 +6,7 @@ Aggiornato al **18 ottobre 2026**.
 
 K2-OpenHost ha superato la sola validazione del trasporto. La K2 Pro reale raggiunge ora una baseline OpenHost funzionante con Main MCU, Nozzle MCU, motor-control RS-485, homing PRTouch, heater e test risonanza gestiti dal CM5/host Kalico esterno. Lo stack CFS/Box Jacobean gira ora in modalità operativa (`observation_mode: false`) nel servizio Kalico completo.
 
-La prima stampa lunga è andata il 5-6 ottobre (PLA, stima 18 h 44 min), con associazione automatica dello slot, caricamento dal CFS e cambio bobina automatico a metà stampa. Restano da provare sull'hardware: Cartographer in **USB diretta al CM5**, una stampa a più colori con cambi utensile, pausa e ripresa con cambio slot, e la ripresa dopo un'interruzione di corrente.
+La prima stampa lunga è andata il 5-6 ottobre (PLA, stima 18 h 44 min), con associazione automatica dello slot, caricamento dal CFS e cambio bobina automatico a metà stampa. Cartographer in **USB diretta al CM5** è validato in mixed mode dal 26/10/2026 ([Cartographer](CARTOGRAPHER.md)). Restano da provare sull'hardware: una stampa a più colori con cambi utensile, pausa e ripresa con cambio slot, e la ripresa dopo un'interruzione di corrente.
 
 ## Verificato
 
@@ -281,7 +281,7 @@ Il plugin K2/OpenHost Cartographer è stato installato come pacchetto editable e
 
 Il bridge sperimentale **non** è il trasporto finale. Reset/re-enumeration Cartographer e lifecycle delle PTY rendono inutile la complessità quando è disponibile USB diretta sul CM5; inoltre un test è stato influenzato da un processo bridge GS2 duplicato. La topologia preferita è quindi Cartographer USB diretto al CM5.
 
-Il plugin Cartographer ufficiale offre `register_as_probe: false` per il futuro mixed mode PRTouch + Cartographer. Il workflow Z automatico mixed non è ancora validato su hardware.
+Il plugin Cartographer ufficiale offre `register_as_probe: false` per il futuro mixed mode PRTouch + Cartographer. Il mixed mode (PRTouch per Z, Cartographer per la mesh) è stato validato in USB diretta il 26/10/2026, vedi [Cartographer](CARTOGRAPHER.md).
 
 ## Integrazione repository
 

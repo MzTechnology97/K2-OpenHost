@@ -6,7 +6,7 @@ Last updated: **2026-10-18**.
 
 K2-OpenHost has moved beyond transport-only validation. The real K2 Pro now reaches a working external-Kalico baseline with Main MCU, Nozzle MCU, RS-485 motor control, PRTouch homing, heaters and resonance measurement operating from the CM5/external host. The Jacobean CFS/Box stack now runs in operational mode (`observation_mode: false`) in the full Kalico service.
 
-The first long print ran on 2026-10-05/06 (PLA, 18 h 44 min estimate), with automatic mapping, CFS loading and an automatic runout swap halfway through. Still to do on hardware: Cartographer on **direct USB to the CM5**, a multi-colour print with tool changes, pause/resume with a slot change, and power-loss recovery.
+The first long print ran on 2026-10-05/06 (PLA, 18 h 44 min estimate), with automatic mapping, CFS loading and an automatic runout swap halfway through. Cartographer on **direct USB to the CM5** is validated in mixed mode since 2026-10-26 ([Cartographer](CARTOGRAPHER.md)). Still to do on hardware: a multi-colour print with tool changes, pause/resume with a slot change, and power-loss recovery.
 
 ## Verified
 
@@ -281,7 +281,7 @@ The K2/OpenHost Cartographer plugin has been installed as an editable package an
 
 The experimental bridge is **not** the final transport. Cartographer reset/re-enumeration and PTY lifecycle made that path unnecessarily fragile, and one test was additionally affected by a duplicate GS2 bridge process. The preferred topology is now direct Cartographer USB to the CM5.
 
-The official Cartographer plugin provides `register_as_probe: false` for a future mixed PRTouch + Cartographer mode. That mixed automatic-Z workflow remains unvalidated on hardware.
+The official Cartographer plugin provides `register_as_probe: false` for a future mixed PRTouch + Cartographer mode. Mixed mode (PRTouch for Z, Cartographer for the mesh) was validated on direct USB on 2026-10-26, see [Cartographer](CARTOGRAPHER.md).
 
 ## Repository integration verified
 
