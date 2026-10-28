@@ -94,6 +94,8 @@ Operational-mode Box state, RFID reads and auto-mapping are already validated (s
 
 Implemented in the [T113 bootstrap](T113_BOOTSTRAP.md): slot B runs only the gadget, the bridges, Wi-Fi and HelixScreen pointed at the external host's Moonraker. Running on the reference printer since 2026-10-06.
 
+Since 2026-10-28 the screen uses the [K2-OpenHost fork of HelixScreen](https://github.com/MzTechnology97/helixscreen), with its own [roadmap](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md) (Italian): Kalico CFS data, a native filament library, smoothness.
+
 ## Phase 6 — persistent deployment
 
 Only after the full runtime and print stack is proven:

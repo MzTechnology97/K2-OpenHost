@@ -1,18 +1,50 @@
 # HelixScreen (printer screen)
 
-In slot B the printer's own touch screen runs **[HelixScreen](https://github.com/prestonbrown/helixscreen)**, connected to Moonraker on the host. The T113 bootstrap installs it on the first boot of slot B, already pointed at the host.
+In slot B the printer's own touch screen runs **HelixScreen**, connected to Moonraker on the host. The T113 bootstrap installs it on the first boot of slot B, already pointed at the host.
+
+K2-OpenHost uses its own fork, **[MzTechnology97/helixscreen](https://github.com/MzTechnology97/helixscreen)** (branch `k2-openhost`), based on prestonbrown's [HelixScreen](https://github.com/prestonbrown/helixscreen). Fork versions are the base version plus our build number: `1.0.6-k2oh.1` is the first build on 1.0.6.
 
 ## What works
 
 - Printer status, temperatures, movement, files, print start/pause/cancel.
-- The CFS: HelixScreen reads the stock K2 `box` shape that K2-OpenHost publishes next to its own, and sends the stock K2 commands (`BOX_MODIFY_TN`, `CR_BOX_*`, ...), which K2-OpenHost accepts and runs with its own change engine.
+- The CFS: HelixScreen reads the `slots[]` shape Kalico publishes in `box` (Fork dialect, `api_version` 1) and sends the K2 commands (`BOX_MODIFY_TN`, `CR_BOX_*`, ...), which Kalico runs with its own change engine.
 - The filament pickers show **only the host's filament library** (see below).
+
+## What the fork changes
+
+| | HelixScreen 1.0.6 | K2-OpenHost fork |
+| --- | --- | --- |
+| Colour after a spool is reinserted | Often grey, in OrcaSlicer too: HelixScreen wrote its own `lane_data` before the RFID read | The tag's: only Kalico writes `lane_data` |
+| Tools T0–T3 on the slots | Always T*n* = slot *n* | During a print, the print's mapping (`print_mapping`); otherwise the CFS map (`box.map`). The active tool is the one routed through the loaded slot |
+| Remaining filament | Not shown | Remaining metres and fill bar, from the CFS or Kalico's estimate (see [Remaining filament](../cfs-firmware/remaining.md)) |
+| Moonraker wait at boot | `127.0.0.1:7125`, fixed again after every update | The Moonraker host in HelixScreen's settings |
+| Camera server on the T113 (`ustreamer`) | Always installed | Skipped when the T113 has no `/dev/video0`: in OpenHost the cameras are on the host |
+| In-app updates | From upstream's releases | Only from the fork's releases |
+
+Planned work is in the [fork roadmap](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md) (Italian).
+
+## Installing or updating the fork
+
+- **New install:** the helper downloads the fork's latest release (menu 24, answer **yes** to HelixScreen).
+- **Slot B running upstream HelixScreen:** with the printer idle, download the release on the host, copy it to the printer and install it with `k2oh-setup helix-update`:
+
+  ```sh
+  # on the host
+  curl -fLO https://github.com/MzTechnology97/helixscreen/releases/download/v1.0.6-k2oh.1/helixscreen-k2-v1.0.6-k2oh.1.tar.gz
+  scp -O helixscreen-k2-v1.0.6-k2oh.1.tar.gz root@<printer-IP>:/mnt/UDISK/
+  # on the printer (SSH)
+  k2oh-setup helix-update /mnt/UDISK/helixscreen-k2-v1.0.6-k2oh.1.tar.gz
+  ```
+
+  `helix-update` refuses while the printer is printing or when the host does not answer. It saves HelixScreen (settings included) and its init scripts to `/mnt/UDISK/.k2openhost/helix-backup/<date>`, runs the release's installer, then puts back the wait on the host's Moonraker and turns the camera server off. HelixScreen restarts two or three times within a few seconds.
+- **Later updates:** from HelixScreen's own update on the screen, which now reads only the fork's releases.
+- **Going back:** `k2oh-setup helix-restore`, with the printer idle. It puts the last saved version back and moves the replaced one to `/mnt/UDISK/.k2openhost/trash/` (nothing is deleted).
 
 ## Filament list from the host
 
 HelixScreen ships a catalog of about 360 presets. In slot B the service `k2oh-helix-filaments` replaces it with the library Mainsail and Kalico use: the CFS system filaments and your custom ones from `cfs_filaments.json`.
 
-- **Host → screen**: every 30 s the service reads the library from Moonraker and, when it changed, rewrites HelixScreen's catalog. The original is kept as `filaments.json.helix-orig`.
+- **Host → screen**: every 30 s the service reads the library from Moonraker and, when it changed, rewrites HelixScreen's catalog. The original is kept as `filaments.json.helix-orig`. After a HelixScreen update the service picks up the new catalog and replaces it again.
 - **Screen → host**: a filament created in HelixScreen is sent to Kalico (`_BOX_FILAMENT_SET ID=HXnnnn …`) while the printer is idle.
 - **During a print** the service only reads.
 
@@ -36,6 +68,8 @@ Log: `logread -e k2oh-helix`.
 | Helper | `./helper.sh t113 host <IP>` (menu 29) | Points HelixScreen at another host address |
 | Printer SSH | `k2oh-setup --host <IP>` | Same, on the printer |
 | Printer SSH | `k2oh-setup status` | First-boot setup state |
+| Printer SSH | `k2oh-setup helix-update <archive>` | Installs another HelixScreen release, printer idle only, with a backup |
+| Printer SSH | `k2oh-setup helix-restore` | Puts the last saved version back |
 
 ## Troubleshooting
 
@@ -44,3 +78,7 @@ Log: `logread -e k2oh-helix`.
 | The screen stays on the boot logo | `k2oh-setup status`, `cat /mnt/UDISK/.k2openhost/setup.log`, then `k2oh-setup` again. |
 | HelixScreen cannot reach Moonraker | Wrong host IP (menu 29), or the printer cannot reach the host on port 7125. |
 | A new filament does not appear | Wait 30 s; the service syncs while the printer is idle. `logread -e k2oh-helix`. |
+| A reinserted spool stays grey, in OrcaSlicer too | Upstream HelixScreen: install the fork. To fix the slot now, `_BOX_RFID_READ_SLOT SLOT=<n>` from the console. |
+| The tools on the slots do not follow the mapping | Upstream HelixScreen: install the fork. |
+| `helix-update` answers `printer state is printing` | Wait for the print to end. With `unreachable` the printer cannot reach Moonraker on the host. |
+| Something is wrong after an update | `k2oh-setup helix-restore`, and report it on the [fork](https://github.com/MzTechnology97/helixscreen/issues). |

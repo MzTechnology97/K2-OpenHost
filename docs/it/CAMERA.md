@@ -6,6 +6,8 @@ Aggiornato al **14 ottobre 2026**. [English](../en/CAMERA.md)
 
 Questa fotocamera funziona sull'host esterno con crowsnest e il driver `uvcvideo` di serie. Servono due impostazioni, senza le quali l'immagine diventa nera.
 
+Sul T113 non gira nessun server per le telecamere: il bootstrap spegne l'`ustreamer` configurato dall'installer di HelixScreen, e il fork K2-OpenHost di HelixScreen non lo installa se il T113 non ha `/dev/video0`.
+
 ## Configurazione
 
 In `~/printer_data/config/crowsnest.conf`, nella sezione `[cam]` della fotocamera:
