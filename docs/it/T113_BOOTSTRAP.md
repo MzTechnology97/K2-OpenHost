@@ -26,7 +26,7 @@ Il bootstrap del T113 prepara la scheda T113 della K2 Pro per K2-OpenHost. È sv
 - **`k2oh-mcu`:** a ogni avvio spegne e riaccende l'alimentazione delle MCU, esegue `mcu_update` originale di Creality (avvia le applicazioni di Main e Nozzle MCU e riscrive ogni scheda con una versione diversa) e solo dopo avvia i bridge. Al primo avvio `mcu_update` girava insieme ai bridge, che gli prendevano le risposte: le schede restavano nel loader Creality.
 - **Nomi seriali sull'host:** il gadget dello slot B ha nomi `/dev/serial/by-id` diversi da quelli del gadget originale dello slot A. L'host usa `/dev/k2-main`, `/dev/k2-nozzle` e `/dev/k2-rs485` (udev, per interfaccia), uguali nei due slot; li imposta l'installer helper.
 - **Wi-Fi:** funziona senza il `wifi-server` Creality, con le reti copiate dallo slot A.
-- **HelixScreen:** installato al primo avvio e collegato al Moonraker dell'host esterno.
+- **HelixScreen:** il [fork K2-OpenHost](https://github.com/MzTechnology97/helixscreen) (`1.0.6-k2oh.N`), installato al primo avvio e collegato al Moonraker dell'host esterno. `k2oh-setup helix-update <archivio>` installa un'altra release a stampante ferma, con backup; `k2oh-setup helix-restore` rimette la precedente. Vedi [HelixScreen](usage/helixscreen.md).
 - **`k2oh-helix-filaments`:** i selettori dei filamenti di HelixScreen mostrano solo la libreria dell'host (i filamenti CFS di sistema di Kalico più i tuoi in `cfs_filaments.json`), non i circa 360 preset di HelixScreen.
   - La libreria è sincronizzata ogni 30 s.
   - Un filamento creato sullo schermo arriva a Kalico a stampante ferma.
@@ -39,6 +39,7 @@ Disattivati:
 - le app di interfaccia e cloud;
 - ADB (prenderebbe il controller USB);
 - la telecamera WebRTC;
+- il server della telecamera che l'installer di HelixScreen configura (`ustreamer`): le telecamere sono collegate all'host, e sul T113 riprovava a vuoto `/dev/video0` (circa il 5 % di CPU fisso);
 - l'OTA da chiavetta (un OTA dallo slot B sovrascriverebbe lo slot A);
 - il ripristino di fabbrica (`wipe_data`);
 - il riavvio della telecamera della camera (sulla K2 Pro riporta la USB0 in modalità host).

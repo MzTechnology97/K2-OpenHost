@@ -16,7 +16,7 @@ Expected: `API=7`, `readers=2`, `slots/reader=2`, `caps=0xE8`. On a firmware wit
 
 1. The CFS does its normal Creality read. **A Creality tag always wins.**
 2. Only if the record is empty or unknown, Kalico looks at the UID, ATQA and SAK the CFS already captured (no extra RF). A slot with no tag, or a tag that is not MIFARE Classic 1K, stops here.
-3. The vendor decoders run by priority (**Bambu**, then **MIFARE**/QIDI). Each try is a full stock CFS reread (about 45 s, RS-485 bus busy meanwhile).
+3. The vendor decoders run by priority (**Bambu**, then **MIFARE**/QIDI). Each try is a full stock CFS reread (about 45 s, RS-485 bus busy meanwhile). When the CFS is still reading a slot, the Bambu read waits up to 15 s for the stock RFID manager to become free, then fails with `CFS stock RFID manager is busy`; if it stays busy for minutes, power cycle the CFS.
 4. The decoded material and colour select a filament profile from the library; the UID is cached, so the next insertion of that spool needs no reread.
 
 Never during a print, a pause, another box operation, or with filament loaded toward the printhead.

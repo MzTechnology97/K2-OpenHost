@@ -68,6 +68,7 @@ Trova il tuo sintomo, controlla la causa, applica la soluzione. Parti da `./help
 | Errori dell'Update Manager | Mainsail → Machine → Update Manager → **Recover** su quel componente; `./helper.sh update` |
 | HelixScreen mostra "disconnected" | IP dell'host cambiato: menu 29 dell'helper (cambia indirizzo dell'host); l'host deve avere un IP fisso |
 | Elenco filamenti di HelixScreen vuoto | Servizio `k2oh-helix-filaments` sulla T113; vedi [HelixScreen](../usage/helixscreen.md) |
+| Bobina reinserita grigia in HelixScreen e OrcaSlicer, utensili sbagliati sugli slot | HelixScreen di upstream: installa il fork K2-OpenHost; vedi [HelixScreen](../usage/helixscreen.md#installare-o-aggiornare-il-fork) |
 | Telecamera nera o fotogrammi neri a 30 fps | Crowsnest `max_fps: 25`, vedi [Fotocamera](../CAMERA.md) |
 
 ## OrcaSlicer
