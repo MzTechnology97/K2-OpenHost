@@ -9,6 +9,8 @@ Every spool in the CFS shows a **remaining percentage**. K2-OpenHost has two sou
 
 The Kalico estimate is always running: it is the **fallback** when the CFS gives no live value.
 
+The starting percentage the CFS measures depends on the spool size. For spools that are not Creality, see [spool geometry per vendor](spool-geometry.md).
+
 ## Why type-4
 
 The stock CFS 1.5.3 firmware has a RAM-only remaining path (`runtime_type = 4`) that updates the remaining byte from the physical path encoder and never writes back to the tag. Stock enables it only together with Creality's secure RFID chip. CFG5T and CFG6 open that gate for the other spools, without writing anything to the tag:
