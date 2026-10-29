@@ -95,6 +95,8 @@ Stato Box in modalità operativa, letture RFID e auto-mapping sono già validati
 
 Implementato nel [bootstrap del T113](T113_BOOTSTRAP.md): lo slot B esegue solo gadget, bridge, Wi-Fi e HelixScreen collegato al Moonraker dell'host esterno. In uso sulla stampante di riferimento dal 6 ottobre 2026.
 
+Dal 28 ottobre 2026 lo schermo usa il [fork K2-OpenHost di HelixScreen](https://github.com/MzTechnology97/helixscreen), con la sua [roadmap](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md): dati CFS di Kalico, libreria filamenti nativa, fluidità.
+
 ## Fase 6 — deployment persistente
 
 Solo dopo la validazione completa di runtime e print stack:
