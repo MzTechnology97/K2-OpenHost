@@ -16,7 +16,7 @@ Atteso: `API=7`, `readers=2`, `slots/reader=2`, `caps=0xE8`. Su un firmware senz
 
 1. Il CFS fa la sua normale lettura Creality. **Un tag Creality vince sempre.**
 2. Solo se il record è vuoto o sconosciuto, Kalico guarda UID, ATQA e SAK che il CFS ha già catturato (nessuna lettura RF in più). Uno slot senza tag, o un tag che non è MIFARE Classic 1K, si ferma qui.
-3. I decoder dei produttori girano per priorità (**Bambu**, poi **MIFARE**/QIDI). Ogni tentativo è una rilettura stock completa del CFS (circa 45 s, con il bus RS-485 occupato nel frattempo).
+3. I decoder dei produttori girano per priorità (**Bambu**, poi **MIFARE**/QIDI). Ogni tentativo è una rilettura stock completa del CFS (circa 45 s, con il bus RS-485 occupato nel frattempo). Se il CFS sta ancora leggendo uno slot, la lettura Bambu aspetta fino a 15 s che il gestore RFID stock si liberi, poi fallisce con `CFS stock RFID manager is busy`; se resta occupato per minuti, spegni e riaccendi il CFS.
 4. Materiale e colore decodificati selezionano un profilo filamento dalla libreria; l'UID viene memorizzato, così il prossimo inserimento di quella bobina non richiede rilettura.
 
 Mai durante una stampa, una pausa, un'altra operazione del box, o con il filamento caricato verso la testina.

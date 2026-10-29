@@ -38,7 +38,7 @@ Read-only. It asks the printer's IP, confirms the host IP, then checks over SSH 
 2. Type the printer's root password once (`creality_2024` on stock).
 3. The helper repeats the checks, then proposes the **Creality release** to build slot B from: slot A's release when Creality still lists it, otherwise the latest.
 4. It downloads the Creality OTA (130–145 MB) from Creality's CDN, checks it against the image's own MD5 list, and **builds slot B**. No Creality file is redistributed by the project.
-5. Answer **yes** to install **HelixScreen** (recommended).
+5. Answer **yes** to install **HelixScreen** (recommended): the helper downloads the latest release of the [K2-OpenHost fork](../usage/helixscreen.md).
 6. Files are uploaded to the printer and checked by SHA-256; `install-slot-b.sh --check` runs on the printer.
 7. **Confirm** to write slot B. The printer backs up the U-Boot environment and the old slot B, writes and reads back `bootB` and `rootfsB`, and copies slot A's SSH keys, host keys and Wi-Fi networks.
 

@@ -159,6 +159,14 @@ On 2026-10-05 at 17:40, with the printer idle, no RS-485 device (CFS, X and Y mo
 
 On 2026-10-05 the CM5 was rebooted from Moonraker. It was back in about 15 s with the serial ports, Klipper `ready`, RS-485, CFS and motors, and the T113 bridges reopened by themselves (same PIDs). Idle CPU: klippy 1.3 %, each bridge 0.1–0.5 %. Details in [USB bridge](USB_BRIDGE.md).
 
+### HelixScreen and the T113, 2026-10-28
+
+- **Camera on the T113:** the `ustreamer` HelixScreen installs had been running for nothing for 13 days (no `/dev/video0`, `killall cam_app` every 5 s, over 2 h of CPU). Turned off: the T113's idle CPU went from 15 % to 0–4 %. `k2oh-setup` now turns it off (bootstrap #16).
+- **Grey colour after a spool is reinserted**, in OrcaSlicer too: HelixScreen 1.0.6 wrote its own `lane_data` (`#808080`) as soon as the spool read present, before the RFID read, over Kalico's record. Fixed in the [HelixScreen fork](https://github.com/MzTechnology97/helixscreen), which leaves `lane_data` to Kalico; to be checked on the printer after the install.
+- **Tools on the slots:** with slot 4 feeding T0, HelixScreen 1.0.6 showed T3. The fork follows `print_mapping` and `box.map`; to be checked on the printer.
+- **Bambu read:** the CFS stock RFID manager stayed busy for minutes on slot 3 (raw state `04000355`), on CFG4 as on CFG6. Kalico now waits up to 15 s (kalico-k2pro #102); beyond that the CFS needs a power cycle.
+- **`k2oh-setup helix-update` during a print:** refuses (`printer state is printing`), makes no backup, and HelixScreen keeps running.
+
 ### T113 slot B (2026-10-06)
 
 The [T113 bootstrap](T113_BOOTSTRAP.md) runs on the reference printer: slot B 0.1.1 installed with the installer helper and kept as the default. After a full power cycle the printer came up by itself: `k2oh-mcu` started the boards, then the bridges, and Klipper on the CM5 was ready with no `FIRMWARE_RESTART` (CFS OK, `[k2_t113]` connected, HelixScreen on the panel). The first install (0.1.0) found six problems, all fixed; details in [T113 bootstrap](T113_BOOTSTRAP.md#status).
@@ -305,6 +313,7 @@ The step-by-step procedures for the physical tests below are in the [hardware te
 - a revised custom CFS image (the v2.1 RFID diagnostic image did not start, see above);
 - nozzle load cell pressure advance (kalico-k2pro #29, draft): archived on 2026-10-06 as still to develop, the module is disabled; results in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
 - the humid CFS warning with a real spool, and a fast spool swap seen live on HelixScreen;
+- the HelixScreen fork `1.0.6-k2oh.5` on the printer: an in-app update and `helix-restore`; in the new interface, writing the touch sensitivity (GT911), the load/unload stage on the CFS page, excluding an object from the bed map and assigning a library profile with `_BOX_SLOT_ASSIGN` (external spool included). Already seen live on 29 October 2026: colour after a reinsert, remaining filament, the K2-OpenHost interface while printing and a runout swap from slot 4 to slot 2;
 - slot mapping when sending from OrcaSlicer with Jacob10383's OrcaSlicer fork (its fields match the Box status; not tried with a print yet);
 - UI split work, including the eventual T113 screen path.
 

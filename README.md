@@ -23,6 +23,7 @@ The project is deliberately split into several repositories so upstream authorsh
 - **[MzTechnology97/k2-openhost-t113-bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap)** — the printer side: K2-OpenHost system for the T113 slot B (USB gadget bridges, HelixScreen, Creality MCU/motor/CFS firmware updates). Prepared and tested on stock firmware 1.1.0.94; not guaranteed on newer releases. See [T113 bootstrap](docs/en/T113_BOOTSTRAP.md) / [IT](docs/it/T113_BOOTSTRAP.md).
 - **[Cartographer3D/cartographer3d-plugin](https://github.com/Cartographer3D/cartographer3d-plugin)** — the official Cartographer plugin, used unchanged (it supports Kalico and the K2 directly, as in Jacob10383's firmware). The former `cartographer3d-plugin-k2openhost` fork was archived on 2026-10-04. See [Cartographer](docs/en/CARTOGRAPHER.md) / [IT](docs/it/CARTOGRAPHER.md).
 - **[MzTechnology97/k2-improvements](https://github.com/MzTechnology97/k2-improvements)** — attributed reference fork in the `jamincollins -> Jacob10383` lineage.
+- **[MzTechnology97/helixscreen](https://github.com/MzTechnology97/helixscreen)** — fork of prestonbrown's HelixScreen for the printer's own screen (branch `k2-openhost`, versions `1.0.6-k2oh.N`): reads Kalico's CFS data (colours, tool map, remaining filament), keeps the boot wait on the host's Moonraker, skips the T113 camera server, and its in-app updates come from the fork's releases. See [HelixScreen](docs/en/usage/helixscreen.md) / [IT](docs/it/usage/helixscreen.md).
 - **[MzTechnology97/mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost)** — Mainsail fork for the OpenHost UI (branch `develop`): CFS panel with filament mapping, runout order and settings (runout swap, unload after print, RFID reads, clog detection), filament warnings, motor and RS-485 counters, part fan labels; upstream Mainsail authorship remains unchanged.
 - **[MzTechnology97/ha-k2-openhost](https://github.com/MzTechnology97/ha-k2-openhost)** — Home Assistant integration for the CFS (HACS custom repository): it follows `printer.objects.box` through the Moonraker websocket and serves the K2-OpenHost CFS card, a port of the Mainsail CFS panel.
 - **[pedrolamas/klipper-virtual-pins](https://github.com/pedrolamas/klipper-virtual-pins)** — third-party Klipper module, installed unchanged on the host, used for the Mainsail **Axis Twist Compensation** switch (`config/k2/macros/openhost_controls.cfg`).
@@ -45,7 +46,7 @@ K2 stock LCD + touch
         v
 Allwinner T113 / Tina Linux
   - display/touch
-  - future HelixScreen
+  - HelixScreen (K2-OpenHost fork)
   - USB ConfigFS gadget
   - byte-transparent bridges
         |

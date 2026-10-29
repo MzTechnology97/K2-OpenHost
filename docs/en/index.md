@@ -198,6 +198,7 @@ flowchart LR
 | [mainsail-k2openhost](https://github.com/MzTechnology97/mainsail-k2openhost) | Mainsail fork with the CFS and motors panels |
 | [ha-k2-openhost](https://github.com/MzTechnology97/ha-k2-openhost) | Home Assistant integration and CFS card |
 | [k2-cfs-rfid-tools](https://github.com/MzTechnology97/k2-cfs-rfid-tools) | Experimental CFS firmware images, sources and tests |
+| [helixscreen](https://github.com/MzTechnology97/helixscreen) | HelixScreen fork for the printer screen (branch `k2-openhost`): Kalico CFS data, updates from its own releases |
 | [k2-openhost-firmware-tools](https://github.com/MzTechnology97/k2-openhost-firmware-tools) | Read-only firmware inventory and protocol documentation |
 
 ## Status
