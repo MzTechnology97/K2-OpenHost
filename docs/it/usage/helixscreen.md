@@ -21,6 +21,17 @@ K2-OpenHost usa il suo fork, **[MzTechnology97/helixscreen](https://github.com/M
 | Server della telecamera sul T113 (`ustreamer`) | Sempre installato | Saltato se il T113 non ha `/dev/video0`: in OpenHost le telecamere sono sull'host |
 | Aggiornamenti dall'app | Dalle release di upstream | Solo dalle release del fork |
 
+## Interfaccia K2-OpenHost
+
+Dalla `1.0.6-k2oh.5` il fork ha un'interfaccia propria per la K2, con il tema `k2-openhost` (Impostazioni → Display). Compare quando HelixScreen è collegato alla CFS di Kalico; con altre stampanti resta l'interfaccia di HelixScreen.
+
+- **Home**: lavoro in corso (anteprima, avanzamento, tempo restante e fine, Pausa/Regola/Stop) o, a stampante ferma, Stampa un file, coda, ristampa dell'ultimo lavoro e preriscaldamento; temperature, CFS, luce (tocco = accesa/spenta, trascinamento = luminosità) e ventole. La Home resta personalizzabile come in HelixScreen.
+- **CFS nella Home**: le quattro bobine con colore e residuo. In stampa la bobina in uso dice **IN USO** e indica lo slot del cambio automatico (`9% » 2`).
+- **Stato stampa**: anello di avanzamento con anteprima, tempi, bobina in uso con l'ordine di cambio, temperature, velocità, flusso e ventola. **Escludi oggetti** mostra il piatto a tutta larghezza: si tocca l'oggetto da escludere.
+- **Pagina CFS**: le quattro bobine, il percorso del filamento (slot, buffer, encoder, anti-intasamento, sensore in testa, ugello), il cambio automatico e la **scheda della bobina esterna** con l'interruttore **Bypass** per attivare o disattivare la modalità bypass. Durante un carico o uno scarico l'intestazione dice la fase (`Caricamento 2 · verso la testa 3/5`).
+- **Profilo della bobina** (Modifica → Cambia filamento): l'elenco si apre sul profilo attuale dello slot. Un profilo della libreria di Kalico viene assegnato intero con `_BOX_SLOT_ASSIGN` (temperatura, pressure advance, flusso massimo, ID Orca), anche alla bobina esterna. Gli slot con un tag RFID letto non si modificano a mano.
+- **Touch e input** (Impostazioni): sensibilità e filtro antirimbalzo del controller touch GT911, con un'area di prova. Si modifica solo a stampante ferma; la prima modifica salva la configurazione originale (Ripristina originale).
+
 L'elenco dei lavori previsti è nella [roadmap del fork](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md).
 
 ## Installare o aggiornare il fork
@@ -30,10 +41,10 @@ L'elenco dei lavori previsti è nella [roadmap del fork](https://github.com/MzTe
 
   ```sh
   # sull'host
-  curl -fLO https://github.com/MzTechnology97/helixscreen/releases/download/v1.0.6-k2oh.1/helixscreen-k2-v1.0.6-k2oh.1.tar.gz
-  scp -O helixscreen-k2-v1.0.6-k2oh.1.tar.gz root@<IP-stampante>:/mnt/UDISK/
+  curl -fLO https://github.com/MzTechnology97/helixscreen/releases/download/v1.0.6-k2oh.5/helixscreen-k2-v1.0.6-k2oh.5.tar.gz
+  scp -O helixscreen-k2-v1.0.6-k2oh.5.tar.gz root@<IP-stampante>:/mnt/UDISK/
   # sulla stampante (SSH)
-  k2oh-setup helix-update /mnt/UDISK/helixscreen-k2-v1.0.6-k2oh.1.tar.gz
+  k2oh-setup helix-update /mnt/UDISK/helixscreen-k2-v1.0.6-k2oh.5.tar.gz
   ```
 
   `helix-update` rifiuta se la stampante sta stampando o se l'host non risponde. Salva HelixScreen (impostazioni comprese) e i suoi script di avvio in `/mnt/UDISK/.k2openhost/helix-backup/<data>`, esegue l'installer della release, poi rimette l'attesa sul Moonraker dell'host e spegne il server della telecamera. HelixScreen si riavvia due o tre volte in pochi secondi.
