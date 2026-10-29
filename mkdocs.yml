@@ -102,6 +102,7 @@ plugins:
             Runtime parameters (CFG6): Parametri runtime (CFG6)
             Live remaining filament: Residuo in tempo reale
             Third-party RFID tags: Tag RFID di terze parti
+            Spool geometry per vendor: Geometria delle bobine per produttore
             G-code commands: Comandi G-code
             Debug and diagnostics: Debug e diagnostica
             Configuration: Configurazione
@@ -197,6 +198,7 @@ nav:
       - Runtime parameters (CFG6): cfs-firmware/parameters.md
       - Live remaining filament: cfs-firmware/remaining.md
       - Third-party RFID tags: cfs-firmware/third-party-rfid.md
+      - Spool geometry per vendor: cfs-firmware/spool-geometry.md
   - Reference:
       - G-code commands: GCODE_COMMANDS.md
       - Debug and diagnostics: reference/debug.md

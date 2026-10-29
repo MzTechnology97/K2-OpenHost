@@ -6,6 +6,8 @@ Tutte le immagini sono per la scheda CFS **`cfs0_050_G32`** con applicazione sto
 
 | Immagine | Identità / feature | Parametri scrivibili | Stato | Usala per |
 | --- | --- | --- | --- | --- |
+| CFG6 SGF1/RH1 R3 (candidato) | `K2OH` / `v323-cfg6` / `0xE3`, più l'estensione SGF1 per la geometria | 23, come CFG6 | Provata sul CFS di riferimento il 29 ottobre 2026: lettura Bambu in un ciclo, misure valide, geometria associata; consumo in stampa non validato ([PR #64](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64), aperta) | [Geometria delle bobine](spool-geometry.md), con il Kalico abbinato |
+| CFG6 RDG2 | `K2OH` / `v323-cfg6` / `0xE3` | 23, come CFG6 | Funzionante sul CFS di riferimento (28 ottobre 2026): RFID e residuo dalla MCU verificati; altri formati di tag e scarico/rilettura da validare | Immagine CFG6 mantenuta nel menu dell'helper |
 | **CFG6 v3.25** | `K2OH` / `v323-cfg6` / `0xE3` | **23** (ID 1–3, 5–9, 11–24, 27); percorso residuo type-4 **sperimentale** | 23/23 SET/GET verificati a riposo; stampe type-4 **non qualificate** ([#59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59)) | Ultima build pubblicata CFG6, solo per test consapevoli |
 | CFG5T v3.24 | `K2OH` / `v323-cfg5t` / `0xE5` | 8 (ID 1, 2, 3, 5, 7, 8, 20, 22) + residuo type-4 in tempo reale | Sperimentale | Rollback da CFG6 |
 | CFG4 v3.23 | `K2OH` / `v323-cfg4` / `0xD7` | 6 (ID 1, 2, 3, 5, 7, 8) | Storica | — |
@@ -17,6 +19,8 @@ SHA-256 delle immagini nel menu dell'helper:
 
 | Immagine | File | SHA-256 |
 | --- | --- | --- |
+| SGF1/RH1 R3 | `cfs0_050_G32-cfs0_000_153-K2OH-CFG6-SGF1-RH1-R3-CANDIDATE.bin` | `a6dec25c74e7d259eec0387193548a0c3cc78ec9fc4ddc35824f0fe0965385b8` |
+| RDG2 | `cfs0_050_G32-cfs0_000_153-K2OH-CFG6-RDG2.bin` | `7d611c5845d3c248cf55f57972fdc7fab1761d0e281bcbf70030ac97e458023f` |
 | CFG6 v3.25 | `cfs0_050_G32-cfs0_000_153-runtime-config-v3_25-K2OH-CFG6-EXPERIMENTAL.bin` | `6579eb552210d6b2b84fbbbdf2749bc8d310b324ffb095cf9662e7cd0acc6cc6` |
 | CFG5T v3.24 | `cfs0_050_G32-cfs0_000_153-runtime-config-v3_24-K2OH-CFG5T-TYPE4-EXPERIMENTAL.bin` | `78c83416afaa4795de8a018533aea884f4def396f4829cc98c77fcce48155a55` |
 | CFG4 v3.23 | `cfs0_050_G32-cfs0_000_153-runtime-config-v3_23-K2OH-CFG4-EXPERIMENTAL.bin` | `118f34118edeb1e3d4ac018445b3fb839f8762b9d762bbfc011e62861fe8f71b` |
@@ -33,6 +37,7 @@ Immagini, sorgenti, builder e test offline: [k2-cfs-rfid-tools/firmware](https:/
 | Un CFS che funziona e basta | **Firmware stock** (nessun flash) |
 | Provare i 23 parametri modificabili CFG6 in un ambiente controllato | **CFG6 v3.25**, tenendo un'immagine funzionante e v3.22 per il rollback; residuo type-4 non qualificato |
 | Recuperare un CFS dopo un esperimento fallito | **v3.22** |
+| Residuo corretto sulle bobine Bambu (geometria delle bobine) | **Candidato SGF1/RH1 R3** con il Kalico abbinato, sotto controllo; tieni RDG2 per il rollback |
 
 ## Storia
 
