@@ -21,6 +21,17 @@ K2-OpenHost uses its own fork, **[MzTechnology97/helixscreen](https://github.com
 | Camera server on the T113 (`ustreamer`) | Always installed | Skipped when the T113 has no `/dev/video0`: in OpenHost the cameras are on the host |
 | In-app updates | From upstream's releases | Only from the fork's releases |
 
+## K2-OpenHost interface
+
+From `1.0.6-k2oh.5` the fork has its own interface for the K2, with the `k2-openhost` theme (Settings → Display). It shows when HelixScreen is connected to Kalico's CFS; with other printers HelixScreen's own interface stays.
+
+- **Home**: the running job (preview, progress, time left and end, Pause/Tune/Stop) or, when idle, Print a file, the queue, reprint of the last job and preheat; temperatures, CFS, light (tap = on/off, drag = brightness) and fans. Home stays customisable as in HelixScreen.
+- **CFS on Home**: the four spools with colour and remaining. While printing the spool in use reads **IN USE** and names the slot the runout swap goes to (`9% » 2`).
+- **Print status**: progress ring with the preview, times, the spool in use with the swap order, temperatures, speed, flow and fan. **Exclude objects** shows the bed full width: tap the object to exclude.
+- **CFS page**: the four spools, the filament path (slot, buffer, encoder, clog detection, head sensor, nozzle), the runout swap and the **external spool card** with the **Bypass** switch to turn bypass mode on or off. During a load or unload the header names the stage (`Loading 2 · to the head 3/5`).
+- **Spool profile** (Edit → Change filament): the list opens on the slot's current profile. A profile from Kalico's library is assigned whole with `_BOX_SLOT_ASSIGN` (temperature, pressure advance, max flow, Orca id), the external spool included. Slots with a read RFID tag are not edited by hand.
+- **Touch & Input** (Settings): sensitivity and debounce filter of the GT911 touch controller, with a test pad. It only changes with the printer idle; the first change saves the original configuration (Restore original).
+
 Planned work is in the [fork roadmap](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md) (Italian).
 
 ## Installing or updating the fork
@@ -30,10 +41,10 @@ Planned work is in the [fork roadmap](https://github.com/MzTechnology97/helixscr
 
   ```sh
   # on the host
-  curl -fLO https://github.com/MzTechnology97/helixscreen/releases/download/v1.0.6-k2oh.1/helixscreen-k2-v1.0.6-k2oh.1.tar.gz
-  scp -O helixscreen-k2-v1.0.6-k2oh.1.tar.gz root@<printer-IP>:/mnt/UDISK/
+  curl -fLO https://github.com/MzTechnology97/helixscreen/releases/download/v1.0.6-k2oh.5/helixscreen-k2-v1.0.6-k2oh.5.tar.gz
+  scp -O helixscreen-k2-v1.0.6-k2oh.5.tar.gz root@<printer-IP>:/mnt/UDISK/
   # on the printer (SSH)
-  k2oh-setup helix-update /mnt/UDISK/helixscreen-k2-v1.0.6-k2oh.1.tar.gz
+  k2oh-setup helix-update /mnt/UDISK/helixscreen-k2-v1.0.6-k2oh.5.tar.gz
   ```
 
   `helix-update` refuses while the printer is printing or when the host does not answer. It saves HelixScreen (settings included) and its init scripts to `/mnt/UDISK/.k2openhost/helix-backup/<date>`, runs the release's installer, then puts back the wait on the host's Moonraker and turns the camera server off. HelixScreen restarts two or three times within a few seconds.

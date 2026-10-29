@@ -313,7 +313,7 @@ The step-by-step procedures for the physical tests below are in the [hardware te
 - a revised custom CFS image (the v2.1 RFID diagnostic image did not start, see above);
 - nozzle load cell pressure advance (kalico-k2pro #29, draft): archived on 2026-10-06 as still to develop, the module is disabled; results in `docs/K2_Load_Cell_PA.md` of kalico-k2pro;
 - the humid CFS warning with a real spool, and a fast spool swap seen live on HelixScreen;
-- the HelixScreen fork `1.0.6-k2oh.1` on the printer: colour after a reinsert, tools during and after a print, remaining filament, an in-app update and `helix-restore`;
+- the HelixScreen fork `1.0.6-k2oh.5` on the printer: an in-app update and `helix-restore`; in the new interface, writing the touch sensitivity (GT911), the load/unload stage on the CFS page, excluding an object from the bed map and assigning a library profile with `_BOX_SLOT_ASSIGN` (external spool included). Already seen live on 29 October 2026: colour after a reinsert, remaining filament, the K2-OpenHost interface while printing and a runout swap from slot 4 to slot 2;
 - slot mapping when sending from OrcaSlicer with Jacob10383's OrcaSlicer fork (its fields match the Box status; not tried with a print yet);
 - UI split work, including the eventual T113 screen path.
 
