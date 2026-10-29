@@ -15,6 +15,7 @@ Il CFS ha un suo microcontrollore (`cfs0_050_G32`) che esegue l'applicazione di 
 | Identità del firmware leggibile dall'host | No | `0x7A` → `K2OH`, revisione `v323-cfg6`, feature `0xE3` |
 | Residuo in tempo reale delle bobine type-4 durante la stampa | Solo con il chip sicuro di Creality | **Sperimentale, non qualificato**: il percorso di contabilizzazione è presente, ma con CFG6 v3.25 è stata osservata una percentuale bloccata ([#59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59)) |
 | Tag RFID di terze parti (Bambu, MIFARE) | No | Cattura API7 nella linea v3.12 e successive (vedi [RFID di terze parti](third-party-rfid.md)) |
+| Geometria delle bobine per produttore (una Bambu piena segna 100 %, non 84 %) | Solo geometria Creality | **Candidato SGF1/RH1 R3**: fino a quattro profili in RAM, caricati da Kalico (vedi [geometria delle bobine](spool-geometry.md)) |
 | Diagnostica (`BOX_CFS_CONFIG_INFO`, `BOX_CFS_CONFIG_DIAG`) | Solo le velocità v1 stock | GET in sola lettura di tutti i 28 parametri con controllo dei limiti |
 
 ## Come si incastra
@@ -39,6 +40,7 @@ flowchart LR
 - [Parametri runtime (CFG6)](parameters.md): cosa fa ciascuno dei 28 parametri e come impostarlo.
 - [Residuo in tempo reale](remaining.md): il conteggio type-4 nel CFS e in Kalico.
 - [Tag RFID di terze parti](third-party-rfid.md): bobine Bambu, QIDI e MIFARE.
+- [Geometria delle bobine per produttore](spool-geometry.md): come il CFS misura una bobina, i profili per produttore e come calibrarli.
 
 ## OpenCFS
 

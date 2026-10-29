@@ -9,6 +9,8 @@ Ogni bobina nel CFS mostra una **percentuale di residuo**. K2-OpenHost ha due fo
 
 La stima di Kalico è sempre attiva: è il **fallback** quando il CFS non fornisce un valore in tempo reale.
 
+La percentuale iniziale misurata dal CFS dipende dalle dimensioni della bobina. Per le bobine non Creality vedi [geometria delle bobine per produttore](spool-geometry.md).
+
 ## Perché type-4
 
 Il firmware CFS stock 1.5.3 ha un percorso di residuo solo in RAM (`runtime_type = 4`) che aggiorna il byte del residuo dall'encoder fisico del percorso e non riscrive mai il tag. Lo stock lo attiva solo insieme al chip RFID sicuro di Creality. CFG5T e CFG6 aprono quel blocco per le altre bobine, senza scrivere nulla sul tag:
