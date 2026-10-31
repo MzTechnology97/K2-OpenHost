@@ -37,6 +37,17 @@ flowchart TD
 - L'ultimo valore del CFS (`cfs_percent`) è salvato con la stima, così un riavvio di Klipper non riallinea la bobina senza motivo.
 - Con gli altri firmware il valore del CFS è solo quello misurato al caricamento: può abbassare la stima, mai alzarla.
 
+## Residuo in millimetri (R4-PRECISION1)
+
+Con il firmware candidato [R4-PRECISION1](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/65) e [Kalico](https://github.com/MzTechnology97/kalico-k2pro/pull/107), il CFS fornisce anche i millimetri: quantità iniziale ricavata dalla geometria, meno il consumo protetto. Kalico riparte da questo valore invece che dalla percentuale intera, quindi il residuo si muove a passi molto più fini del punto percentuale.
+
+- Un contatore ripetuto o più vecchio non riporta indietro il consumo locale.
+- Kalico torna alla percentuale di R3 solo se il firmware risponde che la lettura non è supportata. Con dati mancanti o non validi tiene la stima già salvata.
+- Lettura passiva da console: `BOX_SPOOL_GEOMETRY_STATUS ADDRESS=1 SLOT=1 PRECISION=1`.
+
+!!! warning "Candidato"
+    R3 resta il riferimento. Su R4 è verificato che il contatore avanzi in stampa sul CFS di riferimento; la precisione fisica e l'esaurimento completo della bobina non sono validati. Dettagli e protocollo: [guida in Kalico](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-pro-openhost/docs/CFS_PRECISE_REMAINING.md).
+
 ## Configurazione
 
 ```ini
