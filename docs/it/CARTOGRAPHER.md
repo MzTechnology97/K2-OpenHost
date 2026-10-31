@@ -97,18 +97,14 @@ Risultati sulla stampante di riferimento (piatto a 60 °C, sonda a circa 52 °C)
 | Torsione dell'asse X | correzioni entro ±0,007 mm |
 | `START_PRINT` (PLA) | mesh adattiva di scansione in 11,5 s, poi homing Z con il PRTouch entro 0,003 mm; primo layer corretto |
 
-## Sequenza di validazione (T5)
+## Cartographer come unica sonda (non ancora validato)
 
-1. Conserva la configurazione validata solo PRTouch come base di ripristino.
-2. Verifica che `/dev/ttyUSB0..2` restino stabili, poi collega Cartographer all'host.
-3. Controlla il dispositivo (`lsusb`, `ls -l /dev/k2-cartographer /dev/serial/by-id/`).
-4. Includi `macros/cartographer.cfg`, riavvia Klipper e verifica che Cartographer si identifichi senza cicli di riconnessione:
+La modalità mista qui sopra è la configurazione validata. Per far fare al Cartographer anche l'homing di Z e lo zero dell'ugello:
 
-   ```bash
-   grep -Ei 'cartographer|identify_response|Timeout on connect|Unable to connect' ~/printer_data/logs/klippy.log | tail -50
-   ```
+1. Tieni una copia di `macros/cartographer.cfg` e `prtouch.cfg` funzionanti, per tornare indietro.
+2. Imposta `register_as_probe: True` in `macros/cartographer.cfg` e `register_as_probe: False` in `prtouch.cfg`. `[stepper_z]` resta su `probe:z_virtual_endstop`, che ora appartiene al Cartographer.
+3. Riavvia Klipper e controlla `CARTOGRAPHER_QUERY` e `QUERY_PROBE`: la lettura deve cambiare con la distanza.
+4. Calibra scansione e contatto con i comandi del plugin ufficiale (`CARTOGRAPHER_SCAN_CALIBRATE`, `CARTOGRAPHER_TOUCH_CALIBRATE`), seguendo la sua documentazione.
+5. `G28`, una mesh e un primo strato, con una mano sull'arresto di emergenza.
 
-5. Controlli senza movimento: `CARTOGRAPHER_QUERY` (e `QUERY_PROBE` quando gestisce la sonda).
-6. Verifica che le letture cambino con la distanza.
-7. Prova un riavvio automatico e la riconnessione.
-8. Solo allora operazioni controllate di probe, touch e scan; il mixed mode per ultimo.
+Se qualcosa non va, rimetti i due file e riavvia Klipper: la modalità mista torna com'era.
