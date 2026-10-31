@@ -17,7 +17,7 @@ L'host esterno del K2 Pro di riferimento, e come Klipper comanda la sua ventola 
 | :---: | :---: |
 | ![Scheda base Waveshare CM5-IO-BASE-A](../images/hardware/cm5-io-base-a.jpg){ width="340" } | ![Dissipatore Waveshare CM5-FAN-3007-B-5V](../images/hardware/cm5-fan-3007.jpg){ width="340" } |
 
-Il 5 ottobre 2026 il CM5 era ancora montato su una Waveshare **CM4-IO-BASE-A**. Le porte USB di quella scheda erano tutte USB 2.0 dietro un unico hub su `dwc2`, e il suo connettore ventola era comandato via I2C da un controller EMC2301. [Bridge USB](USB_BRIDGE.md#le-porte-usb-30-del-cm5-e-la-scheda-base) descrive quella configurazione e perché la scheda è stata cambiata.
+Il 5 ottobre 2026 il CM5 era ancora montato su una Waveshare **CM4-IO-BASE-A**. Le porte USB di quella scheda erano tutte USB 2.0 dietro un unico hub su `dwc2`, e il suo connettore ventola era comandato via I2C da un controller EMC2301. La CM5-IO-BASE-A dà alla T113 un controller USB RP1 tutto suo e comanda la ventola dai pin del CM5.
 
 ## USB
 
