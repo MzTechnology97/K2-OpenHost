@@ -27,11 +27,7 @@ Il bootstrap del T113 prepara la scheda T113 della K2 Pro per K2-OpenHost. È sv
 - **Nomi seriali sull'host:** il gadget dello slot B ha nomi `/dev/serial/by-id` diversi da quelli del gadget originale dello slot A. L'host usa `/dev/k2-main`, `/dev/k2-nozzle` e `/dev/k2-rs485` (udev, per interfaccia), uguali nei due slot; li imposta l'installer helper.
 - **Wi-Fi:** funziona senza il `wifi-server` Creality, con le reti copiate dallo slot A.
 - **HelixScreen:** il [fork K2-OpenHost](https://github.com/MzTechnology97/helixscreen) (`1.0.6-k2oh.N`), installato al primo avvio e collegato al Moonraker dell'host esterno. `k2oh-setup helix-update <archivio>` installa un'altra release a stampante ferma, con backup; `k2oh-setup helix-restore` rimette la precedente. Vedi [HelixScreen](usage/helixscreen.md).
-- **`k2oh-helix-filaments`:** i selettori dei filamenti di HelixScreen mostrano solo la libreria dell'host (i filamenti CFS di sistema di Kalico più i tuoi in `cfs_filaments.json`), non i circa 360 preset di HelixScreen.
-  - La libreria è sincronizzata ogni 30 s.
-  - Un filamento creato sullo schermo arriva a Kalico a stampante ferma.
-  - Durante una stampa il servizio legge soltanto Moonraker.
-  - Dettagli: [README del bootstrap](https://github.com/MzTechnology97/k2-openhost-t113-bootstrap/blob/main/README.it.md#elenco-filamenti-di-helixscreen-k2oh-helix-filaments).
+- **`k2oh-helix-filaments`:** resta per le build di HelixScreen precedenti alla 1.0.6-k2oh.8, che ricevevano da lui la libreria filamenti di Kalico. Da k2oh.8 HelixScreen legge la libreria da solo; il servizio allora rimette il catalogo originale di HelixScreen e non parte. Vedi [HelixScreen](usage/helixscreen.md#libreria-filamenti).
 - **`k2oh-mcu-fw`:** aggiornamento manuale del firmware di MCU, motori e CFS (sotto).
 
 Disattivati:

@@ -58,7 +58,7 @@ Host Linux esterno (Raspberry Pi CM5)
 | `k2oh-mcu` | All'avvio: spegne e riaccende l'alimentazione delle MCU, esegue `mcu_update` di Creality, poi avvia i bridge |
 | `k2oh-ctl` | Servizio di controllo per l'host: telemetria, cicalino, alimentazione MCU, riavvio dei bridge, riavvio di HelixScreen |
 | HelixScreen | Interfaccia touch sullo schermo stock, collegata a Moonraker sull'host |
-| `k2oh-helix-filaments` | Mostra la libreria filamenti dell'host negli elenchi di HelixScreen |
+| `k2oh-helix-filaments` | Elenco filamenti per le build di HelixScreen precedenti alla 1.0.6-k2oh.8; spento con k2oh.8 o successive |
 | `k2oh-mcu-fw` | Aggiornamenti manuali del firmware di MCU, motori e CFS con gli strumenti di Creality |
 
 Klipper, Moonraker, nginx, app cloud, ADB e OTA da chiavetta USB di Creality sono disattivati nello slot B.
