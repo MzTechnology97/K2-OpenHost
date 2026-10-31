@@ -1,116 +1,44 @@
-# Validazione CFS su K2 Pro
+# Protocollo della CFS sulla K2 Pro
 
-Questo documento riporta solo risultati verificati sulla K2 Pro del progetto o derivati esplicitamente dalle implementazioni pubbliche citate. Identificativi privati e payload RFID non vengono pubblicati.
-
-## Baseline pubblica
-
-Il lavoro CFS usa come riferimento soprattutto:
-
-- extra Klipper pubblici Creality per serie K2;
-- extra K2 custom firmware di Jacob10383/Jacobean;
-- reverse engineering `gitstonelabs/creality-cfs-klipper`;
-- altri lavori pubblici elencati in `REFERENCES.md`.
-
-Il reverse engineering pubblico è una baseline di implementazione, non una prova che ogni comportamento sia identico sulla K2 Pro.
+Cosa fa la CFS della K2 Pro sul bus RS-485, verificato sulla stampante di riferimento. Lo stack della Box viene dal firmware K2 di Jacob10383; K2-OpenHost aggiunge le differenze della K2 Pro descritte qui. Identificativi privati e contenuti dei tag RFID non sono pubblicati.
 
 ## Trasporto
 
-Il CFS condivide il bus RS-485 stock su `/dev/ttyS5` a 230400 baud:
+La CFS condivide il bus RS-485 con i motori X/Y a circuito chiuso, a 230400 baud. K2-OpenHost lo porta sul terzo canale del gadget:
 
 ```text
-CM5 /dev/ttyUSB2 <-> T113 /dev/ttyGS2 <-> /dev/ttyS5 <-> CFS/RS-485
+host /dev/serial/by-id/...-if02 <-> T113 /dev/ttyGS2 <-> /dev/ttyS5 <-> CFS e motori
 ```
 
-## Addressing verificato
+## Indirizzi
 
-- frame head `0xF7`;
-- broadcast MB/CFS `0xFE`;
-- discovery A1 verificato ripetutamente con identificativo privato stabile;
-- A0 verso indirizzo `0x01` verificato;
-- A2 verificato;
-- A3 verificato.
+- Intestazione del frame `0xF7`, indirizzo di broadcast `0xFE`.
+- Il rilevamento A1 restituisce un identificativo stabile di 12 byte; A0 assegna l'indirizzo `0x01`; A2 controlla che l'unità sia in linea; A3 legge la tabella degli indirizzi.
+- Dopo uno spegnimento la CFS risponde a `0xFE` finché non viene enumerata di nuovo, quindi Kalico interroga la sua configurazione runtime solo dopo `box:ready`.
 
-## Query read verificate
+## Stato della Box (comando `0x0A`)
 
-Sono stati letti correttamente:
+La lunghezza della risposta dipende dal firmware della CFS:
 
-- slot mask;
-- buffer state;
-- stato/record RFID;
-- materiale residuo;
-- Box state.
+| Firmware CFS | Risposta | Decodificata da |
+| --- | --- | --- |
+| 1.1.3 | 4 byte: temperatura (con segno, °C), umidità (%), evento, stato della box | `box_k2pro` |
+| 1.5.3 (`cfs0_000_153`, con le schede 1.1.7.0) | 6 byte: temperatura, umidità, evento, stato della box, maschera degli slot | il percorso originale di `box_protocol.py` |
 
-## Differenza BOX_STATE K2 Pro
+`box_k2pro` gestisce solo le risposte da 4 byte e lascia passare le altre lunghezze, quindi entrambe le versioni del firmware funzionano con la stessa configurazione. `boxes[].state_payload_bytes` riporta la lunghezza dell'ultima risposta per unità.
 
-Il decoder Jacobean originario attendeva payload steady a 6 byte. La K2 Pro testata risponde validamente con 4 byte.
+Risposte grezze da 1.5.3 (`BOX_DEBUG RAW=1`): ferma e vuota `1d 26 00 00 00 00` (29 °C, 38 %, stato IDLE, nessuno slot); slot 1 caricato fino all'ugello `1d 26 00 02 01 00` (stato PRINT, maschera degli slot `0x01`). Lo slot caricato viene quindi dalla CFS stessa; il sensore della testa serve solo quando nessuna unità ne riporta uno.
 
-La prima patch di validazione manteneva i primi due byte opachi come `firmware_base` ed esponeva `substatus` / `load_flag`. L'analisi del firmware CFS 1.1.3 e le catture live hanno poi stabilito il layout, ora decodificato dall'adattatore `box_k2pro`: temperatura con segno in °C, umidità in %, byte evento e stato del box.
+## Modalità osservazione
 
-I valori registrati allora come basi opache (`0x1E22`, `0x1E23`, `0x1F23`) sono coerenti: 30–31 °C e 34–35 % di umidità. I campi opachi restano solo come ripiego in `box_protocol.py` quando `[box_k2pro]` non è caricato. Il percorso 6-byte e gli eventi asincroni `STATUS=0x30` restano compatibili.
+`observation_mode: True` in `[box]` fa girare il vero stack della CFS in sola lettura, per un primo test su una stampante nuova o dopo un cambio di firmware:
 
-### Firmware CFS 1.5.3: di nuovo 6 byte
+- un proxy lascia passare solo il rilevamento e le letture note, e blocca ogni altro codice funzione della CFS prima dell'invio (verificato: un `0x0D` bloccato non è mai arrivato al trasporto);
+- nessun comando `BOX_*` né `T0`, `T1`..., nessun aggancio al sensore di taglio o al fine bobina, nessuna scrittura RFID all'avvio;
+- lo stato resta in `/dev/shm`, se non indicato diversamente.
 
-Dopo l'aggiornamento delle schede a Creality 1.1.7.0 (applicazione CFS `cfs0_000_153`, riportata come 1.5.3), lo stesso CFS risponde al comando `0x0A` con il payload originale a 6 byte. Verificato il 2026-10-07 tramite `boxes[].state_payload_bytes` (kalico-k2pro PR #35), che riporta la lunghezza dell'ultima risposta per unità: `6`, con 29 °C e 38 % di umidità.
+La protezione riguarda solo la CFS: i motori sullo stesso bus continuano a funzionare. Sulla stampante di riferimento ha enumerato l'indirizzo 1, letto slot e RFID e fatto dieci letture di stato con 35 frame inviati e 35 ricevuti, senza errori. Il funzionamento normale è `observation_mode: False`.
 
-La risposta a 6 byte è decodificata dal percorso Jacobean originale in `box_protocol.py`: temperatura con segno, umidità, stato del box e maschera degli slot. `box_k2pro` gestisce solo le risposte a 4 byte e lascia passare le altre lunghezze, quindi entrambe le versioni del firmware funzionano con la stessa configurazione.
+## Sorgenti
 
-Risposte grezze lette con `BOX_DEBUG RAW=1` lo stesso giorno: a vuoto `1d 26 00 00 00 00` (29 °C, 38 %, evento 0, stato IDLE, maschera slot 0); con lo slot 1 caricato fino all'ugello `1d 26 00 02 01 00` (stato PRINT, maschera slot `0x01`). Lo slot caricato quindi lo indica la CFS stessa; il sensore della testa è solo il ripiego usato quando nessuna unità riporta uno slot caricato. Il percorso a 4 byte serve ancora per un CFS su 1.1.3, per esempio dopo un avvio dallo slot A, che scrive sulle schede i propri file firmware 1.1.0.94.
-
-## Test nativi Jacobean
-
-### Serial_485_Wrapper
-
-Funzionamento diretto su `/dev/ttyUSB2` verificato.
-
-### AutoAddressManager + BoxDriver
-
-Con un CFS collegato, enumeration read-only ha trovato l'indirizzo 1 senza errori e ha letto correttamente slot/buffer/RFID/residuo.
-
-### BoxStateReply
-
-La patch nativa a `box_protocol.py` decodifica sia lo steady state K2 Pro a 4 byte sia gli eventi slot esistenti.
-
-## Guardia observation
-
-Un proxy limitato al CFS consente discovery/query note e blocca gli altri function code prima di `_write_frame`.
-
-Non viene applicato globalmente a `serial_485.py`, perché lo stesso bus trasporta anche dispositivi closed-loop.
-
-Il self-test su `0x0D` ha dimostrato che il contatore TX del transport non aumenta quando la richiesta viene bloccata.
-
-## Test vera classe Box()
-
-La classe Jacobean `Box()` è stata eseguita con `observation_mode: True` sul vero `/dev/ttyUSB2`.
-
-Risultato:
-
-- enumeration indirizzo 1;
-- inizializzazione RFID/slot solo tramite letture;
-- 10 letture live consecutive stabili;
-- `_poll()` interno completato;
-- `0x0D` bloccato prima del TX;
-- **35 TX / 35 RX**;
-- tutti i contatori errore a zero.
-
-Questo milestone resta la baseline di sicurezza in sola lettura.
-
-## Validazione in modalità operativa
-
-Il processo Kalico completo sul CM5 esegue ora il Box stack con `observation_mode: false`. Sulla K2 Pro reale sono stati verificati:
-
-- enumeration CFS e stato normalizzato con `driver_ready=true` / `data_ready=true`;
-- temperatura e umidità del CFS tramite adattatore K2 Pro;
-- inventario filamenti persistente e import del database materiali Creality/K2-RFID;
-- risoluzione automatica degli ID materiale K2-RFID custom senza creare un nuovo profilo quando cambia soltanto il colore della bobina;
-- rilettura RFID forzata per singolo slot;
-- percentuale residua riportata dal CFS;
-- stime residue indipendenti per bobine fisiche diverse anche quando i tag K2-RFID usano lo stesso seriale `000001`;
-- ordinamento dei gruppi runout usando per primi gli slot compatibili con percentuale residua minore.
-
-Un ID RFID custom Bambulab PLA Basic è stato risolto realmente su due bobine di colore diverso. Il CFS ha riportato rispettivamente 9% e 10%; OpenHost le mantiene indipendenti come circa 29,7 m e 33,0 m residui su una lunghezza taggata di 330 m.
-
-Lo stimatore live sottrae inoltre i delta positivi di `print_stats.filament_used` dalla bobina RFID attiva e persiste la stima. La logica è implementata e verificata sul codice; resta da validarne l'andamento durante una stampa completa supervisionata.
-
-## Prossimo passo
-
-Il prossimo milestone CFS è un `BOX_PRINT_START` mappato e controllato, seguito da cambio materiale reale, test runout/recovery e stampa completa supervisionata.
+Il codice è in [kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro), ramo `k2-pro-openhost`. Il punto di partenza è stato il reverse engineering pubblico (le estensioni K2 di Creality, il firmware di Jacob10383, `gitstonelabs/creality-cfs-klipper`); la stampante ha confermato dove la K2 Pro è diversa. Cos'altro è verificato con la CFS è nello [stato dei test](TEST_STATUS.md).

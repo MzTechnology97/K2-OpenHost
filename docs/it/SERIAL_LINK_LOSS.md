@@ -46,11 +46,10 @@ Il 5 ottobre 2026 alle 17:40, a stampante ferma, i dispositivi RS-485 (CFS, moto
 - circa 30 s dopo ha registrato da solo `RS-485 link restored`. Klipper è rimasto `ready` e la stampa successiva è andata normalmente;
 - il CM5 era scarico e non ha visto disconnessioni USB; i bridge del T113 non hanno perso byte e nessun altro processo aveva la porta aperta.
 
-I tre dispositivi si sono fermati insieme e poi sono arrivati dati sporchi: fa pensare a un disturbo sul bus o sul percorso USB più che al software. Probabilmente è successo mentre collegavo una webcam USB al CM5. Quella webcam sta sullo stesso hub `dwc2` del gadget del T113, quindi conviene collegare dispositivi USB a stampante ferma, oppure su un'altra porta.
+I tre dispositivi si sono fermati insieme e poi sono arrivati dati sporchi: fa pensare a un disturbo sul bus o sul percorso USB più che al software. Probabilmente è successo mentre collegavo una webcam USB al CM5. Sulla scheda base di allora quella webcam stava sullo stesso hub del gadget della T113; sulla CM5-IO-BASE-A la T113 ha un controller USB tutto suo. Collega comunque i dispositivi USB a stampante ferma.
 
 Cosa fare passo per passo: [Procedura di ripristino](RECOVERY.md).
 
 ## Ancora da provare
 
 - La pausa del watchdog durante una stampa vera. Nelle prove in standby Klipper non stampa, quindi è stato eseguito solo il ramo dell'avviso.
-- Le stesse prove con lo slot B al posto dei bridge avviati a mano sullo slot A.
