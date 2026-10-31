@@ -30,7 +30,7 @@ Dalla `1.0.6-k2oh.5` il fork ha un'interfaccia propria per la K2, con il tema `k
 - **Stato stampa**: anello di avanzamento con anteprima, tempi, bobina in uso con l'ordine di cambio, temperature, velocità, flusso e ventola. **Escludi oggetti** mostra il piatto a tutta larghezza: si tocca l'oggetto da escludere.
 - **Pagina CFS**: le quattro bobine, il percorso del filamento (slot, buffer, encoder, anti-intasamento, sensore in testa, ugello), il cambio automatico e la **scheda della bobina esterna** con l'interruttore **Bypass** per attivare o disattivare la modalità bypass. Durante un carico o uno scarico l'intestazione dice la fase (`Caricamento 2 · verso la testa 3/5`).
 - **Profilo della bobina** (Modifica → Cambia filamento): l'elenco si apre sul profilo attuale dello slot. Un profilo della libreria di Kalico viene assegnato intero con `_BOX_SLOT_ASSIGN` (temperatura, pressure advance, flusso massimo, ID Orca), anche alla bobina esterna. Gli slot con un tag RFID letto non si modificano a mano.
-- **Touch e input** (Impostazioni): sensibilità e filtro antirimbalzo del controller touch GT911, con un'area di prova. Si modifica solo a stampante ferma; la prima modifica salva la configurazione originale (Ripristina originale).
+- **Touch e input** (Impostazioni): area di prova del touch. Il controller GT911 del K2 ha la configurazione fissa nel chip: sensibilità e filtro antirimbalzo non si possono cambiare, né dall'app né dal kernel. Dopo il primo tentativo rifiutato, la scheda lo dice e nasconde i preset.
 
 L'elenco dei lavori previsti è nella [roadmap del fork](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md).
 
