@@ -32,3 +32,14 @@ In K2-OpenHost la scheda T113 originale smette di essere il computer della stamp
 Il ricablaggio all'interno della stampante è a tuo rischio: scollega prima l'alimentazione di rete e tieni i cavi lontani da parti in movimento e zone calde.
 
 Questi limiti derivano dal cambio di ruolo di USB0 descritto in [Trasporto USB gadget](USB_GADGET.md#nota-sul-cambio-ruolo-usb). Sono previsti anche nell'architettura finale.
+
+## Uso
+
+- **Danni meccanici.** Valori di configurazione sbagliati, un errore di homing o di tastatura, o un collegamento perso durante un movimento possono far urtare la testina contro il piatto o il telaio.
+- **Il cavo USB è vitale per la stampa.** Staccare o urtare il cavo della T113, o riavviare l'host, ferma subito la stampa: Klipper va in shutdown. Usa un buon cavo dati con spina a 90° e fissalo.
+- **L'alimentazione dell'host è quella della stampa.** Se l'host perde corrente, la stampa è persa anche se la stampante resta accesa. Usa l'alimentatore ufficiale dell'host; un UPS per entrambi è una buona idea.
+- **Nessuna modifica durante la stampa.** Non riavviare Klipper, non aggiornare, non flashare, non modificare i valori runtime della CFS e non riavviare la T113 durante una stampa.
+- **Niente OTA Creality dallo slot B.** Un OTA nello slot B sovrascriverebbe lo slot A, quindi è disattivato. Dallo slot A un OTA sostituisce lo slot B di K2-OpenHost. Il firmware delle schede si aggiorna dallo slot B con `k2oh-mcu-fw` (menu 31 dell'helper).
+- **Modello supportato:** solo Creality K2 Pro. Gli strumenti rifiutano altri modelli e schede.
+- **Firmware CFS sperimentale.** Il [firmware CFS modificato](cfs-firmware/index.md) non è qualificato per la produzione: un'immagine difettosa può fermare la CFS finché non si flasha un'immagine di recupero, e un [problema aperto](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/9) fa sì che la CFS possa dichiararsi ferma mentre sta ancora alimentando. Flasha solo a stampante ferma e tieni l'immagine di recupero v3.22. Il firmware CFS originale funziona benissimo con K2-OpenHost.
+- **Conosci la tua stampante.** K2-OpenHost sostituisce l'intero software, quindi il supporto sei tu. Controlla lo [stato dei test](TEST_STATUS.md) prima di affidarti a una funzione.
