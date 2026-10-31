@@ -67,7 +67,7 @@ Trova il tuo sintomo, controlla la causa, applica la soluzione. Parti da `./help
 | Mainsail non mostra il pannello CFS | Mainsail K2-OpenHost non installato o versione vecchia in cache: `./helper.sh install mainsail`, poi ricarica la pagina (Ctrl+F5) |
 | Errori dell'Update Manager | Mainsail → Machine → Update Manager → **Recover** su quel componente; `./helper.sh update` |
 | HelixScreen mostra "disconnected" | IP dell'host cambiato: menu 29 dell'helper (cambia indirizzo dell'host); l'host deve avere un IP fisso |
-| Elenco filamenti di HelixScreen vuoto | Servizio `k2oh-helix-filaments` sulla T113; vedi [HelixScreen](../usage/helixscreen.md) |
+| HelixScreen mostra i suoi preset invece della libreria di Kalico | Serve HelixScreen 1.0.6-k2oh.8 o successive, collegato a Kalico; vedi [HelixScreen](../usage/helixscreen.md#libreria-filamenti) |
 | Bobina reinserita grigia in HelixScreen e OrcaSlicer, utensili sbagliati sugli slot | HelixScreen di upstream: installa il fork K2-OpenHost; vedi [HelixScreen](../usage/helixscreen.md#installare-o-aggiornare-il-fork) |
 | Telecamera nera o fotogrammi neri a 30 fps | Crowsnest `max_fps: 25`, vedi [Fotocamera](../CAMERA.md) |
 
