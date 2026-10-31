@@ -6,7 +6,8 @@ All images target the CFS board **`cfs0_050_G32`** with stock application **`cfs
 
 | Image | Identity / features | Writable parameters | Status | Use it for |
 | --- | --- | --- | --- | --- |
-| CFG6 SGF1/RH1 R3 (candidate) | `K2OH` / `v323-cfg6` / `0xE3`, plus the SGF1 geometry extension | 23, as CFG6 | Tested on the reference CFS on 2026-10-29: Bambu read in one cycle, valid measures, geometry bound; print consumption not validated ([PR #64](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64), open) | [Spool geometry per vendor](spool-geometry.md), with the paired Kalico |
+| CFG6 SGF1/RH1 R4-PRECISION1 (candidate) | `K2OH` / `v323-cfg6` / `0xE3`, plus SGF1 and the SGP1 millimetre read | 23, as CFG6 | On the reference CFS: valid Bambu read and `used_mm` advancing while printing; physical accuracy and a full runout not validated ([PR #65](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/65)). | [Remaining in millimetres](remaining.md#remaining-in-millimetres-r4-precision1), with the paired Kalico |
+| CFG6 SGF1/RH1 R3 (candidate) | `K2OH` / `v323-cfg6` / `0xE3`, plus the SGF1 geometry extension | 23, as CFG6 | Tested on the reference CFS on 2026-10-29: Bambu read in one cycle, valid measures, geometry bound; print consumption not validated ([PR #64](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64)) | [Spool geometry per vendor](spool-geometry.md), with the paired Kalico |
 | CFG6 RDG2 | `K2OH` / `v323-cfg6` / `0xE3` | 23, as CFG6 | Working on the reference CFS (2026-10-28): RFID and MCU remaining verified; other tag formats and unload/reread still to validate | Maintained CFG6 image in the helper's menu |
 | **CFG6 v3.25** | `K2OH` / `v323-cfg6` / `0xE3` | **23** (IDs 1–3, 5–9, 11–24, 27); type-4 remaining path **experimental** | 23/23 idle SET/GET verified; live type-4 **not hardware-qualified** ([#59](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/59)) | Latest published CFG6; supervised experiments only |
 | CFG5T v3.24 | `K2OH` / `v323-cfg5t` / `0xE5` | 8 (IDs 1, 2, 3, 5, 7, 8, 20, 22) + type-4 live remaining | Experimental | Rollback from CFG6 |
@@ -28,6 +29,8 @@ SHA-256 of the images in the helper's menu:
 | v3.13 | `cfs0_050_G32-cfs0_000_153-runtime-config-v3_13.bin` | `9a68dd8205956dda58bc3108b265fdbc03756e70974ee9a8b1ee5afc3ce46aff` |
 | v3.12 | `cfs0_050_G32-cfs0_000_153-rfid-remaining-v3_12.bin` | `fe436e33a3b86339673b559d345703593e1a8e9ec3237261027e9ae48d048198` |
 
+R4-PRECISION1 image: `cfs0_050_G32-cfs0_000_153-K2OH-CFG6-SGF1-RH1-R4-PRECISION1-CANDIDATE.bin`, SHA-256 `cc22f30adb5bf0ee471b73d21acb8789f9f8374b1cfe21c4bd405a8103d27099`.
+
 Images, sources, builders and offline tests: [k2-cfs-rfid-tools/firmware](https://github.com/MzTechnology97/k2-cfs-rfid-tools/tree/main/firmware).
 
 ## Which one should I use?
@@ -37,6 +40,7 @@ Images, sources, builders and offline tests: [k2-cfs-rfid-tools/firmware](https:
 | A CFS that just works | **Stock firmware** (no flash) |
 | Test all 23 CFG6 writable IDs in a controlled environment | **CFG6 v3.25**, with a working rollback image and v3.22; type-4 live remaining is not qualified |
 | To recover a CFS after a failed experiment | **v3.22** |
+| Remaining in millimetres instead of whole percent | **R4-PRECISION1 candidate** with the paired Kalico, supervised; R3 stays the reference |
 | Correct remaining % on Bambu spools (spool geometry) | **SGF1/RH1 R3 candidate** with the paired Kalico, supervised; keep RDG2 as rollback |
 
 ## History
