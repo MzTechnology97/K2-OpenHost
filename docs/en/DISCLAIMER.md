@@ -32,3 +32,14 @@ In K2-OpenHost the original T113 board stops being the printer's computer: its s
 Rewiring cables inside the printer is done at your own risk: disconnect mains power first, and route cables away from moving parts and heated areas.
 
 These limits come from the USB0 role switch described in [USB gadget transport](USB_GADGET.md#role-switch-caveat). They are expected to remain in the final architecture.
+
+## Operation
+
+- **Mechanical damage.** Wrong configuration values, a homing or probing error, or a lost connection mid-move can crash the toolhead into the bed or the frame.
+- **The USB cable is the printer's lifeline.** Unplugging or bumping the T113 cable, or a host reboot, stops the print at once: Klipper shuts down. Use a good data cable with a 90° plug and fix it in place.
+- **The host's power is the printer's power.** If the host loses power, the print is lost even if the printer stays on. Use the host's official power supply; a UPS for both is a good idea.
+- **No changes while printing.** Never restart Klipper, update, flash, edit the CFS runtime values or reboot the T113 during a print.
+- **No Creality OTA from slot B.** An OTA in slot B would overwrite slot A, so it is disabled. From slot A an OTA replaces K2-OpenHost's slot B. Board firmware is updated from slot B with `k2oh-mcu-fw` (helper menu 31).
+- **Supported model:** Creality K2 Pro only. The tools refuse other models and boards.
+- **Experimental CFS firmware.** The [modified CFS firmware](cfs-firmware/index.md) is not production qualified: a bad image can stop the CFS until a recovery image is flashed, and an [open issue](https://github.com/MzTechnology97/k2-cfs-rfid-tools/issues/9) means the CFS can report idle while feeding. Flash only with the printer idle and keep the v3.22 recovery image. The stock CFS firmware works fine with K2-OpenHost.
+- **Know your printer.** K2-OpenHost replaces the whole software stack, so you are your own support. Check the [test status](TEST_STATUS.md) before relying on a feature.
