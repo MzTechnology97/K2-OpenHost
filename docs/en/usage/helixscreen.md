@@ -30,7 +30,7 @@ From `1.0.6-k2oh.5` the fork has its own interface for the K2, with the `k2-open
 - **Print status**: progress ring with the preview, times, the spool in use with the swap order, temperatures, speed, flow and fan. **Exclude objects** shows the bed full width: tap the object to exclude.
 - **CFS page**: the four spools, the filament path (slot, buffer, encoder, clog detection, head sensor, nozzle), the runout swap and the **external spool card** with the **Bypass** switch to turn bypass mode on or off. During a load or unload the header names the stage (`Loading 2 · to the head 3/5`).
 - **Spool profile** (Edit → Change filament): the list opens on the slot's current profile. A profile from Kalico's library is assigned whole with `_BOX_SLOT_ASSIGN` (temperature, pressure advance, max flow, Orca id), the external spool included. Slots with a read RFID tag are not edited by hand.
-- **Touch & Input** (Settings): sensitivity and debounce filter of the GT911 touch controller, with a test pad. It only changes with the printer idle; the first change saves the original configuration (Restore original).
+- **Touch & Input** (Settings): touch test pad. The K2's GT911 controller keeps its configuration fixed in the chip: sensitivity and debounce filter cannot be changed, neither from the app nor from the kernel. After the first rejected attempt, the card says so and hides the presets.
 
 Planned work is in the [fork roadmap](https://github.com/MzTechnology97/helixscreen/blob/k2-openhost/docs/k2-openhost/ROADMAP.md) (Italian).
 
