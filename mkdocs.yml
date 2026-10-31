@@ -115,8 +115,7 @@ plugins:
             T113 service GPIOs: GPIO di servizio T113
             Serial link loss: Perdita del collegamento seriale
             CFS print mapping: Abbinamento della stampa CFS
-            CFS validation: Validazione CFS
-            CFS observation mode: Modalità osservazione CFS
+            CFS protocol: Protocollo CFS
             Hardware test plan: Piano di test hardware
             Test status: Stato dei test
             Credits and references: Riconoscimenti e riferimenti
@@ -214,8 +213,7 @@ nav:
       - T113 service GPIOs: T113_GPIO.md
       - Serial link loss: SERIAL_LINK_LOSS.md
       - CFS print mapping: CFS_PRINT_MAPPING.md
-      - CFS validation: CFS_VALIDATION.md
-      - CFS observation mode: CFS_OBSERVATION_MODE.md
+      - CFS protocol: CFS_VALIDATION.md
       - Hardware test plan: HARDWARE_TEST_PLAN.md
       - Test status: TEST_STATUS.md
       - Roadmap: ROADMAP.md

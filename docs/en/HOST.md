@@ -17,7 +17,7 @@ The external host of the reference K2 Pro, and how its CPU fan is driven from Kl
 | :---: | :---: |
 | ![Waveshare CM5-IO-BASE-A carrier board](../images/hardware/cm5-io-base-a.jpg){ width="340" } | ![Waveshare CM5-FAN-3007-B-5V cooler](../images/hardware/cm5-fan-3007.jpg){ width="340" } |
 
-On 2026-10-05 the CM5 still sat on a Waveshare **CM4-IO-BASE-A**. That board's USB ports were all USB 2.0 behind one hub on `dwc2`, and its fan header was driven over I2C by an EMC2301 controller. [USB bridge](USB_BRIDGE.md#the-cm5s-usb-30-ports-and-the-carrier-board) describes that setup and why the board was changed.
+On 2026-10-05 the CM5 still sat on a Waveshare **CM4-IO-BASE-A**. That board's USB ports were all USB 2.0 behind one hub on `dwc2`, and its fan header was driven over I2C by an EMC2301 controller. The CM5-IO-BASE-A gives the T113 an RP1 USB controller of its own and drives the fan from the CM5's own pins.
 
 ## USB
 
