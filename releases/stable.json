@@ -7,24 +7,24 @@
     "kalico": {
       "repo": "MzTechnology97/kalico-k2pro",
       "branch": "k2-pro-openhost",
-      "sha": "9fdd6d6972458d4b160167e487dd1821e0144b53"
+      "sha": "0bdfab3620d0f50bf99dfd0adb791848236a14d3"
     },
     "mainsail": {
       "repo": "MzTechnology97/mainsail-k2openhost",
       "branch": "develop",
-      "sha": "6ef8dcc6e42c70155c9f917a31bb8a2306f9ac83",
+      "sha": "c8b3305ae548326975c5693bc4a0b07ebffb7273",
       "tag": "v2.19.0-k2oh.19"
     },
     "helper": {
       "repo": "MzTechnology97/k2-openhost-installer-helper",
       "branch": "main",
-      "sha": "3dc29ba19dacb6df3f07b8aa3eddbde195dd00f9",
+      "sha": "a40dd18f1bac4cbaae07497ebdcb027a73f89e0e",
       "version": "0.1.0"
     },
     "t113_bootstrap": {
       "repo": "MzTechnology97/k2-openhost-t113-bootstrap",
       "branch": "main",
-      "sha": "883bdd2df1c70c98f4d7988cb8a535ab01743170",
+      "sha": "1d0861925466efa0dae072d95fa7d172626ad2ae",
       "version": "0.1.3"
     }
   },
