@@ -3,8 +3,8 @@
 The CFS estimates how much filament is left on a spool from its size. Stock firmware assumes a **Creality spool**, so a full spool from another brand reads low: a new Bambu spool showed **84 %**. With the **SGF1/RH1 R3** candidate firmware and the paired Kalico module `[box_spool_profiles]`, each vendor gets its own geometry and the same full spool reads **100 %**.
 
 !!! warning "Candidate, not a release"
-    - Firmware: **CFG6 SGF1/RH1 R3 candidate** ([k2-cfs-rfid-tools PR #64](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64), open). The maintained image is still RDG2 (see [versions](versions.md)).
-    - Kalico: `box_spool_profiles` ([kalico-k2pro PR #105](https://github.com/MzTechnology97/kalico-k2pro/pull/105), open), installed on the reference CM5 only.
+    - Firmware: **CFG6 SGF1/RH1 R3 candidate** ([k2-cfs-rfid-tools PR #64](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64)). The maintained image is still RDG2 (see [versions](versions.md)).
+    - Kalico: `box_spool_profiles` ([kalico-k2pro PR #105](https://github.com/MzTechnology97/kalico-k2pro/pull/105)).
     - Tested on the reference K2 Pro on 2026-10-29 with two Bambu PETG HF spools. Consumption during a print with R3 and other tag formats are not validated yet.
 
 ## How the CFS measures a spool

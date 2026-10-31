@@ -3,8 +3,8 @@
 Il CFS stima quanto filamento resta su una bobina dalle sue dimensioni. Il firmware stock presume una **bobina Creality**, quindi una bobina piena di un'altra marca risulta più vuota del vero: una Bambu nuova segnava **84 %**. Con il firmware candidato **SGF1/RH1 R3** e il modulo Kalico abbinato `[box_spool_profiles]`, ogni produttore ha la sua geometria e la stessa bobina piena segna **100 %**.
 
 !!! warning "Candidato, non una versione rilasciata"
-    - Firmware: **candidato CFG6 SGF1/RH1 R3** ([PR #64 di k2-cfs-rfid-tools](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64), aperta). L'immagine mantenuta resta RDG2 (vedi [versioni](versions.md)).
-    - Kalico: `box_spool_profiles` ([PR #105 di kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro/pull/105), aperta), installato solo sul CM5 di riferimento.
+    - Firmware: **candidato CFG6 SGF1/RH1 R3** ([PR #64 di k2-cfs-rfid-tools](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/64)). L'immagine mantenuta resta RDG2 (vedi [versioni](versions.md)).
+    - Kalico: `box_spool_profiles` ([PR #105 di kalico-k2pro](https://github.com/MzTechnology97/kalico-k2pro/pull/105)).
     - Provato sulla K2 Pro di riferimento il 29 ottobre 2026 con due bobine Bambu PETG HF. Il consumo durante una stampa con R3 e gli altri formati di tag non sono ancora validati.
 
 ## Come il CFS misura una bobina
