@@ -97,18 +97,14 @@ Results on the reference printer (bed 60 °C, probe about 52 °C):
 | Axis twist (X) | corrections within ±0.007 mm |
 | `START_PRINT` (PLA) | adaptive scan mesh in 11.5 s, then PRTouch Z home within 0.003 mm; good first layer |
 
-## Validation sequence (T5)
+## Cartographer as the only probe (not validated yet)
 
-1. Keep the validated PRTouch-only configuration as the rollback baseline.
-2. Confirm `/dev/ttyUSB0..2` stay stable, then connect Cartographer to the host.
-3. Check the device (`lsusb`, `ls -l /dev/k2-cartographer /dev/serial/by-id/`).
-4. Include `macros/cartographer.cfg`, restart Klipper and confirm Cartographer identifies without reconnect loops:
+Mixed mode above is the validated setup. To let the Cartographer also home Z and take the nozzle zero:
 
-   ```bash
-   grep -Ei 'cartographer|identify_response|Timeout on connect|Unable to connect' ~/printer_data/logs/klippy.log | tail -50
-   ```
+1. Keep a copy of the working `macros/cartographer.cfg` and `prtouch.cfg` to roll back to.
+2. Set `register_as_probe: True` in `macros/cartographer.cfg` and `register_as_probe: False` in `prtouch.cfg`. `[stepper_z]` keeps `probe:z_virtual_endstop`, which now belongs to the Cartographer.
+3. Restart Klipper and check `CARTOGRAPHER_QUERY` and `QUERY_PROBE`: the reading must change with the distance.
+4. Calibrate scan and touch with the official plugin's commands (`CARTOGRAPHER_SCAN_CALIBRATE`, `CARTOGRAPHER_TOUCH_CALIBRATE`), following its documentation.
+5. `G28`, a mesh and a first layer, with a hand on the emergency stop.
 
-5. Non-motion checks: `CARTOGRAPHER_QUERY` (and `QUERY_PROBE` when it owns the probe).
-6. Verify that readings change with distance.
-7. Test an automatic restart and reconnection.
-8. Only then run controlled probe, touch and scan operations; mixed mode last.
+If anything is off, put the two files back and restart Klipper: mixed mode returns as it was.
