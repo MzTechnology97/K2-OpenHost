@@ -37,6 +37,17 @@ flowchart TD
 - The last CFS value (`cfs_percent`) is saved with the estimate, so a Klipper restart does not re-anchor the spool needlessly.
 - With other firmware the CFS value is only the one measured at load: it can lower the estimate, never raise it.
 
+## Remaining in millimetres (R4-PRECISION1)
+
+With the [R4-PRECISION1](https://github.com/MzTechnology97/k2-cfs-rfid-tools/pull/65) candidate firmware and [Kalico](https://github.com/MzTechnology97/kalico-k2pro/pull/107), the CFS also reports millimetres: the starting quantity from the geometry, minus the protected consumption. Kalico restarts from this value instead of the whole percent, so the remaining moves in steps much finer than one percent.
+
+- A repeated or older counter does not rewind the local consumption.
+- Kalico goes back to the R3 percentage only if the firmware answers that the read is not supported. With missing or invalid data it keeps the saved estimate.
+- Passive console read: `BOX_SPOOL_GEOMETRY_STATUS ADDRESS=1 SLOT=1 PRECISION=1`.
+
+!!! warning "Candidate"
+    R3 stays the reference. On R4 the counter is verified to advance while printing on the reference CFS; physical accuracy and a full spool runout are not validated. Details and protocol: [guide in Kalico](https://github.com/MzTechnology97/kalico-k2pro/blob/k2-pro-openhost/docs/CFS_PRECISE_REMAINING.md).
+
 ## Configuration
 
 ```ini
